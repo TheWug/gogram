@@ -29,6 +29,11 @@ func (this TUser) NameString() (string) {
 	return this.First_name
 }
 
+func (this TUser) UsernameString() (string) {
+	if this.Username != nil { return *this.Username }
+	return "(none)"
+}
+
 // width 16
 func (this TChat) IdString() (string) {
 	return fmt.Sprintf("C%-15d", this.Id)
