@@ -218,3 +218,20 @@ type TInputMessageTextContent struct {
 	Parse_mode   string `json:"parse_mode"`
 	No_preview   bool   `json:"disable_web_page_preview"`
 }
+
+type SentMessage struct {
+	Id        int
+	Message  *TMessage
+	Success   bool
+	Error     error
+	Http_code int
+	Str_data  string
+	Int_data  int64
+}
+
+type SentItem struct {
+	Id        int
+	Success   bool
+	Error     error
+	Http_code int
+}

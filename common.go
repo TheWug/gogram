@@ -18,6 +18,7 @@ var apiEndpoint string = "https://api.telegram.org/bot"
 var apiFileEndpoint string = "https://api.telegram.org/file/bot"
 var apiKey string = "CHANGEME"
 var me TUser
+var current_async_id int = 0
 
 var mostRecentlyReceived int = 0
 
@@ -70,6 +71,11 @@ func Test() (error) {
 
 func GetMe() (TUser) {
 	return me
+}
+
+func GetNextId() (int) {
+	current_async_id = current_async_id + 1
+	return current_async_id
 }
 
 func GetStringId(chat_id interface{}) (string) {

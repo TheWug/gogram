@@ -1,12 +1,18 @@
 package telegram
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
-	"errors"
-	"net/http"
-	"io/ioutil"
+	"time"
+
 	"encoding/json"
+
+	"io/ioutil"
+
+	"net/http"
+
+	"logx"
 )
 
 func GetUpdates() ([]TUpdate, error) {
@@ -55,4 +61,18 @@ func GetUpdates() ([]TUpdate, error) {
 	}
 
 	return updates, nil
+}
+
+func AsyncUpdateLoop(output chan []TUpdate) () {
+	for {
+		updates, e := GetUpdates()
+		if e != nil {
+			// if an error occurred, sleep before trying again to avoid a tight error loop
+			logx.ErrorLog("telegram", "telegram.GetUpdates()", e, "GetUpdates failed: ")
+			time.Sleep(time.Duration(5) * time.Second)
+			continue
+		}
+
+		output <- updates
+	}
 }
