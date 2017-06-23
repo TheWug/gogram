@@ -2,6 +2,7 @@ package telegram
 
 import (
 	"fmt"
+	"time"
 	"strings"
 )
 
@@ -18,7 +19,7 @@ func (this TUser) PrintableString() (string) {
 	if this.Username != nil { username = "@" + *this.Username }
 	if this.Last_name != nil { name = this.First_name + " " + *this.Last_name }
 	if this.Last_name == nil { name = this.First_name }
-	name = strings.Replace(name, " ", "-", -1)
+	name = strings.Trim(strings.Replace(name, " ", "-", -1), " \r\n\t")
 
 	return fmt.Sprintf("%-56s", fmt.Sprintf("%s %s %s", this.IdString(), username, name))
 }
@@ -33,7 +34,7 @@ func (this TChat) IdString() (string) {
 	return fmt.Sprintf("C%-15d", this.Id)
 }
 
-// width 56
+// width 64
 func (this TChat) PrintableString() (string) {
 	var title string = ""
 	var username string = "<no username>"
@@ -42,7 +43,7 @@ func (this TChat) PrintableString() (string) {
 	if this.Title != nil { title = *this.Title }
 	if this.First_name != nil { title = *this.First_name }
 	if this.Last_name != nil { title = title + " " + *this.Last_name }
-	title = strings.Replace(title, " ", "-", -1)
+	title = strings.Trim(strings.Replace(title, " ", "-", -1), " \r\n\t")
 
 	if this.Username != nil { username = "@" + *this.Username }
 
@@ -51,7 +52,7 @@ func (this TChat) PrintableString() (string) {
 	if this.Type == "group" { msgtype = 'G' }
 	if this.Type == "channel" { msgtype = 'C' }
 
-	return fmt.Sprintf("%-56s", fmt.Sprintf("%c%s %s %s", msgtype, this.IdString(), username, title))
+	return fmt.Sprintf("%-64s", fmt.Sprintf("%c%s %s %s", msgtype, this.IdString(), username, title))
 }
 
 // width 10
@@ -68,16 +69,16 @@ func (this *TMessage) IdStringWithEdit(is_edit bool) (string) {
 	return fmt.Sprintf("%cM%-9d", edited, this.Message_id)
 }
 
-// width 81
+// width 79
 func (this *TMessage) RplFwdString() (string) {
-	var intermediate string = "NML -          -"
-	if this.Forward_from != nil { intermediate = fmt.Sprintf("FWD -          %s", this.Forward_from.PrintableString()) } // width 73
-	if this.Forward_from_chat != nil { intermediate = fmt.Sprintf("FWD -          %s", this.Forward_from_chat.PrintableString()) } // width 81
+	var intermediate string = "NML -          -          - -"
+	if this.Forward_from != nil { intermediate = fmt.Sprintf("FWD -          %s", this.Forward_from.PrintableString()) }
+	if this.Forward_from_chat != nil { intermediate = fmt.Sprintf("FWD -          %s", this.Forward_from_chat.PrintableString()) }
 
-	if this.Reply_to_message != nil && this.Reply_to_message.From != nil { intermediate = fmt.Sprintf("RPL %s %s", this.Reply_to_message.IdString(), this.Reply_to_message.From.PrintableString()) } // width 73
-	if this.Reply_to_message != nil && this.Reply_to_message.From == nil { intermediate = fmt.Sprintf("RPL %s %s", this.Reply_to_message.IdString(), this.Reply_to_message.Chat.PrintableString()) } // width 81	
+	if this.Reply_to_message != nil && this.Reply_to_message.From != nil { intermediate = fmt.Sprintf("RPL %s %s", this.Reply_to_message.IdString(), this.Reply_to_message.From.PrintableString()) }
+	if this.Reply_to_message != nil && this.Reply_to_message.From == nil { intermediate = fmt.Sprintf("RPL %s %s", this.Reply_to_message.IdString(), this.Reply_to_message.Chat.PrintableString()) } // longest, width 79
 
-	return fmt.Sprintf("%-81s", intermediate)
+	return fmt.Sprintf("%-79s", intermediate)
 }
 
 // width: 8
@@ -108,10 +109,21 @@ func (this *TMessage) TypeString() (string) {
 	return fmt.Sprintf("%-8s", intermediate)
 }
 
+// width: 41
+func (this *TMessage) TimestampString() (string) {
+	tf_string := "2006-01-02 15:04:05"
+	if this.Forward_date != nil {
+		return fmt.Sprintf("%s (%s)", time.Unix(this.Date, 0).UTC().Format(tf_string), time.Unix(*this.Forward_date, 0).UTC().Format(tf_string))
+	} else {
+		return fmt.Sprintf("%-41s", time.Unix(this.Date, 0).UTC().Format(tf_string))
+	}
+}
+
 // wide as fuck
 func (this *TMessage) PrintableString(is_edit bool) (string) {
-	var message_type, message_info, fwdrpl_info, sender_info, receiver_info, message_contents string
+	var message_ts, message_type, message_info, fwdrpl_info, sender_info, receiver_info, message_contents string
 
+	message_ts = this.TimestampString()
 	message_type = this.TypeString()
 	message_info = this.IdStringWithEdit(is_edit)
 	fwdrpl_info = this.RplFwdString()
@@ -119,12 +131,11 @@ func (this *TMessage) PrintableString(is_edit bool) (string) {
 	if this.From != nil { sender_info = this.From.PrintableString() }
 	if this.From == nil { sender_info = this.Chat.PrintableString() }
 
-	if this.Chat.Type == "private" { receiver_info = GetMe().PrintableString() }
-	if this.Chat.Type != "private" { receiver_info = this.Chat.PrintableString() }
+	receiver_info = this.Chat.PrintableString()
 
 	message_contents = this.MessageContents()
 	
-	return fmt.Sprintf("%s %s %s %s %s %s", message_type, message_info, sender_info, receiver_info, fwdrpl_info, message_contents)
+	return fmt.Sprintf("%s %s %s %s %s %s %s", message_ts, message_type, message_info, sender_info, receiver_info, fwdrpl_info, message_contents)
 }
 
 // width: variable.
