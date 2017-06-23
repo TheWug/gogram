@@ -14,7 +14,7 @@ var apiEndpoint string = "https://api.telegram.org/bot"
 var apiKey string = "CHANGEME"
 var me TUser
 
-var mostRecentlyReceived int = -25
+var mostRecentlyReceived int = 0
 
 func SetAPIKey(newKey string) () {
 	apiKey = newKey
