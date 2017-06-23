@@ -1,11 +1,15 @@
 package telegram
 
 import (
-	"net/http"
-	"log"
-	"encoding/json"
-	"io/ioutil"
 	"errors"
+	"log"
+	"strconv"
+
+	"encoding/json"
+
+	"io/ioutil"
+
+	"net/http"
 )
 
 // common state for the entire telegram package.
@@ -66,4 +70,18 @@ func Test() (error) {
 
 func GetMe() (TUser) {
 	return me
+}
+
+func GetStringId(chat_id interface{}) (string) {
+	var str_chat_id string
+	switch t := chat_id.(type) {
+	case int:
+		str_chat_id = strconv.FormatInt(int64(t), 10)
+	case int64:
+		str_chat_id = strconv.FormatInt(t, 10)
+	case string:
+		str_chat_id = t
+	}
+
+	return str_chat_id
 }
