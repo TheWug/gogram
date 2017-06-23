@@ -8,6 +8,17 @@ import (
 	"encoding/json"
 )
 
+func DoSendAPICall(apiurl string) (error) {
+	r, e := http.Get(apiurl)
+	if r != nil {
+		defer r.Body.Close()
+	}
+	if e != nil {
+		return e
+	}
+	return nil
+}
+
 func DoSendMessageAPICall(apiurl string) (*TMessage, error) {
 	r, e := http.Get(apiurl)
 	if r != nil {
@@ -68,6 +79,27 @@ func SendMessage(chat_id interface{}, text string, reply_to *int, mtype string) 
 	return DoSendMessageAPICall(apiurl)
 }
 
+func EditMessageText(chat_id interface{}, message_id int, inline_message_id string, text string, parse_mode string) {
+	var str_chat_id string
+	switch t := chat_id.(type) {
+	case int:
+		str_chat_id = strconv.FormatInt(int64(t), 10)
+	case int64:
+		str_chat_id = strconv.FormatInt(t, 10)
+	}
+
+	apiurl := apiEndpoint + apiKey + "/editMessageText?" + 
+	       "chat_id=" + url.QueryEscape(str_chat_id) +
+	       "&message_id=" + strconv.FormatInt(int64(message_id), 10) +
+	       "&text=" + url.QueryEscape(text)
+
+	if parse_mode != "" {
+		apiurl = apiurl + "&parse_mode=" + url.QueryEscape(parse_mode)
+	}
+
+	DoSendMessageAPICall(apiurl)
+}
+
 func SendSticker(chat_id interface{}, sticker_id string, reply_to *int, disable_notification bool) (message *TMessage, e error) {
 	var str_chat_id string
 	switch t := chat_id.(type) {
@@ -125,4 +157,22 @@ func ForwardMessage(chat_id interface{}, from_chat_id interface{}, message_id in
 	}
 
 	return DoSendMessageAPICall(url)
+}
+
+func KickMember(chat_id interface{}, member int) {
+	var str_chat_id string
+	switch t := chat_id.(type) {
+	case string:
+		str_chat_id = t
+	case int:
+		str_chat_id = strconv.FormatInt(int64(t), 10)
+	case int64:
+		str_chat_id = strconv.FormatInt(t, 10)
+	}
+
+	url := apiEndpoint + apiKey + "/kickChatMember?" + 
+	       "chat_id=" + url.QueryEscape(str_chat_id) +
+	       "&user_id=" + strconv.FormatInt(int64(member), 10)
+
+	DoSendAPICall(url)
 }
