@@ -40,11 +40,11 @@ type TMessageEntity struct {
 type TMessage struct {
 	Message_id          int              `json:"message_id"`
     From               *TUser            `json:"from"`
-	Date                int              `json:"date"`
+	Date                int64            `json:"date"`
 	Chat                TChat            `json:"chat"`
 	Forward_from       *TUser            `json:"forward_from"`
 	Forward_from_chat  *TChat            `json:"forward_from_chat"`
-	Forward_date       *int              `json:"forward_date"`
+	Forward_date       *int64            `json:"forward_date"`
 	Reply_to_message   *TMessage         `json:"reply_to_message"`
 	Edit_date          *int              `json:"edit_date"`
 	Text               *string           `json:"text"`
@@ -96,8 +96,8 @@ type TContact struct {
 }
 
 type TLocation struct {
-	Longitude string `json:"longitude"`
-	Latitude  string `json:"latitude"`
+	Longitude float64 `json:"longitude"`
+	Latitude  float64 `json:"latitude"`
 }
 
 type TVenue struct {
