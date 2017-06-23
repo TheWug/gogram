@@ -160,7 +160,7 @@ func (this *TMessage) MessageContents() (string) {
 	if this.Venue != nil { return fmt.Sprintf("(%f %f) %s: %s", this.Venue.Location.Longitude, this.Venue.Location.Latitude, this.Venue.Title, this.Venue.Description) }
 	if this.New_chat_member != nil { return fmt.Sprintf("[Chat member added] %s", this.New_chat_member.PrintableString()) }
 	if this.Left_chat_member != nil { return fmt.Sprintf("[Chat member removed] %s", this.Left_chat_member.PrintableString()) }
-	if this.New_chat_title != nil { return fmt.Sprintf("[New chat title] %s", this.New_chat_title) }
+	if this.New_chat_title != nil { return fmt.Sprintf("[New chat title] %s", *this.New_chat_title) }
 	if this.New_chat_photo != nil { return fmt.Sprintf("[Chat photo set] %s", GetLargestPhoto(this.New_chat_photo).File_id) }
 	if this.Delete_chat_photo != nil { return "[Chat photo deleted]" }
 	if this.Group_chat_created != nil { return "[Group created]" }
