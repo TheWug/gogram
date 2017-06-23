@@ -23,6 +23,11 @@ func (this TUser) PrintableString() (string) {
 	return fmt.Sprintf("%-56s", fmt.Sprintf("%s %s %s", this.IdString(), username, name))
 }
 
+func (this TUser) NameString() (string) {
+	if this.Last_name != nil { return this.First_name + " " + *this.Last_name }
+	return this.First_name
+}
+
 // width 16
 func (this TChat) IdString() (string) {
 	return fmt.Sprintf("C%-15d", this.Id)
