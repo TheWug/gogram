@@ -2,8 +2,8 @@ package telegram
 
 import (
 	"fmt"
-	"time"
 	"strings"
+	"time"
 )
 
 // width 10
@@ -37,6 +37,12 @@ func (this TUser) UsernameString() (string) {
 // width 16
 func (this TChat) IdString() (string) {
 	return fmt.Sprintf("C%-15d", this.Id)
+}
+
+// width variable
+func (this TChat) TitleString() (string) {
+	if this.Title == nil { return this.IdString() }
+	return *this.Title
 }
 
 // width 64

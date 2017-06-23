@@ -11,8 +11,6 @@ import (
 	"io/ioutil"
 
 	"net/http"
-
-	"logx"
 )
 
 func GetUpdates() ([]TUpdate, error) {
@@ -68,7 +66,7 @@ func AsyncUpdateLoop(output chan []TUpdate) () {
 		updates, e := GetUpdates()
 		if e != nil {
 			// if an error occurred, sleep before trying again to avoid a tight error loop
-			logx.ErrorLog("telegram", "telegram.GetUpdates()", e, "GetUpdates failed: ")
+			//common.ErrorLog("telegram", "telegram.GetUpdates()", e, "GetUpdates failed: ")
 			time.Sleep(time.Duration(5) * time.Second)
 			continue
 		}

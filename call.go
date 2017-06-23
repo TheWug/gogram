@@ -2,45 +2,41 @@ package telegram
 
 import (
 	"strconv"
+	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"net/url"
-	"io/ioutil"
-	"encoding/json"
 )
 
-func DoAsyncSendAPICall(sent SentItem, output *chan SentItem, apiurl string) {
-	r, e := http.Get(apiurl)
-	if r != nil {
-		defer r.Body.Close()
-	}
-	if e != nil {
-		sent.Error = e
-		if (output != nil) { *output <- sent }
-		return
-	}
+var CallResponseChannel chan HandlerBox = make(chan HandlerBox, 10)
 
-	sent.Http_code = r.StatusCode
-	sent.Success = true
-	if (output != nil) { *output <- sent }
-	return
+type HandlerBox struct {
+	Success   bool
+	Error     error
+	Http_code int
+	Handler  ResponseHandler
+	Output   *json.RawMessage
 }
 
-func DoAsyncSendMessageAPICall(sent SentMessage, output *chan SentMessage, apiurl string) {
+func DoAsyncCall(handler ResponseHandler, output *chan HandlerBox, apiurl string) {
+	var hbox HandlerBox
+	hbox.Handler = handler
+
 	r, e := http.Get(apiurl)
 	if r != nil {
 		defer r.Body.Close()
 	}
 	if e != nil {
-		sent.Error = e
-		if (output != nil) { *output <- sent }
+		hbox.Error = e
+		if (output != nil) { *output <- hbox }
 		return
 	}
 
-	sent.Http_code = r.StatusCode
+	hbox.Http_code = r.StatusCode
 	b, e := ioutil.ReadAll(r.Body)
 	if e != nil {
-		sent.Error = e
-		if (output != nil) { *output <- sent }
+		hbox.Error = e
+		if (output != nil) { *output <- hbox }
 		return
 	}
 
@@ -48,30 +44,21 @@ func DoAsyncSendMessageAPICall(sent SentMessage, output *chan SentMessage, apiur
 	e = json.Unmarshal(b, &out)
 
 	if e != nil {
-		sent.Error = e
-		if (output != nil) { *output <- sent }
+		hbox.Error = e
+		if (output != nil) { *output <- hbox }
 		return
 	}
 
 	e = HandleSoftError(&out)
 	if e != nil {
-		sent.Error = e
-		if (output != nil) { *output <- sent }
+		hbox.Error = e
+		if (output != nil) { *output <- hbox }
 		return
 	}
 
-	var message *TMessage = new(TMessage)
-	e = json.Unmarshal(*out.Result, message)
-
-	if e != nil {
-		sent.Error = e
-		if (output != nil) { *output <- sent }
-		return
-	}
-
-	sent.Message = message
-	sent.Success = true
-	if (output != nil) { *output <- sent }
+	hbox.Output = out.Result
+	hbox.Success = true
+	if (output != nil) { *output <- hbox }
 	return
 }
 
@@ -110,31 +97,40 @@ func DoGenericAPICall(apiurl string, out_obj interface{}) (error) {
 	return nil
 }
 
-func DoSendAPICall(apiurl string) (error) {
-	ch := make(chan SentItem, 1)
-	var sent SentItem
-	sent.Id = -1
+func DoCall(apiurl string) (*json.RawMessage, error) {
+	ch := make(chan HandlerBox, 1)
 
-	DoAsyncSendAPICall(sent, &ch, apiurl)
+	DoAsyncCall(nil, &ch, apiurl)
 	close(ch)
-	sent = <- ch
+	output := <- ch
 
-	return sent.Error
-}
-
-func DoSendMessageAPICall(apiurl string) (*TMessage, error) {
-	ch := make(chan SentMessage, 1)
-	var sent SentMessage
-	sent.Id = -1
-
-	DoAsyncSendMessageAPICall(sent, &ch, apiurl)
-	close(ch)
-	sent = <- ch
-
-	return sent.Message, sent.Error
+	return output.Output, output.Error
 }
 
 // URL building functions
+
+func BuildGetChatMemberURL(chat_id interface{}, user_id int) (string) {
+	apiurl := apiEndpoint + apiKey + "/getChatMember?" + 
+	       "chat_id=" + url.QueryEscape(GetStringId(chat_id)) +
+	       "&user_id=" + strconv.Itoa(user_id)
+	return apiurl
+}
+
+func BuildAnswerInlineQueryURL(q TInlineQuery, last_offset int) (string) {
+	// next_offset should get stuck at -1 forever if pagination breaks somehow, to prevent infinite loops.
+	next_offset := ""
+	if last_offset == -1 {
+		next_offset = "-1"
+	} else {
+		next_offset = strconv.Itoa(last_offset + 1)
+	}
+
+	return apiEndpoint + apiKey + "/answerInlineQuery?" +
+		"inline_query_id=" + url.QueryEscape(q.Id) +
+		"&next_offset=" + next_offset +
+		"&cache_time=30" +
+		"&results="
+}
 
 func BuildSendMessageURL(chat_id interface{}, text string, reply_to *int, mtype string, reply_markup interface{}) (string) {
 	apiurl := apiEndpoint + apiKey + "/sendMessage?" + 
@@ -220,63 +216,93 @@ func BuildKickMemberURL(chat_id interface{}, member int) (string) {
 	       "&user_id=" + strconv.FormatInt(int64(member), 10)
 }
 
+// Type Helpers
+
+func OutputToMessage(raw *json.RawMessage, err error) (*TMessage, error) {
+	if err != nil { return nil, err }
+
+	var msg TMessage
+	err = json.Unmarshal(*raw, &msg)
+
+	if err != nil { return nil, err }
+	return &msg, nil
+}
+
 // Async calls
 
-func SendMessageAsync(chat_id interface{}, text string, reply_to *int, mtype string, output *chan SentMessage, sm *SentMessage) (int) {
-	if sm == nil { sm = new(SentMessage) }
-	sm.Id = GetNextId()
-	go DoAsyncSendMessageAPICall(*sm, output, BuildSendMessageURL(chat_id, text, reply_to, mtype))
-	return sm.Id
+func GetChatMemberAsync(chat_id interface{}, user_id int, rm ResponseHandler) () {
+	go DoAsyncCall(rm, &CallResponseChannel, BuildGetChatMemberURL(chat_id, user_id))
 }
 
-func EditMessageTextAsync(chat_id interface{}, message_id int, _ string, text string, parse_mode string, output *chan SentMessage, sm *SentMessage) (int) {
-	if sm == nil { sm = new(SentMessage) }
-	sm.Id = GetNextId()
-	go DoAsyncSendMessageAPICall(*sm, output, BuildEditMessageURL(chat_id, message_id, "", text, parse_mode))
-	return sm.Id
+func AnswerInlineQueryAsync(q TInlineQuery, out []interface{}, last_offset int, rm ResponseHandler) (error) {
+	b, e := json.Marshal(out)
+	if e != nil { return e }
+	surl := BuildAnswerInlineQueryURL(q, last_offset)
+	go DoAsyncCall(rm, &CallResponseChannel, surl + url.QueryEscape(string(b)))
+	return nil
 }
 
-func SendStickerAsync(chat_id interface{}, sticker_id string, reply_to *int, disable_notification bool, output *chan SentMessage, sm *SentMessage) (int) {
-	if sm == nil { sm = new(SentMessage) }
-	sm.Id = GetNextId()
-	go DoAsyncSendMessageAPICall(*sm, output, BuildSendStickerURL(chat_id, sticker_id, reply_to, disable_notification))
-	return sm.Id
+
+func SendMessageAsync(chat_id interface{}, text string, reply_to *int, mtype string, sm ResponseHandler) () {
+	go DoAsyncCall(sm, &CallResponseChannel, BuildSendMessageURL(chat_id, text, reply_to, mtype))
 }
 
-func ForwardMessageAsync(chat_id interface{}, from_chat_id interface{}, message_id int, disable_notification bool, output *chan SentMessage, sm *SentMessage) (int) {
-	if sm == nil { sm = new(SentMessage) }
-	sm.Id = GetNextId()
-	go DoAsyncSendMessageAPICall(*sm, output, BuildForwardMessageURL(chat_id, from_chat_id, message_id, disable_notification))
-	return sm.Id
+func EditMessageTextAsync(chat_id interface{}, message_id int, _ string, text string, parse_mode string, sm ResponseHandler) () {
+	go DoAsyncCall(sm, &CallResponseChannel, BuildEditMessageURL(chat_id, message_id, "", text, parse_mode))
 }
 
-func KickMemberAsync(chat_id interface{}, member int, output *chan SentItem, si *SentItem) (int) {
-	if si == nil { si = new(SentItem) }
-	si.Id = GetNextId()
-	go DoAsyncSendAPICall(*si, output, BuildKickMemberURL(chat_id, member))
-	return si.Id
+func SendStickerAsync(chat_id interface{}, sticker_id string, reply_to *int, disable_notification bool, sm ResponseHandler) () {
+	go DoAsyncCall(sm, &CallResponseChannel, BuildSendStickerURL(chat_id, sticker_id, reply_to, disable_notification))
+}
+
+func ForwardMessageAsync(chat_id interface{}, from_chat_id interface{}, message_id int, disable_notification bool, sm ResponseHandler) () {
+	go DoAsyncCall(sm, &CallResponseChannel, BuildForwardMessageURL(chat_id, from_chat_id, message_id, disable_notification))
+}
+
+func KickMemberAsync(chat_id interface{}, member int, si ResponseHandler) () {
+	go DoAsyncCall(si, &CallResponseChannel, BuildKickMemberURL(chat_id, member))
 }
 
 // Synchronous calls
 
+func GetChatMember(chat_id interface{}, user_id int) (*TChatMember, error) {
+	raw, err := DoCall(BuildGetChatMemberURL(chat_id, user_id))
+	if err != nil { return nil, err }
+
+	var chatmember TChatMember
+	err = json.Unmarshal(*raw, &chatmember)
+
+	if err != nil { return nil, err }
+	return &chatmember, nil
+}
+
+func AnswerInlineQuery(q TInlineQuery, out []interface{}, last_offset int) (error) {
+	b, err := json.Marshal(out)
+	if err != nil { return err }
+
+	_, err = DoCall(BuildAnswerInlineQueryURL(q, last_offset) + url.QueryEscape(string(b)))
+	return err
+}
+
 func SendMessage(chat_id interface{}, text string, reply_to *int, mtype string, reply_markup interface{}) (*TMessage, error) {
-	return DoSendMessageAPICall(BuildSendMessageURL(chat_id, text, reply_to, mtype, reply_markup))
+	return OutputToMessage(DoCall(BuildSendMessageURL(chat_id, text, reply_to, mtype, reply_markup)))
 }
 
-func EditMessageText(chat_id interface{}, message_id int, inline_message_id string, text string, parse_mode string, reply_markup interface{}) {
-	DoSendMessageAPICall(BuildEditMessageURL(chat_id, message_id, inline_message_id, text, parse_mode, reply_markup))
+func EditMessageText(chat_id interface{}, message_id int, inline_message_id string, text string, parse_mode string, reply_markup interface{}) (*TMessage, error) {
+	return OutputToMessage(DoCall(BuildEditMessageURL(chat_id, message_id, "", text, parse_mode, reply_markup)))
 }
 
-func SendSticker(chat_id interface{}, sticker_id string, reply_to *int, disable_notification bool) (message *TMessage, e error) {
-	return DoSendMessageAPICall(BuildSendStickerURL(chat_id, sticker_id, reply_to, disable_notification))
+func SendSticker(chat_id interface{}, sticker_id string, reply_to *int, disable_notification bool) (*TMessage, error) {
+	return OutputToMessage(DoCall(BuildSendStickerURL(chat_id, sticker_id, reply_to, disable_notification)))
 }
 
-func ForwardMessage(chat_id interface{}, from_chat_id interface{}, message_id int, disable_notification bool) (message *TMessage, e error) {
-	return DoSendMessageAPICall(BuildForwardMessageURL(chat_id, from_chat_id, message_id, disable_notification))
+func ForwardMessage(chat_id interface{}, from_chat_id interface{}, message_id int, disable_notification bool) (*TMessage, error) {
+	return OutputToMessage(DoCall(BuildForwardMessageURL(chat_id, from_chat_id, message_id, disable_notification)))
 }
 
 func KickMember(chat_id interface{}, member int) (error) {
-	return DoSendAPICall(BuildKickMemberURL(chat_id, member))
+	_, err := DoCall(BuildKickMemberURL(chat_id, member))
+	return err
 }
 
 func GetFile(file_id string) (*TFile, error) {
@@ -312,3 +338,4 @@ func AnswerCallbackQuery(query_id, notification string, show_alert bool) (error)
 
 	return DoSendAPICall(url)
 }
+

@@ -73,6 +73,11 @@ type TMessage struct {
 	Pinned_message     *TMessage         `json:"pinned_message"`
 }
 
+type TChatMember struct {
+	User   TUser  `json:"user"`
+	Status string `json:"status"`
+}
+
 type TGenericFile struct {
 	File_id string `json:"file_id"`
 }
@@ -219,19 +224,6 @@ type TInputMessageTextContent struct {
 	No_preview   bool   `json:"disable_web_page_preview"`
 }
 
-type SentMessage struct {
-	Id        int
-	Message  *TMessage
-	Success   bool
-	Error     error
-	Http_code int
-	Str_data  string
-	Int_data  int64
-}
-
-type SentItem struct {
-	Id        int
-	Success   bool
-	Error     error
-	Http_code int
+type ResponseHandler interface {
+	Callback(result *json.RawMessage, success bool, err error, http_code int)
 }
