@@ -20,13 +20,36 @@ type TChat struct {
 	Last_name  *string `json:"last_name"`
 }
 
+type TPhotoSize struct {
+	File_id   string `json:"file_id"`
+	Width     int    `json:"width"`
+	Height    int    `json:"height"`
+	File_size int    `json:"file_size"`
+}
+
+type TMaskPosition struct {
+	Point	string  `json:"point"`
+	X_shift float64 `json:"x_shift"`
+	Y_shift float64 `json:"y_shift"`
+	Scale   float64 `json:"scale"`
+}
+
 type TSticker struct {
-	File_id    string     `json:"file_id"`
-	Width      int        `json:"width"`
-	Height     int        `json:"height"`
-//	Thumb     *TPhotosize `json:"thumb"`
-	Emoji     *string     `json:"emoji"`
-	File_size *int        `json:"file_size"`
+	File_id        string        `json:"file_id"`
+	Width          int           `json:"width"`
+	Height         int           `json:"height"`
+	Thumb         *TPhotoSize    `json:"thumb"`
+	Emoji         *string        `json:"emoji"`
+	Set_name      *string        `json:"set_name"`
+	Mask_position *TMaskPosition `json:"mask_position"`
+	File_size     *int           `json:"file_size"`
+}
+
+type TStickerSet struct {
+	Name           string     `json:"name"`
+	Title          string     `json:"title"`
+	Contains_masks bool       `json:"contains_masks"`
+	Stickers      *[]TSticker `json:"stickers"`
 }
 
 type TMessageEntity struct {
@@ -97,13 +120,6 @@ type TDocument struct {
 
 type TGame struct {
 	Title string `json:"title"`
-}
-
-type TPhotoSize struct {
-	File_id   string `json:"file_id"`
-	Width     int    `json:"width"`
-	Height    int    `json:"height"`
-	File_size int    `json:"file_size"`
 }
 
 type TContact struct {
