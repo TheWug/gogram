@@ -116,14 +116,8 @@ func BuildGetChatMemberURL(chat_id interface{}, user_id int) (string) {
 	return apiurl
 }
 
-func BuildAnswerInlineQueryURL(q TInlineQuery, last_offset int) (string) {
+func BuildAnswerInlineQueryURL(q TInlineQuery, next_offset string) (string) {
 	// next_offset should get stuck at -1 forever if pagination breaks somehow, to prevent infinite loops.
-	next_offset := ""
-	if last_offset == -1 {
-		next_offset = "-1"
-	} else {
-		next_offset = strconv.Itoa(last_offset + 1)
-	}
 
 	return apiEndpoint + apiKey + "/answerInlineQuery?" +
 		"inline_query_id=" + url.QueryEscape(q.Id) +
@@ -234,10 +228,10 @@ func GetChatMemberAsync(chat_id interface{}, user_id int, rm ResponseHandler) ()
 	go DoAsyncCall(rm, &CallResponseChannel, BuildGetChatMemberURL(chat_id, user_id))
 }
 
-func AnswerInlineQueryAsync(q TInlineQuery, out []interface{}, last_offset int, rm ResponseHandler) (error) {
+func AnswerInlineQueryAsync(q TInlineQuery, out []interface{}, offset string, rm ResponseHandler) (error) {
 	b, e := json.Marshal(out)
 	if e != nil { return e }
-	surl := BuildAnswerInlineQueryURL(q, last_offset)
+	surl := BuildAnswerInlineQueryURL(q, offset)
 	go DoAsyncCall(rm, &CallResponseChannel, surl + url.QueryEscape(string(b)))
 	return nil
 }
@@ -276,11 +270,11 @@ func GetChatMember(chat_id interface{}, user_id int) (*TChatMember, error) {
 	return &chatmember, nil
 }
 
-func AnswerInlineQuery(q TInlineQuery, out []interface{}, last_offset int) (error) {
+func AnswerInlineQuery(q TInlineQuery, out []interface{}, offset string) (error) {
 	b, err := json.Marshal(out)
 	if err != nil { return err }
 
-	_, err = DoCall(BuildAnswerInlineQueryURL(q, last_offset) + url.QueryEscape(string(b)))
+	_, err = DoCall(BuildAnswerInlineQueryURL(q, offset) + url.QueryEscape(string(b)))
 	return err
 }
 
