@@ -1,6 +1,7 @@
 package telegram
 
 import (
+	"errors"
 	"strconv"
 	"encoding/json"
 	"io/ioutil"
@@ -210,6 +211,11 @@ func BuildKickMemberURL(chat_id interface{}, member int) (string) {
 	       "&user_id=" + strconv.FormatInt(int64(member), 10)
 }
 
+func BuildGetStickerSetURL(name string) (string) {
+	return apiEndpoint + apiKey + "/getStickerSet?" + 
+	       "name=" + url.QueryEscape(name)
+}
+
 // Type Helpers
 
 func OutputToMessage(raw *json.RawMessage, err error) (*TMessage, error) {
@@ -219,7 +225,19 @@ func OutputToMessage(raw *json.RawMessage, err error) (*TMessage, error) {
 	err = json.Unmarshal(*raw, &msg)
 
 	if err != nil { return nil, err }
+	if msg.Message_id == 0 { return nil, errors.New("Missing message") }
 	return &msg, nil
+}
+
+func OutputToStickerSet(raw *json.RawMessage, err error) (*TStickerSet, error) {
+	if err != nil { return nil, err }
+
+	var set TStickerSet
+	err = json.Unmarshal(*raw, &set)
+
+	if err != nil { return nil, err }
+	if set.Stickers == nil { return nil, errors.New("Missing sticker set") }
+	return &set, nil
 }
 
 // Async calls
@@ -255,6 +273,10 @@ func ForwardMessageAsync(chat_id interface{}, from_chat_id interface{}, message_
 
 func KickMemberAsync(chat_id interface{}, member int, si ResponseHandler) () {
 	go DoAsyncCall(si, &CallResponseChannel, BuildKickMemberURL(chat_id, member))
+}
+
+func GetStickerSetAsync(name string, rm ResponseHandler) () {
+	go DoAsyncCall(rm, &CallResponseChannel, BuildGetStickerSetURL(name))
 }
 
 // Synchronous calls
@@ -333,3 +355,6 @@ func AnswerCallbackQuery(query_id, notification string, show_alert bool) (error)
 	return DoSendAPICall(url)
 }
 
+func GetStickerSet(name string) (*TStickerSet, error) {
+	return OutputToStickerSet(DoCall(BuildGetStickerSetURL(name)))
+}

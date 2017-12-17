@@ -46,9 +46,9 @@ type TSticker struct {
 }
 
 type TStickerSet struct {
-	Name           string     `json:"name"`
-	Title          string     `json:"title"`
-	Contains_masks bool       `json:"contains_masks"`
+	Name             string   `json:"name"`
+	Title            string   `json:"title"`
+	Contains_masks   bool     `json:"contains_masks"`
 	Stickers      *[]TSticker `json:"stickers"`
 }
 
