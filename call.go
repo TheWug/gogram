@@ -240,11 +240,18 @@ func OutputToStickerSet(raw *json.RawMessage, err error) (*TStickerSet, error) {
 	return &set, nil
 }
 
-// Async calls
+func OutputToChatMember(raw *json.RawMessage, err error) (*TChatMember, error) {
+	if err != nil { return nil, err }
 
-func GetChatMemberAsync(chat_id interface{}, user_id int, rm ResponseHandler) () {
-	go DoAsyncCall(rm, &CallResponseChannel, BuildGetChatMemberURL(chat_id, user_id))
+	var cm TChatMember
+	err = json.Unmarshal(*raw, &cm)
+
+	if err != nil { return nil, err }
+	if cm.Status == "" { return nil, errors.New("Missing sticker set") }
+	return &cm, nil
 }
+
+// Async calls
 
 func AnswerInlineQueryAsync(q TInlineQuery, out []interface{}, offset string, rm ResponseHandler) (error) {
 	b, e := json.Marshal(out)
@@ -279,18 +286,11 @@ func GetStickerSetAsync(name string, rm ResponseHandler) () {
 	go DoAsyncCall(rm, &CallResponseChannel, BuildGetStickerSetURL(name))
 }
 
-// Synchronous calls
-
-func GetChatMember(chat_id interface{}, user_id int) (*TChatMember, error) {
-	raw, err := DoCall(BuildGetChatMemberURL(chat_id, user_id))
-	if err != nil { return nil, err }
-
-	var chatmember TChatMember
-	err = json.Unmarshal(*raw, &chatmember)
-
-	if err != nil { return nil, err }
-	return &chatmember, nil
+func GetChatMemberAsync(chat_id interface{}, user_id int, rm ResponseHandler) () {
+	go DoAsyncCall(rm, &CallResponseChannel, BuildGetChatMemberURL(chat_id, user_id))
 }
+
+// Synchronous calls
 
 func AnswerInlineQuery(q TInlineQuery, out []interface{}, offset string) (error) {
 	b, err := json.Marshal(out)
@@ -357,4 +357,8 @@ func AnswerCallbackQuery(query_id, notification string, show_alert bool) (error)
 
 func GetStickerSet(name string) (*TStickerSet, error) {
 	return OutputToStickerSet(DoCall(BuildGetStickerSetURL(name)))
+}
+
+func GetChatMember(chat_id interface{}, user_id int) (*TChatMember, error) {
+	return OutputToChatMember(DoCall(BuildGetChatMemberURL(chat_id, user_id)))
 }
