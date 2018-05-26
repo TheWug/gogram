@@ -83,10 +83,10 @@ type TMessage struct {
 	Contact            *TContact         `json:"contact"`
 	Location           *TLocation        `json:"location"`
 	Venue              *TVenue           `json:"venue"`
-    New_chat_member    *TUser            `json:"new_chat_member"`
-    Left_chat_member   *TUser            `json:"left_chat_member"`
-    New_chat_title     *string           `json:"new_chat_title"`
-    New_chat_photo     *[]TPhotoSize     `json:"new_chat_photo"`
+	New_chat_member    *TUser            `json:"new_chat_member"`
+	Left_chat_member   *TUser            `json:"left_chat_member"`
+	New_chat_title     *string           `json:"new_chat_title"`
+	New_chat_photo     *[]TPhotoSize     `json:"new_chat_photo"`
 	Delete_chat_photo  *bool             `json:"delete_chat_photo"`
 	Group_chat_created *bool             `json:"group_chat_created"`
 	Supergroup_chat_created *bool        `json:"supergroup_chat_created"`
@@ -97,8 +97,9 @@ type TMessage struct {
 }
 
 type TChatMember struct {
-	User   TUser  `json:"user"`
-	Status string `json:"status"`
+	User                  TUser  `json:"user"`
+	Status                string `json:"status"`
+	Can_restrict_members *bool   `json:"can_restrict_members"`
 }
 
 type TGenericFile struct {
@@ -112,10 +113,11 @@ type TFile struct {
 }
 
 type TDocument struct {
-	File_id   string `json:"file_id"`
-	File_name string `json:"file_name"`
-	Mime_type string `json:"mime_type"`
-	File_size int64 `json:"file_size"`
+	File_id    string     `json:"file_id"`
+	Thumb     *TPhotoSize `json:"thumb"`
+	File_name  string     `json:"file_name"`
+	Mime_type  string     `json:"mime_type"`
+	File_size  int        `json:"file_size"`
 }
 
 type TGame struct {
