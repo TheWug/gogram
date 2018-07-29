@@ -11,6 +11,7 @@ import (
 // common state for the entire telegram package.
 
 var apiEndpoint string = "https://api.telegram.org/bot"
+var apiFileEndpoint string = "https://api.telegram.org/file/bot"
 var apiKey string = "CHANGEME"
 var me TUser
 

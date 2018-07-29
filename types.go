@@ -39,7 +39,7 @@ type TMessageEntity struct {
 
 type TMessage struct {
 	Message_id          int              `json:"message_id"`
-    From               *TUser            `json:"from"`
+	From               *TUser            `json:"from"`
 	Date                int64            `json:"date"`
 	Chat                TChat            `json:"chat"`
 	Forward_from       *TUser            `json:"forward_from"`
@@ -51,7 +51,7 @@ type TMessage struct {
 	Caption            *string           `json:"caption"`
 	Entities           *[]TMessageEntity `json:"entities"`
 	Audio              *TGenericFile     `json:"audio"`
-	Document           *TGenericFile     `json:"document"`
+	Document           *TDocument        `json:"document"`
 	Game               *TGame            `json:"game"`
 	Photo              *[]TPhotoSize     `json:"photo"`
 	Sticker            *TSticker         `json:"sticker"`
@@ -75,6 +75,19 @@ type TMessage struct {
 
 type TGenericFile struct {
 	File_id string `json:"file_id"`
+}
+
+type TFile struct {
+	File_id    string `json:"file_id"`
+	File_size *int    `json:"file_size"`
+	File_path *string `json:"file_path"`
+}
+
+type TDocument struct {
+	File_id   string `json:"file_id"`
+	File_name string `json:"file_name"`
+	Mime_type string `json:"mime_type"`
+	File_size int64 `json:"file_size"`
 }
 
 type TGame struct {
@@ -121,13 +134,23 @@ type TChosenInlineResult struct {
 	Query              string    `json:"query"`
 }
 
+type TCallbackQuery struct {
+	Id                 string   `json:"id"`
+	From               TUser    `json:"from"`
+	Message           *TMessage `json:"message"`
+	Inline_message_id *string   `json:"inline_message_id"`
+	Chat_instance      string   `json:"chat_instance"`
+	Data              *string   `json:"data"`
+	Game_short_name   *string   `json:"game_short_name"`
+}
+
 type TUpdate struct {
 	Update_id             int                 `json:"update_id"`
 	Message              *TMessage            `json:"message,omitempty"`
 	Edited_message       *TMessage            `json:"edited_message,omitempty"`
 	Inline_query         *TInlineQuery        `json:"inline_query,omitempty"`
 	Chosen_inline_result *TChosenInlineResult `json:"chosen_inline_result,omitempty"`
-//	Callback_query       *TCallbackQuery      `json:"callback_query,omitempty"`
+	Callback_query       *TCallbackQuery      `json:"callback_query,omitempty"`
 }
 
 type TGenericResponse struct {
@@ -146,28 +169,52 @@ type TInlineQueryResultCachedSticker struct {
 }
 
 type TInlineQueryResultPhoto struct {
-	Type                   string `json:"type"`
-	Id                     string `json:"id"`
-	Photo_url              string `json:"photo_url"`
-	Thumb_url              string `json:"thumb_url"`
-	Photo_width           *int    `json:"photo_width,omitempty"`
-	Photo_height          *int    `json:"photo_height,omitempty"`
-	Title                 *string `json:"title,omitempty"`
-	Description           *string `json:"description,omitempty"`
-	Caption               *string `json:"caption,omitempty"`
-	Reply_markup          *string `json:"reply_markup,omitempty"`
-	Input_message_content *string `json:"input_message_content,omitempty"`
+	Type                   string                   `json:"type"`
+	Id                     string                   `json:"id"`
+	Photo_url              string                   `json:"photo_url"`
+	Thumb_url              string                   `json:"thumb_url"`
+	Photo_width           *int                      `json:"photo_width,omitempty"`
+	Photo_height          *int                      `json:"photo_height,omitempty"`
+	Title                 *string                   `json:"title,omitempty"`
+	Description           *string                   `json:"description,omitempty"`
+	Caption               *string                   `json:"caption,omitempty"`
+	Reply_markup          *string                   `json:"reply_markup,omitempty"`
+	Input_message_content *TInputMessageTextContent `json:"input_message_content,omitempty"`
 }
 
 type TInlineQueryResultGif struct {
-	Type                   string `json:"type"`
-	Id                     string `json:"id"`
-	Gif_url                string `json:"gif_url"`
-	Gif_width             *int    `json:"gif_width,omitempty"`
-	Gif_height            *int    `json:"gif_height,omitempty"`
-	Thumb_url              string `json:"thumb_url"`
-	Title                 *string `json:"title,omitempty"`
-	Caption               *string `json:"caption,omitempty"`
-	Reply_markup          *string `json:"reply_markup,omitempty"`
-	Input_message_content *string `json:"input_message_content,omitempty"`
+	Type                   string                   `json:"type"`
+	Id                     string                   `json:"id"`
+	Gif_url                string                   `json:"gif_url"`
+	Gif_width             *int                      `json:"gif_width,omitempty"`
+	Gif_height            *int                      `json:"gif_height,omitempty"`
+	Thumb_url              string                   `json:"thumb_url"`
+	Title                 *string                   `json:"title,omitempty"`
+	Caption               *string                   `json:"caption,omitempty"`
+	Reply_markup          *string                   `json:"reply_markup,omitempty"`
+	Input_message_content *TInputMessageTextContent `json:"input_message_content,omitempty"`
+}
+
+type TInlineKeyboard struct {
+	Buttons [][]TInlineKeyboardButton `json:"inline_keyboard"`
+}
+
+type TInlineKeyboardButton struct {
+	Text string `json:"text"`
+	Data string `json:"callback_data"`
+}
+
+func (this *TInlineKeyboard) AddButton(b TInlineKeyboardButton) {
+	if this.Buttons == nil { this.AddRow() }
+	this.Buttons[len(this.Buttons) - 1] = append(this.Buttons[len(this.Buttons) - 1], b)
+}
+
+func (this *TInlineKeyboard) AddRow() {
+	this.Buttons = append(this.Buttons, nil)
+}
+
+type TInputMessageTextContent struct {
+	Message_text string `json:"message_text"`
+	Parse_mode   string `json:"parse_mode"`
+	No_preview   bool   `json:"disable_web_page_preview"`
 }
