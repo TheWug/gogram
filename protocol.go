@@ -110,6 +110,13 @@ func (this *Protocol) BuildEditMessageURL(chat_id interface{}, message_id int, _
 	return apiurl
 }
 
+func (this *Protocol) BuildDeleteMessageURL(chat_id interface{}, message_id int) (string) {
+	apiurl := apiEndpoint + this.apiKey + "/deleteMessage?" + 
+	       "chat_id=" + url.QueryEscape(GetStringId(chat_id)) +
+	       "&message_id=" + strconv.FormatInt(int64(message_id), 10)
+	return apiurl
+}
+
 func (this *Protocol) BuildSendStickerURL(chat_id interface{}, sticker_id string, reply_to *int, disable_notification bool) (string) {
 	url := apiEndpoint + this.apiKey + "/sendSticker?" + 
 	       "chat_id=" + url.QueryEscape(GetStringId(chat_id)) +
@@ -156,6 +163,27 @@ func (this *Protocol) BuildRestrictChatMemberURL(chat_id interface{}, user_id in
 	       "&can_send_web_page_previews=" + strconv.FormatBool(web_previews)
 }
 
+func (this *Protocol) BuildGetFileURL(file_id string) (string) {
+	return apiEndpoint + apiKey + "/getFile?" + 
+	       "file_id=" + url.QueryEscape(file_id)
+}
+
+func (this *Protocol) BuildDownloadFileURL(file_path string) (string) {
+	return apiFileEndpoint + apiKey + "/" + file_path
+}
+
+func BuildAnswerCallbackQueryURL(query_id, notification string, show_alert bool) (string) {
+	apiurl := apiEndpoint + apiKey + "/answerCallbackQuery?" + 
+	          "callback_query_id=" + url.QueryEscape(query_id) +
+	          "&text=" + url.QueryEscape(notification)
+
+	if show_alert {
+	       apiurl = apiurl + "&show_alert=true"
+	}
+
+	return apiurl
+}
+
 // Async calls
 
 func (this *Protocol) AnswerInlineQueryAsync(q TInlineQuery, out []interface{}, offset string, rm ResponseHandler) (error) {
@@ -173,6 +201,10 @@ func (this *Protocol) SendMessageAsync(chat_id interface{}, text string, reply_t
 
 func (this *Protocol) EditMessageTextAsync(chat_id interface{}, message_id int, _ string, text string, parse_mode string, sm ResponseHandler) () {
 	go DoAsyncCall(&this.client, sm, &CallResponseChannel, this.BuildEditMessageURL(chat_id, message_id, "", text, parse_mode))
+}
+
+func (this *Protocol) DeleteMessageAsync(chat_id interface{}, message_id int, sm ResponseHandler) () {
+	go DoAsyncCall(&this.client, sm, &CallResponseChannel, this.BuildDeleteMessageURL(chat_id, message_id))
 }
 
 func (this *Protocol) SendStickerAsync(chat_id interface{}, sticker_id string, reply_to *int, disable_notification bool, sm ResponseHandler) () {
@@ -199,6 +231,18 @@ func (this *Protocol) RestrictChatMemberAsync(chat_id interface{}, user_id int, 
 	go DoAsyncCall(&this.client, rm, &CallResponseChannel, this.BuildRestrictChatMemberURL(chat_id, user_id, until, messages, media, basic_media, web_previews))
 }
 
+func (this *Protocol) GetFileAsync(file_id string, rm ResponseHandler) () {
+	go DoAsyncCall(&this.client, rm, &CallResponseChannel, this.BuildGetFileURL(file_id))
+}
+
+func (this *Protocol) DownloadFileAsync(file_path string, rm ResponseHandler) () {
+	go DoAsyncFetch(&this.client, rm, &CallResponseChannel, this.BuildDownloadFileURL(file_path))
+}
+
+func (this *Protocol) AnswerCallbackQueryAsync(query_id, notification string, show_alert bool) () {
+	go DoAsyncCall(&this.client, rm, &CallResponseChannel, this.BuildAnswerCallbackQueryURL(query_id, notification, show_alert))
+}
+
 // Synchronous calls
 
 func (this *Protocol) AnswerInlineQuery(q TInlineQuery, out []interface{}, offset string) (error) {
@@ -211,6 +255,11 @@ func (this *Protocol) AnswerInlineQuery(q TInlineQuery, out []interface{}, offse
 
 func (this *Protocol) SendMessage(chat_id interface{}, text string, reply_to *int, mtype string) (*TMessage, error) {
 	return OutputToMessage(DoCall(&this.client, this.BuildSendMessageURL(chat_id, text, reply_to, mtype)))
+}
+
+func (this *Protocol) DeleteMessage(chat_id interface{}, message_id int) (error) {
+	_, err := DoCall(&this.client, this.BuildDeleteMessageURL(chat_id, message_id))
+	return err
 }
 
 func (this *Protocol) EditMessageText(chat_id interface{}, message_id int, _ string, text string, parse_mode string) (*TMessage, error) {
@@ -240,6 +289,19 @@ func (this *Protocol) GetChatMember(chat_id interface{}, user_id int) (*TChatMem
 
 func (this *Protocol) RestrictChatMember(chat_id interface{}, user_id int, until int64, messages, media, basic_media, web_previews bool, rm ResponseHandler) (error) {
 	_, err := DoCall(&this.client, this.BuildRestrictChatMemberURL(chat_id, user_id, until, messages, media, basic_media, web_previews))
+	return err
+}
+
+func (this *Protocol) GetFile(file_id string) (*TFile, error) {
+	return OutputToFile(DoCall(&this.client, this.BuildGetFileURL(file_id)))
+}
+
+func (this *Protocol) DownloadFile(file_path string) ([]byte, error) {
+	return DoFetch(&this.client, this.BuildDownloadFileURL(file_path))
+}
+
+func (this *Protocol) AnswerCallbackQuery(query_id, notification string, show_alert bool) (error) {
+	_, err := DoCall(&this.client, this.BuildAnswerCallbackQueryURL(query_id, notification, show_alert))
 	return err
 }
 

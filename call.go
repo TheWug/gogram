@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"strconv"
+	"net/url"
 )
 
 var CallResponseChannel chan HandlerBox = make(chan HandlerBox, 10)
@@ -13,12 +15,13 @@ type HandlerBox struct {
 	Success   bool
 	Error     error
 	Http_code int
-	Handler  ResponseHandler
+	Handler   ResponseHandler
 	Output   *json.RawMessage
+	Bytes   []byte
 }
 
 // call this in a goroutine.
-func DoAsyncCall(client *http.Client, handler ResponseHandler, output *chan HandlerBox, apiurl string) {
+func DoAsyncFetch(client *http.Client, handler ResponseHandler, output *chan HandlerBox, apiurl string) {
 	var hbox HandlerBox
 	hbox.Handler = handler
 
@@ -33,15 +36,27 @@ func DoAsyncCall(client *http.Client, handler ResponseHandler, output *chan Hand
 	}
 
 	hbox.Http_code = r.StatusCode
-	b, e := ioutil.ReadAll(r.Body)
+	hbox.Bytes, e = ioutil.ReadAll(r.Body)
 	if e != nil {
 		hbox.Error = e
 		if (output != nil) { *output <- hbox }
 		return
 	}
 
+	hbox.Success = true
+	if (output != nil) { *output <- hbox }
+	return
+}
+
+func DoAsyncCall(client *http.Client, handler ResponseHandler, output *chan HandlerBox, apiurl string) {
+	temp := make(chan HandlerBox, 1)
+	DoAsyncFetch(client, handler, &temp, apiurl)
+	close(temp)
+	hbox := <- temp
+	hbox.Success = false
+
 	var out TGenericResponse
-	e = json.Unmarshal(b, &out)
+	e = json.Unmarshal(hbox.Bytes, &out)
 
 	if e != nil {
 		hbox.Error = e
@@ -57,44 +72,20 @@ func DoAsyncCall(client *http.Client, handler ResponseHandler, output *chan Hand
 	}
 
 	hbox.Output = out.Result
+	hbox.Bytes = nil
 	hbox.Success = true
 	if (output != nil) { *output <- hbox }
 	return
 }
 
-func DoGenericAPICall(apiurl string, out_obj interface{}) (error) {
-	r, e := http.Get(apiurl)
-	if r != nil {
-		defer r.Body.Close()
-	}
-	if e != nil {
-		return e
-	}
+func DoFetch(client *http.Client, apiurl string) ([]byte, error) {
+	ch := make(chan HandlerBox, 1)
 
-	b, e := ioutil.ReadAll(r.Body)
-	if e != nil {
-		return e
-	}
+	DoAsyncFetch(client, nil, &ch, apiurl)
+	close(ch)
+	output := <- ch
 
-	var out TGenericResponse
-	e = json.Unmarshal(b, &out)
-
-	if e != nil {
-		return e
-	}
-
-	e = HandleSoftError(&out)
-	if e != nil {
-		return e
-	}
-
-	e = json.Unmarshal(*out.Result, out_obj)
-
-	if e != nil {
-		return e
-	}
-
-	return nil
+	return output.Bytes, output.Error
 }
 
 func DoCall(client *http.Client, apiurl string) (*json.RawMessage, error) {
@@ -107,21 +98,6 @@ func DoCall(client *http.Client, apiurl string) (*json.RawMessage, error) {
 	return output.Output, output.Error
 }
 
-func DeleteMessage(chat_id interface{}, message_id int) (error) {
-	var str_chat_id string
-	switch t := chat_id.(type) {
-	case int:
-		str_chat_id = strconv.FormatInt(int64(t), 10)
-	case int64:
-		str_chat_id = strconv.FormatInt(t, 10)
-	}
-
-	apiurl := apiEndpoint + apiKey + "/deleteMessage?" + 
-	       "chat_id=" + url.QueryEscape(str_chat_id) +
-	       "&message_id=" + strconv.FormatInt(int64(message_id), 10)
-
-	return DoSendAPICall(apiurl)
-}
 // Type Helpers
 
 func OutputToMessage(raw *json.RawMessage, err error) (*TMessage, error) {
@@ -153,40 +129,17 @@ func OutputToChatMember(raw *json.RawMessage, err error) (*TChatMember, error) {
 	err = json.Unmarshal(*raw, &cm)
 
 	if err != nil { return nil, err }
-	if cm.Status == "" { return nil, errors.New("Missing sticker set") }
+	if cm.Status == "" { return nil, errors.New("Missing chat member") }
 	return &cm, nil
 }
 
-func GetFile(file_id string) (*TFile, error) {
-	url := apiEndpoint + apiKey + "/getFile?" + 
-	       "file_id=" + url.QueryEscape(file_id)
-	
-	var f TFile
-	err := DoGenericAPICall(url, &f)
-	return &f, err
-}
+func OutputToFile(raw *json.RawMessage, err error) (*TFile, error) {
+	if err != nil { return nil, err }
 
-func DownloadFile(file_path string) ([]byte, error) {
-	apiurl := apiFileEndpoint + apiKey + "/" + file_path
-	r, e := http.Get(apiurl)
-	if r != nil {
-		defer r.Body.Close()
-	}
-	if e != nil {
-		return nil, e
-	}
+	var out TFile
+	err = json.Unmarshal(*raw, &out)
 
-	return ioutil.ReadAll(r.Body)
-}
-
-func AnswerCallbackQuery(query_id, notification string, show_alert bool) (error) {
-	url := apiEndpoint + apiKey + "/answerCallbackQuery?" + 
-	       "callback_query_id=" + url.QueryEscape(query_id) +
-	       "&text=" + url.QueryEscape(notification)
-
-	if show_alert {
-	       url = url + "&show_alert=true"
-	}
-
-	return DoSendAPICall(url)
+	if err != nil { return nil, err }
+	if out.File_id == "" { return nil, errors.New("Missing file metadata") }
+	return &out, nil
 }
