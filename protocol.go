@@ -274,13 +274,13 @@ func (this *Protocol) SendMessage(chat_id interface{}, text string, reply_to *in
 	return OutputToMessage(DoCall(&this.client, this.BuildSendMessageURL(chat_id, text, reply_to, mtype, reply_markup, disable_preview)))
 }
 
+func (this *Protocol) EditMessageText(chat_id interface{}, message_id int, inline_id string, text string, parse_mode string, reply_markup interface{}, disable_preview bool) (*TMessage, error) {
+	return OutputToMessage(DoCall(&this.client, this.BuildEditMessageURL(chat_id, message_id, inline_id, text, parse_mode, reply_markup, disable_preview)))
+}
+
 func (this *Protocol) DeleteMessage(chat_id interface{}, message_id int) (error) {
 	_, err := DoCall(&this.client, this.BuildDeleteMessageURL(chat_id, message_id))
 	return err
-}
-
-func (this *Protocol) EditMessageText(chat_id interface{}, message_id int, inline_id string, text string, parse_mode string, reply_markup interface{}, disable_preview bool) (*TMessage, error) {
-	return OutputToMessage(DoCall(&this.client, this.BuildEditMessageURL(chat_id, message_id, inline_id, text, parse_mode, reply_markup, disable_preview)))
 }
 
 func (this *Protocol) SendSticker(chat_id interface{}, sticker_id string, reply_to *int, disable_notification bool) (*TMessage, error) {
