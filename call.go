@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
-	"strconv"
-	"net/url"
 )
 
 var CallResponseChannel chan HandlerBox = make(chan HandlerBox, 10)
@@ -56,7 +54,7 @@ func DoAsyncCall(client *http.Client, handler ResponseHandler, output *chan Hand
 	hbox.Success = false
 
 	var out TGenericResponse
-	e = json.Unmarshal(hbox.Bytes, &out)
+	e := json.Unmarshal(hbox.Bytes, &out)
 
 	if e != nil {
 		hbox.Error = e

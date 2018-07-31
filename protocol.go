@@ -86,7 +86,7 @@ func (this *Protocol) BuildAnswerInlineQueryURL(q TInlineQuery, next_offset stri
 		"&results="
 }
 
-func (this *Protocol) BuildSendMessageURL(chat_id interface{}, text string, reply_to *int, mtype string) (string) {
+func (this *Protocol) BuildSendMessageURL(chat_id interface{}, text string, reply_to *int, mtype string, reply_markup interface{}) (string) {
 	apiurl := apiEndpoint + this.apiKey + "/sendMessage?" + 
 	       "chat_id=" + url.QueryEscape(GetStringId(chat_id)) +
 	       "&text=" + url.QueryEscape(text)
@@ -96,16 +96,27 @@ func (this *Protocol) BuildSendMessageURL(chat_id interface{}, text string, repl
 	if reply_to != nil {
 		apiurl = apiurl + "&reply_to_message_id=" + strconv.Itoa(*reply_to)
 	}
+	if reply_markup != nil {
+		b, e := json.Marshal(reply_markup)
+		if e != nil { return "" }
+		apiurl = apiurl + "&reply_markup=" + url.QueryEscape(string(b))
+	}
+
 	return apiurl
 }
 
-func (this *Protocol) BuildEditMessageURL(chat_id interface{}, message_id int, _ string, text string, parse_mode string) (string) {
+func (this *Protocol) BuildEditMessageURL(chat_id interface{}, message_id int, inline_id string, text string, parse_mode string, reply_markup interface{}) (string) {
 	apiurl := apiEndpoint + this.apiKey + "/editMessageText?" + 
 	       "chat_id=" + url.QueryEscape(GetStringId(chat_id)) +
 	       "&message_id=" + strconv.FormatInt(int64(message_id), 10) +
 	       "&text=" + url.QueryEscape(text)
 	if parse_mode != "" {
 		apiurl = apiurl + "&parse_mode=" + url.QueryEscape(parse_mode)
+	}
+	if reply_markup != nil {
+		b, e := json.Marshal(reply_markup)
+		if e != nil { return "" }
+		apiurl = apiurl + "&reply_markup=" + url.QueryEscape(string(b))
 	}
 	return apiurl
 }
@@ -164,16 +175,16 @@ func (this *Protocol) BuildRestrictChatMemberURL(chat_id interface{}, user_id in
 }
 
 func (this *Protocol) BuildGetFileURL(file_id string) (string) {
-	return apiEndpoint + apiKey + "/getFile?" + 
+	return apiEndpoint + this.apiKey + "/getFile?" + 
 	       "file_id=" + url.QueryEscape(file_id)
 }
 
 func (this *Protocol) BuildDownloadFileURL(file_path string) (string) {
-	return apiFileEndpoint + apiKey + "/" + file_path
+	return apiFileEndpoint + this.apiKey + "/" + file_path
 }
 
-func BuildAnswerCallbackQueryURL(query_id, notification string, show_alert bool) (string) {
-	apiurl := apiEndpoint + apiKey + "/answerCallbackQuery?" + 
+func (this *Protocol) BuildAnswerCallbackQueryURL(query_id, notification string, show_alert bool) (string) {
+	apiurl := apiEndpoint + this.apiKey + "/answerCallbackQuery?" + 
 	          "callback_query_id=" + url.QueryEscape(query_id) +
 	          "&text=" + url.QueryEscape(notification)
 
@@ -195,12 +206,12 @@ func (this *Protocol) AnswerInlineQueryAsync(q TInlineQuery, out []interface{}, 
 }
 
 
-func (this *Protocol) SendMessageAsync(chat_id interface{}, text string, reply_to *int, mtype string, sm ResponseHandler) () {
-	go DoAsyncCall(&this.client, sm, &CallResponseChannel, this.BuildSendMessageURL(chat_id, text, reply_to, mtype))
+func (this *Protocol) SendMessageAsync(chat_id interface{}, text string, reply_to *int, parse_mode string, reply_markup interface{}, sm ResponseHandler) () {
+	go DoAsyncCall(&this.client, sm, &CallResponseChannel, this.BuildSendMessageURL(chat_id, text, reply_to, parse_mode, reply_markup))
 }
 
-func (this *Protocol) EditMessageTextAsync(chat_id interface{}, message_id int, _ string, text string, parse_mode string, sm ResponseHandler) () {
-	go DoAsyncCall(&this.client, sm, &CallResponseChannel, this.BuildEditMessageURL(chat_id, message_id, "", text, parse_mode))
+func (this *Protocol) EditMessageTextAsync(chat_id interface{}, message_id int, inline_id string, text string, parse_mode string, reply_markup interface{}, sm ResponseHandler) () {
+	go DoAsyncCall(&this.client, sm, &CallResponseChannel, this.BuildEditMessageURL(chat_id, message_id, inline_id, text, parse_mode, reply_markup))
 }
 
 func (this *Protocol) DeleteMessageAsync(chat_id interface{}, message_id int, sm ResponseHandler) () {
@@ -239,7 +250,7 @@ func (this *Protocol) DownloadFileAsync(file_path string, rm ResponseHandler) ()
 	go DoAsyncFetch(&this.client, rm, &CallResponseChannel, this.BuildDownloadFileURL(file_path))
 }
 
-func (this *Protocol) AnswerCallbackQueryAsync(query_id, notification string, show_alert bool) () {
+func (this *Protocol) AnswerCallbackQueryAsync(query_id, notification string, show_alert bool, rm ResponseHandler) () {
 	go DoAsyncCall(&this.client, rm, &CallResponseChannel, this.BuildAnswerCallbackQueryURL(query_id, notification, show_alert))
 }
 
@@ -253,8 +264,8 @@ func (this *Protocol) AnswerInlineQuery(q TInlineQuery, out []interface{}, offse
 	return err
 }
 
-func (this *Protocol) SendMessage(chat_id interface{}, text string, reply_to *int, mtype string) (*TMessage, error) {
-	return OutputToMessage(DoCall(&this.client, this.BuildSendMessageURL(chat_id, text, reply_to, mtype)))
+func (this *Protocol) SendMessage(chat_id interface{}, text string, reply_to *int, mtype string, reply_markup interface{}) (*TMessage, error) {
+	return OutputToMessage(DoCall(&this.client, this.BuildSendMessageURL(chat_id, text, reply_to, mtype, reply_markup)))
 }
 
 func (this *Protocol) DeleteMessage(chat_id interface{}, message_id int) (error) {
@@ -262,8 +273,8 @@ func (this *Protocol) DeleteMessage(chat_id interface{}, message_id int) (error)
 	return err
 }
 
-func (this *Protocol) EditMessageText(chat_id interface{}, message_id int, _ string, text string, parse_mode string) (*TMessage, error) {
-	return OutputToMessage(DoCall(&this.client, this.BuildEditMessageURL(chat_id, message_id, "", text, parse_mode)))
+func (this *Protocol) EditMessageText(chat_id interface{}, message_id int, inline_id string, text string, parse_mode string, reply_markup interface{}) (*TMessage, error) {
+	return OutputToMessage(DoCall(&this.client, this.BuildEditMessageURL(chat_id, message_id, inline_id, text, parse_mode, reply_markup)))
 }
 
 func (this *Protocol) SendSticker(chat_id interface{}, sticker_id string, reply_to *int, disable_notification bool) (*TMessage, error) {

@@ -21,6 +21,11 @@ type InlineQueryable interface {
 }
 
 
+type Callbackable interface {
+	ProcessCallback(telegram.TCallbackQuery)
+}
+
+
 type Messagable interface {
 	ProcessMessage(telegram.TMessage, bool)
 }
@@ -38,6 +43,7 @@ type InitSettings interface {
 
 
 type TelegramBot struct {
+	callback_callback Callbackable
 	message_callback Messagable
 	inline_callback InlineQueryable
 	maintenance_callbacks []Maintainer
@@ -59,6 +65,10 @@ func (this *TelegramBot) SetMessageCallback(cb Messagable) {
 
 func (this *TelegramBot) SetInlineCallback(cb InlineQueryable) {
 	this.inline_callback = cb
+}
+
+func (this *TelegramBot) SetCallbackCallback(cb Callbackable) {
+	this.callback_callback = cb
 }
 
 func (this *TelegramBot) AddMaintenanceCallback(cb Maintainer) {
@@ -123,6 +133,9 @@ func (this *TelegramBot) MainLoop() {
 				if u.Edited_message != nil && this.message_callback != nil {
 					this.message_callback.ProcessMessage(*u.Edited_message, true)
 				}
+				if u.Callback_query != nil && this.callback_callback != nil {
+					this.callback_callback.ProcessCallback(*u.Callback_query)
+				}
 			}
 		case <- this.maintenance_ticker.C:
 			seconds++
@@ -148,6 +161,12 @@ func (this *TelegramBot) ParseCommand(m *telegram.TMessage) (CommandData, error)
 		line = *m.Caption
 	}
 
+	c, e := this.ParseCommandFromString(line)
+	c.M = m
+	return c, e
+}
+
+func (this *TelegramBot) ParseCommandFromString(line string) (CommandData, error) {
 	var c CommandData
 	var err error
 
@@ -171,7 +190,7 @@ func (this *TelegramBot) ParseCommand(m *telegram.TMessage) (CommandData, error)
 
 	c.Argstr = line
 	c.Args, err = shellquote.Split(line)
-	c.M = m
+	c.M = nil
 	return c, err
 }
 
