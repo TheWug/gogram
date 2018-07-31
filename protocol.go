@@ -86,7 +86,7 @@ func (this *Protocol) BuildAnswerInlineQueryURL(q TInlineQuery, next_offset stri
 		"&results="
 }
 
-func (this *Protocol) BuildSendMessageURL(chat_id interface{}, text string, reply_to *int, mtype string, reply_markup interface{}) (string) {
+func (this *Protocol) BuildSendMessageURL(chat_id interface{}, text string, reply_to *int, mtype string, reply_markup interface{}, disable_preview bool) (string) {
 	apiurl := apiEndpoint + this.apiKey + "/sendMessage?" + 
 	       "chat_id=" + url.QueryEscape(GetStringId(chat_id)) +
 	       "&text=" + url.QueryEscape(text)
@@ -101,11 +101,14 @@ func (this *Protocol) BuildSendMessageURL(chat_id interface{}, text string, repl
 		if e != nil { return "" }
 		apiurl = apiurl + "&reply_markup=" + url.QueryEscape(string(b))
 	}
+	if disable_preview {
+		apiurl = apiurl + "&disable_web_page_preview=true"
+	}
 
 	return apiurl
 }
 
-func (this *Protocol) BuildEditMessageURL(chat_id interface{}, message_id int, inline_id string, text string, parse_mode string, reply_markup interface{}) (string) {
+func (this *Protocol) BuildEditMessageURL(chat_id interface{}, message_id int, inline_id string, text string, parse_mode string, reply_markup interface{}, disable_preview bool) (string) {
 	apiurl := apiEndpoint + this.apiKey + "/editMessageText?" + 
 	       "chat_id=" + url.QueryEscape(GetStringId(chat_id)) +
 	       "&message_id=" + strconv.FormatInt(int64(message_id), 10) +
@@ -117,6 +120,9 @@ func (this *Protocol) BuildEditMessageURL(chat_id interface{}, message_id int, i
 		b, e := json.Marshal(reply_markup)
 		if e != nil { return "" }
 		apiurl = apiurl + "&reply_markup=" + url.QueryEscape(string(b))
+	}
+	if disable_preview {
+		apiurl = apiurl + "&disable_web_page_preview=true"
 	}
 	return apiurl
 }
@@ -206,12 +212,12 @@ func (this *Protocol) AnswerInlineQueryAsync(q TInlineQuery, out []interface{}, 
 }
 
 
-func (this *Protocol) SendMessageAsync(chat_id interface{}, text string, reply_to *int, parse_mode string, reply_markup interface{}, sm ResponseHandler) () {
-	go DoAsyncCall(&this.client, sm, &CallResponseChannel, this.BuildSendMessageURL(chat_id, text, reply_to, parse_mode, reply_markup))
+func (this *Protocol) SendMessageAsync(chat_id interface{}, text string, reply_to *int, parse_mode string, reply_markup interface{}, disable_preview bool, sm ResponseHandler) () {
+	go DoAsyncCall(&this.client, sm, &CallResponseChannel, this.BuildSendMessageURL(chat_id, text, reply_to, parse_mode, reply_markup, disable_preview))
 }
 
-func (this *Protocol) EditMessageTextAsync(chat_id interface{}, message_id int, inline_id string, text string, parse_mode string, reply_markup interface{}, sm ResponseHandler) () {
-	go DoAsyncCall(&this.client, sm, &CallResponseChannel, this.BuildEditMessageURL(chat_id, message_id, inline_id, text, parse_mode, reply_markup))
+func (this *Protocol) EditMessageTextAsync(chat_id interface{}, message_id int, inline_id string, text string, parse_mode string, reply_markup interface{}, disable_preview bool, sm ResponseHandler) () {
+	go DoAsyncCall(&this.client, sm, &CallResponseChannel, this.BuildEditMessageURL(chat_id, message_id, inline_id, text, parse_mode, reply_markup, disable_preview))
 }
 
 func (this *Protocol) DeleteMessageAsync(chat_id interface{}, message_id int, sm ResponseHandler) () {
@@ -264,8 +270,8 @@ func (this *Protocol) AnswerInlineQuery(q TInlineQuery, out []interface{}, offse
 	return err
 }
 
-func (this *Protocol) SendMessage(chat_id interface{}, text string, reply_to *int, mtype string, reply_markup interface{}) (*TMessage, error) {
-	return OutputToMessage(DoCall(&this.client, this.BuildSendMessageURL(chat_id, text, reply_to, mtype, reply_markup)))
+func (this *Protocol) SendMessage(chat_id interface{}, text string, reply_to *int, mtype string, reply_markup interface{}, disable_preview bool) (*TMessage, error) {
+	return OutputToMessage(DoCall(&this.client, this.BuildSendMessageURL(chat_id, text, reply_to, mtype, reply_markup, disable_preview)))
 }
 
 func (this *Protocol) DeleteMessage(chat_id interface{}, message_id int) (error) {
@@ -273,8 +279,8 @@ func (this *Protocol) DeleteMessage(chat_id interface{}, message_id int) (error)
 	return err
 }
 
-func (this *Protocol) EditMessageText(chat_id interface{}, message_id int, inline_id string, text string, parse_mode string, reply_markup interface{}) (*TMessage, error) {
-	return OutputToMessage(DoCall(&this.client, this.BuildEditMessageURL(chat_id, message_id, inline_id, text, parse_mode, reply_markup)))
+func (this *Protocol) EditMessageText(chat_id interface{}, message_id int, inline_id string, text string, parse_mode string, reply_markup interface{}, disable_preview bool) (*TMessage, error) {
+	return OutputToMessage(DoCall(&this.client, this.BuildEditMessageURL(chat_id, message_id, inline_id, text, parse_mode, reply_markup, disable_preview)))
 }
 
 func (this *Protocol) SendSticker(chat_id interface{}, sticker_id string, reply_to *int, disable_notification bool) (*TMessage, error) {
