@@ -138,10 +138,10 @@ func (this *TelegramBot) MainLoop() {
 				}
 			}
 		case <- this.maintenance_ticker.C:
-			seconds++
 			for _, m := range this.maintenance_callbacks {
 				if (seconds % m.GetInterval() == 0) { m.DoMaintenance() }
 			}
+			seconds++
 		case hbox := <- telegram.CallResponseChannel:
 			if hbox.Error != nil {
 				log.Println(hbox.Error.Error())
