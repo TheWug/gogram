@@ -67,6 +67,7 @@ type TMessage struct {
 	Chat                TChat            `json:"chat"`
 	Forward_from       *TUser            `json:"forward_from"`
 	Forward_from_chat  *TChat            `json:"forward_from_chat"`
+	Forward_from_message_id *int         `json:"forward_from_message_id"`
 	Forward_date       *int64            `json:"forward_date"`
 	Reply_to_message   *TMessage         `json:"reply_to_message"`
 	Edit_date          *int              `json:"edit_date"`
