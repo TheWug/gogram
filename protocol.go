@@ -41,9 +41,11 @@ func (this *Protocol) Test() (error) {
 	r, e := this.client.Get(url)
 
 	if r != nil {
+    	log.Printf("[telegram] API call: %s (%s)\n", url, r.Status)
 		defer r.Body.Close()
-		log.Printf("[telegram] API call: %s (%s)\n", url, r.Status)
-	}
+	} else {
+    	log.Printf("[telegram] API call: %s (failed: %s)\n", url, e.Error())
+    }
 	if e != nil { return e }
 
 	b, e := ioutil.ReadAll(r.Body)
