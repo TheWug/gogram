@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"log"
 	"fmt"
+	"time"
 
 	"encoding/json"
 
@@ -21,6 +22,19 @@ type Protocol struct {
 	me TUser
 	current_async_id int
 	mostRecentlyReceived int
+}
+
+func NewProtocol() (Protocol) {
+	p := Protocol{
+		client: http.Client{
+			Transport: &http.Transport{
+				TLSHandshakeTimeout: 90 * time.Second,
+				MaxIdleConns: 32,
+				MaxIdleConnsPerHost: 32,
+			},
+		},
+	}
+	return p
 }
 
 func (this *Protocol) SetAPIKey(newKey string) () {

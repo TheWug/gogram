@@ -98,6 +98,7 @@ func (this *TelegramBot) AsyncUpdateLoop(output chan []telegram.TUpdate) () {
 func (this *TelegramBot) Init(filename string, s InitSettings) (error) {
 	this.Log = log.New(os.Stdout, "", log.LstdFlags)
 	this.ErrorLog = this.Log
+	this.Remote = telegram.NewProtocol()
 
 	bytes, e := ioutil.ReadFile(filename)
 	if e != nil { return e }
