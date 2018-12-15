@@ -27,11 +27,8 @@ type Protocol struct {
 func NewProtocol() (Protocol) {
 	p := Protocol{
 		client: http.Client{
-			Transport: &http.Transport{
-				TLSHandshakeTimeout: 90 * time.Second,
-				MaxIdleConns: 32,
-				MaxIdleConnsPerHost: 32,
-			},
+			Transport: http.DefaultTransport,
+			Timeout: 90 * time.Second,
 		},
 	}
 	return p
