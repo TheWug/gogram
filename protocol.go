@@ -1,4 +1,4 @@
-package telegram
+package gogram
 
 import (
 	"github.com/thewug/reqtify"
