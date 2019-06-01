@@ -4,6 +4,14 @@ import (
 	"encoding/json"
 )
 
+type UserID int
+type ChatID int64
+
+type Sender struct {
+	User UserID
+	Channel ChatID
+}
+
 type TUser struct {
 	Id          int    `json:"id"`
 	First_name  string `json:"first_name"`

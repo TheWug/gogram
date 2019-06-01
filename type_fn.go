@@ -179,6 +179,14 @@ func (this *TMessage) MessageContents() (string) {
 	return "Unknown"
 }
 
+func (this *TMessage) Sender() (Sender) {
+	if this.From != nil {
+		return Sender{User: UserID(this.From.Id)}
+	} else {
+		return Sender{Channel: ChatID(this.Chat.Id)}
+	}
+}
+
 func GetLargestPhoto(this *[]TPhotoSize) (*TPhotoSize) {
 	var largest *TPhotoSize = nil
 	var largest_size int64 = 0
