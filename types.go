@@ -180,6 +180,8 @@ type TUpdate struct {
 	Update_id             int                 `json:"update_id"`
 	Message              *TMessage            `json:"message,omitempty"`
 	Edited_message       *TMessage            `json:"edited_message,omitempty"`
+	Channel_post         *TMessage            `json:"channel_post,omitempty"`
+	Edited_channel_post  *TMessage            `json:"edited_channel_post,omitempty"`
 	Inline_query         *TInlineQuery        `json:"inline_query,omitempty"`
 	Chosen_inline_result *TChosenInlineResult `json:"chosen_inline_result,omitempty"`
 	Callback_query       *TCallbackQuery      `json:"callback_query,omitempty"`

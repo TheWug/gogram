@@ -137,6 +137,12 @@ func (this *TelegramBot) MainLoop() {
 				if u.Callback_query != nil && this.callback_callback != nil {
 					this.callback_callback.ProcessCallback(this, u.Callback_query)
 				}
+				if u.Channel_post != nil && this.message_callback != nil {
+					this.message_callback.ProcessMessage(this, u.Channel_post, false)
+				}
+				if u.Edited_channel_post != nil && this.message_callback != nil {
+					this.message_callback.ProcessMessage(this, u.Edited_channel_post, true)
+				}
 			}
 		case <- this.maintenance_ticker.C:
 			for _, m := range this.maintenance_callbacks {
