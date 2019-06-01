@@ -16,18 +16,18 @@ import (
 
 
 type InlineQueryable interface {
-	ProcessInlineQuery(telegram.TInlineQuery)
-	ProcessInlineQueryResult(telegram.TChosenInlineResult)
+	ProcessInlineQuery(*TelegramBot, *telegram.TInlineQuery)
+	ProcessInlineQueryResult(*TelegramBot, *telegram.TChosenInlineResult)
 }
 
 
 type Callbackable interface {
-	ProcessCallback(telegram.TCallbackQuery)
+	ProcessCallback(*TelegramBot, *telegram.TCallbackQuery)
 }
 
 
 type Messagable interface {
-	ProcessMessage(telegram.TMessage, bool)
+	ProcessMessage(*TelegramBot, *telegram.TMessage, bool)
 }
 
 
@@ -123,19 +123,19 @@ func (this *TelegramBot) MainLoop() {
 		case updates := <- this.update_channel:
 			for _, u := range updates {
 				if u.Inline_query != nil && this.inline_callback != nil {
-					this.inline_callback.ProcessInlineQuery(*u.Inline_query)
+					this.inline_callback.ProcessInlineQuery(this, u.Inline_query)
 				}
 				if u.Chosen_inline_result != nil && this.inline_callback != nil {
-					this.inline_callback.ProcessInlineQueryResult(*u.Chosen_inline_result)
+					this.inline_callback.ProcessInlineQueryResult(this, u.Chosen_inline_result)
 				}
 				if u.Message != nil && this.message_callback != nil {
-					this.message_callback.ProcessMessage(*u.Message, false)
+					this.message_callback.ProcessMessage(this, u.Message, false)
 				}
 				if u.Edited_message != nil && this.message_callback != nil {
-					this.message_callback.ProcessMessage(*u.Edited_message, true)
+					this.message_callback.ProcessMessage(this, u.Edited_message, true)
 				}
 				if u.Callback_query != nil && this.callback_callback != nil {
-					this.callback_callback.ProcessCallback(*u.Callback_query)
+					this.callback_callback.ProcessCallback(this, u.Callback_query)
 				}
 			}
 		case <- this.maintenance_ticker.C:
@@ -154,7 +154,108 @@ func (this *TelegramBot) MainLoop() {
 	}
 }
 
-func (this *TelegramBot) ParseCommand(m *telegram.TMessage) (CommandData, error) {
+// bot command main handler.
+func (this *TelegramBot) HandleCommand(m *telegram.TMessage) () {
+	cmd, err := ParseCommand(m)
+
+	if err != nil { return }
+
+	// command directed at another user
+	if !this.IsMyCommand(&cmd) { return }
+
+	if this.Commands == nil { return }
+	callback, has := this.Commands[cmd.Command]
+
+	// tried to use nonexistent command
+	if !has { return }
+
+	// run the command
+	callback.Callback(&cmd)
+}
+
+func (this *TelegramBot) IsMyCommand(cmd *CommandData) (bool) {
+	return strings.ToLower(*this.Remote.GetMe().Username) == strings.ToLower(cmd.Target) || len(cmd.Target) == 0
+}
+
+type MsgContext struct {
+	Cmd      CommandData
+	CmdError error
+	Msg      telegram.TMessage
+	MsgEdit  bool
+	Bot     *TelegramBot
+	Machine *MessageStateMachine
+}
+
+func (this *MsgContext) SetState(newstate State) {
+	this.Machine.SetState(this.Msg.Sender(), newstate)
+}
+
+func (this *MsgContext) GetState() (State) {
+	state, _ := this.Machine.UserStates[this.Msg.Sender()]
+	return state
+}
+
+type MessageStateMachine struct {
+	UserStates     map[telegram.Sender]State
+	Handlers       map[string]State
+	Default        State
+}
+
+type State interface {
+	Handle(*MsgContext)
+}
+
+func NewMessageStateMachine() (*MessageStateMachine) {
+	csm := MessageStateMachine{
+		UserStates: make(map[telegram.Sender]State),
+		Handlers: make(map[string]State),
+	}
+	csm.Default = &csm
+
+	return &csm
+}
+
+func (this *MessageStateMachine) AddCommand(cmd string, state State) {
+	this.Handlers[strings.ToLower(cmd)] = state
+}
+
+func (this *MessageStateMachine) SetState(sender telegram.Sender, state State) {
+	if state != nil {
+		this.UserStates[sender] = state
+	} else {
+		delete(this.UserStates, sender)
+	}
+}
+
+func (this *MessageStateMachine) ProcessMessage(bot *TelegramBot, msg *telegram.TMessage, edited bool) {
+	var ctx MsgContext
+	ctx.Msg = *msg
+	ctx.MsgEdit = edited
+	ctx.Cmd, ctx.CmdError = ParseCommand(&ctx.Msg)
+	ctx.Bot = bot
+	ctx.Machine = this
+
+	this.FeedContext(&ctx)
+}
+
+func (this *MessageStateMachine) FeedContext(ctx *MsgContext) {
+	state, _ := this.UserStates[ctx.Msg.Sender()]
+	if state == nil { state = this.Default }
+
+	state.Handle(ctx)
+}
+
+func (this *MessageStateMachine) Handle(ctx *MsgContext) {
+	if !ctx.Bot.IsMyCommand(&ctx.Cmd) || len(ctx.Cmd.Command) == 0 {
+		return
+	}
+
+	callback := this.Handlers[strings.ToLower(ctx.Cmd.Command)]
+	if callback != nil { callback.Handle(ctx) }
+}
+
+
+func ParseCommand(m *telegram.TMessage) (CommandData, error) {
 	var line string
 	if m.Text != nil && *m.Text != "" {
 		line = *m.Text
@@ -162,12 +263,12 @@ func (this *TelegramBot) ParseCommand(m *telegram.TMessage) (CommandData, error)
 		line = *m.Caption
 	}
 
-	c, e := this.ParseCommandFromString(line)
+	c, e := ParseCommandFromString(line)
 	c.M = m
 	return c, e
 }
 
-func (this *TelegramBot) ParseCommandFromString(line string) (CommandData, error) {
+func ParseCommandFromString(line string) (CommandData, error) {
 	var c CommandData
 	var err error
 
@@ -184,33 +285,12 @@ func (this *TelegramBot) ParseCommandFromString(line string) (CommandData, error
 		if len(tokens) == 2 {
 			c.Target = tokens[1]
 		} else {
-			c.Target = *this.Remote.GetMe().Username
+			c.Target = ""
 		}
 		c.Command = tokens[0]
 	}
 
 	c.Argstr = line
 	c.Args, err = shellquote.Split(line)
-	c.M = nil
 	return c, err
-}
-
-// bot command main handler.
-func (this *TelegramBot) HandleCommand(m *telegram.TMessage) () {
-	my_username := *this.Remote.GetMe().Username
-	cmd, err := this.ParseCommand(m)
-
-	if err != nil { return }
-
-	// command directed at another user
-	if strings.ToLower(my_username) != strings.ToLower(cmd.Target) { return }
-
-	if this.Commands == nil { return }
-	callback, has := this.Commands[cmd.Command]
-
-	// tried to use nonexistent command
-	if !has { return }
-
-	// run the command
-	callback.Callback(&cmd)
 }

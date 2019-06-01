@@ -1,6 +1,8 @@
 package telegram
 
 import (
+	"github.com/thewug/reqtify"
+
 	"errors"
 	"strconv"
 	"log"
@@ -10,14 +12,15 @@ import (
 	"encoding/json"
 
 	"io/ioutil"
+	"io"
 
 	"net/http"
-	"net/url"
 )
 
 
 type Protocol struct {
-	client http.Client
+	client reqtify.Reqtifier
+	file_client reqtify.Reqtifier
 	apiKey string
 	me TUser
 	current_async_id int
@@ -26,16 +29,22 @@ type Protocol struct {
 
 func NewProtocol() (Protocol) {
 	p := Protocol{
-		client: http.Client{
+		client: reqtify.New("", nil, &http.Client{
 			Transport: http.DefaultTransport,
 			Timeout: 90 * time.Second,
-		},
+		}, nil, userAgent),
+		file_client: reqtify.New("", nil, &http.Client{
+			Transport: http.DefaultTransport,
+			Timeout: 90 * time.Second,
+		}, nil, userAgent),
 	}
 	return p
 }
 
 func (this *Protocol) SetAPIKey(newKey string) () {
 	this.apiKey = newKey
+	this.client.Root = apiEndpoint + this.apiKey + "/"
+	this.file_client.Root = apiFileEndpoint + this.apiKey + "/"
 }
 
 func (this *Protocol) GetMe() (TUser) {
@@ -48,15 +57,15 @@ func (this *Protocol) GetNextId() (int) {
 }
 
 func (this *Protocol) Test() (error) {
-	url := apiEndpoint + this.apiKey + "/getMe"
-	r, e := this.client.Get(url)
+	req := this.client.New("getMe")
+	r, e := req.Do()
 
 	if r != nil {
-    	log.Printf("[telegram] API call: %s (%s)\n", url, r.Status)
+    	log.Printf("[telegram] API call: %s (%s)\n", req.Path, r.Status)
 		defer r.Body.Close()
 	} else {
-    	log.Printf("[telegram] API call: %s (failed: %s)\n", url, e.Error())
-    }
+		log.Printf("[telegram] API call: %s (failed: %s)\n", req.Path, e.Error())
+	}
 	if e != nil { return e }
 
 	b, e := ioutil.ReadAll(r.Body)
@@ -82,266 +91,239 @@ func (this *Protocol) Test() (error) {
 
 // URL building functions
 
-func (this *Protocol) BuildGetChatMemberURL(chat_id interface{}, user_id int) (string) {
-	apiurl := apiEndpoint + this.apiKey + "/getChatMember?" + 
-	       "chat_id=" + url.QueryEscape(GetStringId(chat_id)) +
-	       "&user_id=" + strconv.Itoa(user_id)
-	return apiurl
+func (this *Protocol) BuildGetChatMemberReq(chat_id interface{}, user_id int) (*reqtify.Request) {
+	return this.client.New("getChatMember").
+			   Arg("chat_id", GetStringId(chat_id)).
+			   Arg("user_id", strconv.Itoa(user_id))
 }
 
-func (this *Protocol) BuildAnswerInlineQueryURL(q TInlineQuery, next_offset string) (string) {
+func (this *Protocol) BuildAnswerInlineQueryReq(q TInlineQuery, next_offset string, results []interface{}) (*reqtify.Request) {
 	// next_offset should get stuck at -1 forever if pagination breaks somehow, to prevent infinite loops.
 
-	return apiEndpoint + this.apiKey + "/answerInlineQuery?" +
-		"inline_query_id=" + url.QueryEscape(q.Id) +
-		"&next_offset=" + next_offset +
-		"&cache_time=30" +
-		"&results="
+	b, e := json.Marshal(results)
+	if e != nil { return nil }
+
+	return this.client.New("answerInlineQuery").Method(reqtify.POST).
+			   Arg("inline_query_id", q.Id).
+			   Arg("cache_time", "30").
+			   Arg("next_offset", next_offset).
+			   Arg("results", string(b))
 }
 
-func (this *Protocol) BuildSendMessageURL(chat_id interface{}, text string, reply_to *int, mtype string, reply_markup interface{}, disable_preview bool) (string) {
-	apiurl := apiEndpoint + this.apiKey + "/sendMessage?" + 
-	       "chat_id=" + url.QueryEscape(GetStringId(chat_id)) +
-	       "&text=" + url.QueryEscape(text)
-	if mtype != "" {
-		apiurl = apiurl + "&parse_mode=" + url.QueryEscape(mtype)
-	}
+func (this *Protocol) BuildSendMessageReq(chat_id interface{}, text string, reply_to *int, mtype string, reply_markup interface{}, disable_preview bool) (*reqtify.Request) {
+	req := this.client.New("sendMessage").Method(reqtify.POST).
+			   Arg("chat_id", GetStringId(chat_id)).
+			   Arg("text", text).
+			   ArgDefault("parse_mode", mtype, "").
+			   ArgDefault("disable_web_page_preview", strconv.FormatBool(disable_preview), "false")
 	if reply_to != nil {
-		apiurl = apiurl + "&reply_to_message_id=" + strconv.Itoa(*reply_to)
+		req.Arg("reply_to_message_id", strconv.Itoa(*reply_to))
 	}
 	if reply_markup != nil {
 		b, e := json.Marshal(reply_markup)
-		if e != nil { return "" }
-		apiurl = apiurl + "&reply_markup=" + url.QueryEscape(string(b))
-	}
-	if disable_preview {
-		apiurl = apiurl + "&disable_web_page_preview=true"
+		if e != nil { return nil }
+		req.Arg("reply_markup", string(b))
 	}
 
-	return apiurl
+	return req
 }
 
-func (this *Protocol) BuildEditMessageURL(chat_id interface{}, message_id int, inline_id string, text string, parse_mode string, reply_markup interface{}, disable_preview bool) (string) {
-	apiurl := apiEndpoint + this.apiKey + "/editMessageText?" + 
-	       "chat_id=" + url.QueryEscape(GetStringId(chat_id)) +
-	       "&message_id=" + strconv.FormatInt(int64(message_id), 10) +
-	       "&text=" + url.QueryEscape(text)
-	if parse_mode != "" {
-		apiurl = apiurl + "&parse_mode=" + url.QueryEscape(parse_mode)
-	}
+func (this *Protocol) BuildEditMessageReq(chat_id interface{}, message_id int, inline_id string, text string, parse_mode string, reply_markup interface{}, disable_preview bool) (*reqtify.Request) {
+	req := this.client.New("editMessageText").Method(reqtify.POST).
+			   Arg("chat_id", GetStringId(chat_id)).
+			   Arg("message_id", strconv.Itoa(message_id)).
+			   Arg("text", text).
+			   ArgDefault("parse_mode", parse_mode, "").
+			   ArgDefault("disable_web_page_preview", strconv.FormatBool(disable_preview), "false")
 	if reply_markup != nil {
 		b, e := json.Marshal(reply_markup)
-		if e != nil { return "" }
-		apiurl = apiurl + "&reply_markup=" + url.QueryEscape(string(b))
+		if e != nil { return nil }
+		req.Arg("reply_markup", string(b))
 	}
-	if disable_preview {
-		apiurl = apiurl + "&disable_web_page_preview=true"
-	}
-	return apiurl
+	return req
 }
 
-func (this *Protocol) BuildDeleteMessageURL(chat_id interface{}, message_id int) (string) {
-	apiurl := apiEndpoint + this.apiKey + "/deleteMessage?" + 
-	       "chat_id=" + url.QueryEscape(GetStringId(chat_id)) +
-	       "&message_id=" + strconv.FormatInt(int64(message_id), 10)
-	return apiurl
+func (this *Protocol) BuildDeleteMessageReq(chat_id interface{}, message_id int) (*reqtify.Request) {
+	return this.client.New("deleteMessage").
+			   Arg("chat_id", GetStringId(chat_id)).
+			   Arg("message_id", strconv.Itoa(message_id))
 }
 
-func (this *Protocol) BuildSendStickerURL(chat_id interface{}, sticker_id string, reply_to *int, disable_notification bool) (string) {
-	url := apiEndpoint + this.apiKey + "/sendSticker?" + 
-	       "chat_id=" + url.QueryEscape(GetStringId(chat_id)) +
-	       "&sticker=" + url.QueryEscape(sticker_id)
+func (this *Protocol) BuildSendStickerReq(chat_id interface{}, sticker_id string, reply_to *int, disable_notification bool) (*reqtify.Request) {
+	req := this.client.New("sendSticker").
+			   Arg("chat_id", GetStringId(chat_id)).
+			   Arg("sticker", sticker_id).
+			   ArgDefault("disable_notification", strconv.FormatBool(disable_notification), "false")
 	if reply_to != nil {
-		url = url + "&reply_to_message_id=" + strconv.Itoa(*reply_to)
+		req.Arg("reply_to_message_id", strconv.Itoa(*reply_to))
 	}
-	if disable_notification {
-		url = url + "&disable_notification=true"
-	}
-	return url
+	return req
 }
 
-func (this *Protocol) BuildForwardMessageURL(chat_id interface{}, from_chat_id interface{}, message_id int, disable_notification bool) (string) {
-	url := apiEndpoint + this.apiKey + "/forwardMessage?" + 
-	       "chat_id=" + url.QueryEscape(GetStringId(chat_id)) +
-	       "&from_chat_id=" + url.QueryEscape(GetStringId(from_chat_id)) + 
-	       "&message_id=" + strconv.FormatInt(int64(message_id), 10)
-	if disable_notification {
-		url = url + "&disable_notification=true"
-	}
-	return url
+func (this *Protocol) BuildForwardMessageReq(chat_id interface{}, from_chat_id interface{}, message_id int, disable_notification bool) (*reqtify.Request) {
+	return this.client.New("forwardMessage").
+			   Arg("chat_id", GetStringId(chat_id)).
+			   Arg("from_chat_id", GetStringId(from_chat_id)).
+			   Arg("message_id", strconv.Itoa(message_id)).
+			   ArgDefault("disable_notification", strconv.FormatBool(disable_notification), "false")
 }
 
-func (this *Protocol) BuildKickMemberURL(chat_id interface{}, member int) (string) {
-	return apiEndpoint + this.apiKey + "/kickChatMember?" + 
-	       "chat_id=" + url.QueryEscape(GetStringId(chat_id)) +
-	       "&user_id=" + strconv.FormatInt(int64(member), 10)
+func (this *Protocol) BuildKickMemberReq(chat_id interface{}, member int) (*reqtify.Request) {
+	return this.client.New("kickChatMember").
+			   Arg("chat_id", GetStringId(chat_id)).
+			   Arg("user_id", strconv.Itoa(member))
 }
 
-func (this *Protocol) BuildGetStickerSetURL(name string) (string) {
-	return apiEndpoint + this.apiKey + "/getStickerSet?" + 
-	       "name=" + url.QueryEscape(name)
+func (this *Protocol) BuildGetStickerSetReq(name string) (*reqtify.Request) {
+	return this.client.New("getStickerSet").Arg("name", name)
 }
 
-func (this *Protocol) BuildRestrictChatMemberURL(chat_id interface{}, user_id int, until int64, messages, media, basic_media, web_previews bool) (string) {
-	return apiEndpoint + this.apiKey + "/restrictChatMember?" + 
-	       "chat_id=" + url.QueryEscape(GetStringId(chat_id)) +
-	       "&user_id=" + strconv.FormatInt(int64(user_id), 10) +
-	       "&until_date=" + strconv.FormatInt(int64(until), 10) +
-	       "&can_send_messages=" + strconv.FormatBool(messages) +
-	       "&can_send_media_messages=" + strconv.FormatBool(media) +
-	       "&can_send_other_messages=" + strconv.FormatBool(basic_media) +
-	       "&can_send_web_page_previews=" + strconv.FormatBool(web_previews)
+func (this *Protocol) BuildRestrictChatMemberReq(chat_id interface{}, user_id int, until int64, messages, media, basic_media, web_previews bool) (*reqtify.Request) {
+	return this.client.New("restrictChatMember").
+		Arg("chat_id", GetStringId(chat_id)).
+		Arg("user_id", strconv.Itoa(user_id)).
+		Arg("until_date", strconv.FormatInt(until, 10)).
+		Arg("can_send_messages", strconv.FormatBool(messages)).
+		Arg("can_send_media_messages", strconv.FormatBool(media)).
+		Arg("can_send_other_messages", strconv.FormatBool(basic_media)).
+		Arg("can_send_web_page_previews", strconv.FormatBool(web_previews))
 }
 
-func (this *Protocol) BuildGetFileURL(file_id string) (string) {
-	return apiEndpoint + this.apiKey + "/getFile?" + 
-	       "file_id=" + url.QueryEscape(file_id)
+func (this *Protocol) BuildGetFileReq(file_id string) (*reqtify.Request) {
+	return this.client.New("getFile").Arg("file_id", file_id)
 }
 
-func (this *Protocol) BuildDownloadFileURL(file_path string) (string) {
-	return apiFileEndpoint + this.apiKey + "/" + file_path
+func (this *Protocol) BuildDownloadFileReq(file_path string) (*reqtify.Request) {
+	return this.file_client.New(file_path)
 }
 
-func (this *Protocol) BuildAnswerCallbackQueryURL(query_id, notification string, show_alert bool) (string) {
-	apiurl := apiEndpoint + this.apiKey + "/answerCallbackQuery?" + 
-	          "callback_query_id=" + url.QueryEscape(query_id) +
-	          "&text=" + url.QueryEscape(notification)
-
-	if show_alert {
-	       apiurl = apiurl + "&show_alert=true"
-	}
-
-	return apiurl
+func (this *Protocol) BuildAnswerCallbackQueryReq(query_id, notification string, show_alert bool) (*reqtify.Request) {
+	return this.client.New("answerCallbackQuery").Method(reqtify.POST).
+			   Arg("callback_query_id", query_id).
+			   Arg("text", notification).
+			   ArgDefault("show_alert", strconv.FormatBool(show_alert), "false")
 }
 
 // Async calls
 
-func (this *Protocol) AnswerInlineQueryAsync(q TInlineQuery, out []interface{}, offset string, rm ResponseHandler) (error) {
-	b, e := json.Marshal(out)
-	if e != nil { return e }
-	surl := this.BuildAnswerInlineQueryURL(q, offset)
-	go DoAsyncCall(&this.client, rm, &CallResponseChannel, surl + url.QueryEscape(string(b)))
-	return nil
+func (this *Protocol) AnswerInlineQueryAsync(q TInlineQuery, results []interface{}, offset string, rm ResponseHandler) {
+	go DoAsyncCall(this.BuildAnswerInlineQueryReq(q, offset, results), rm, &CallResponseChannel)
 }
 
-
 func (this *Protocol) SendMessageAsync(chat_id interface{}, text string, reply_to *int, parse_mode string, reply_markup interface{}, disable_preview bool, sm ResponseHandler) () {
-	go DoAsyncCall(&this.client, sm, &CallResponseChannel, this.BuildSendMessageURL(chat_id, text, reply_to, parse_mode, reply_markup, disable_preview))
+	go DoAsyncCall(this.BuildSendMessageReq(chat_id, text, reply_to, parse_mode, reply_markup, disable_preview), sm, &CallResponseChannel)
 }
 
 func (this *Protocol) EditMessageTextAsync(chat_id interface{}, message_id int, inline_id string, text string, parse_mode string, reply_markup interface{}, disable_preview bool, sm ResponseHandler) () {
-	go DoAsyncCall(&this.client, sm, &CallResponseChannel, this.BuildEditMessageURL(chat_id, message_id, inline_id, text, parse_mode, reply_markup, disable_preview))
+	go DoAsyncCall(this.BuildEditMessageReq(chat_id, message_id, inline_id, text, parse_mode, reply_markup, disable_preview), sm, &CallResponseChannel)
 }
 
 func (this *Protocol) DeleteMessageAsync(chat_id interface{}, message_id int, sm ResponseHandler) () {
-	go DoAsyncCall(&this.client, sm, &CallResponseChannel, this.BuildDeleteMessageURL(chat_id, message_id))
+	go DoAsyncCall(this.BuildDeleteMessageReq(chat_id, message_id), sm, &CallResponseChannel)
 }
 
 func (this *Protocol) SendStickerAsync(chat_id interface{}, sticker_id string, reply_to *int, disable_notification bool, sm ResponseHandler) () {
-	go DoAsyncCall(&this.client, sm, &CallResponseChannel, this.BuildSendStickerURL(chat_id, sticker_id, reply_to, disable_notification))
+	go DoAsyncCall(this.BuildSendStickerReq(chat_id, sticker_id, reply_to, disable_notification), sm, &CallResponseChannel)
 }
 
 func (this *Protocol) ForwardMessageAsync(chat_id interface{}, from_chat_id interface{}, message_id int, disable_notification bool, sm ResponseHandler) () {
-	go DoAsyncCall(&this.client, sm, &CallResponseChannel, this.BuildForwardMessageURL(chat_id, from_chat_id, message_id, disable_notification))
+	go DoAsyncCall(this.BuildForwardMessageReq(chat_id, from_chat_id, message_id, disable_notification), sm, &CallResponseChannel)
 }
 
 func (this *Protocol) KickMemberAsync(chat_id interface{}, member int, si ResponseHandler) () {
-	go DoAsyncCall(&this.client, si, &CallResponseChannel, this.BuildKickMemberURL(chat_id, member))
+	go DoAsyncCall(this.BuildKickMemberReq(chat_id, member), si, &CallResponseChannel)
 }
 
 func (this *Protocol) GetStickerSetAsync(name string, rm ResponseHandler) () {
-	go DoAsyncCall(&this.client, rm, &CallResponseChannel, this.BuildGetStickerSetURL(name))
+	go DoAsyncCall(this.BuildGetStickerSetReq(name), rm, &CallResponseChannel)
 }
 
 func (this *Protocol) GetChatMemberAsync(chat_id interface{}, user_id int, rm ResponseHandler) () {
-	go DoAsyncCall(&this.client, rm, &CallResponseChannel, this.BuildGetChatMemberURL(chat_id, user_id))
+	go DoAsyncCall(this.BuildGetChatMemberReq(chat_id, user_id), rm, &CallResponseChannel, )
 }
 
 func (this *Protocol) RestrictChatMemberAsync(chat_id interface{}, user_id int, until int64, messages, media, basic_media, web_previews bool, rm ResponseHandler) () {
-	go DoAsyncCall(&this.client, rm, &CallResponseChannel, this.BuildRestrictChatMemberURL(chat_id, user_id, until, messages, media, basic_media, web_previews))
+	go DoAsyncCall(this.BuildRestrictChatMemberReq(chat_id, user_id, until, messages, media, basic_media, web_previews), rm, &CallResponseChannel)
 }
 
 func (this *Protocol) GetFileAsync(file_id string, rm ResponseHandler) () {
-	go DoAsyncCall(&this.client, rm, &CallResponseChannel, this.BuildGetFileURL(file_id))
+	go DoAsyncCall(this.BuildGetFileReq(file_id), rm, &CallResponseChannel)
 }
 
 func (this *Protocol) DownloadFileAsync(file_path string, rm ResponseHandler) () {
-	go DoAsyncFetch(&this.client, rm, &CallResponseChannel, this.BuildDownloadFileURL(file_path))
+	go DoAsyncFetch(this.BuildDownloadFileReq(file_path), rm, &CallResponseChannel)
 }
 
 func (this *Protocol) AnswerCallbackQueryAsync(query_id, notification string, show_alert bool, rm ResponseHandler) () {
-	go DoAsyncCall(&this.client, rm, &CallResponseChannel, this.BuildAnswerCallbackQueryURL(query_id, notification, show_alert))
+	go DoAsyncCall(this.BuildAnswerCallbackQueryReq(query_id, notification, show_alert), rm, &CallResponseChannel)
 }
 
 // Synchronous calls
 
-func (this *Protocol) AnswerInlineQuery(q TInlineQuery, out []interface{}, offset string) (error) {
-	b, err := json.Marshal(out)
-	if err != nil { return err }
-
-	_, err = DoCall(&this.client, this.BuildAnswerInlineQueryURL(q, offset) + url.QueryEscape(string(b)))
+func (this *Protocol) AnswerInlineQuery(q TInlineQuery, results []interface{}, offset string) (error) {
+	_, err := DoCall(this.BuildAnswerInlineQueryReq(q, offset, results))
 	return err
 }
 
 func (this *Protocol) SendMessage(chat_id interface{}, text string, reply_to *int, mtype string, reply_markup interface{}, disable_preview bool) (*TMessage, error) {
-	return OutputToMessage(DoCall(&this.client, this.BuildSendMessageURL(chat_id, text, reply_to, mtype, reply_markup, disable_preview)))
+	return OutputToMessage(DoCall(this.BuildSendMessageReq(chat_id, text, reply_to, mtype, reply_markup, disable_preview)))
 }
 
 func (this *Protocol) EditMessageText(chat_id interface{}, message_id int, inline_id string, text string, parse_mode string, reply_markup interface{}, disable_preview bool) (*TMessage, error) {
-	return OutputToMessage(DoCall(&this.client, this.BuildEditMessageURL(chat_id, message_id, inline_id, text, parse_mode, reply_markup, disable_preview)))
+	return OutputToMessage(DoCall(this.BuildEditMessageReq(chat_id, message_id, inline_id, text, parse_mode, reply_markup, disable_preview)))
 }
 
 func (this *Protocol) DeleteMessage(chat_id interface{}, message_id int) (error) {
-	_, err := DoCall(&this.client, this.BuildDeleteMessageURL(chat_id, message_id))
+	_, err := DoCall(this.BuildDeleteMessageReq(chat_id, message_id))
 	return err
 }
 
 func (this *Protocol) SendSticker(chat_id interface{}, sticker_id string, reply_to *int, disable_notification bool) (*TMessage, error) {
-	return OutputToMessage(DoCall(&this.client, this.BuildSendStickerURL(chat_id, sticker_id, reply_to, disable_notification)))
+	return OutputToMessage(DoCall(this.BuildSendStickerReq(chat_id, sticker_id, reply_to, disable_notification)))
 }
 
 func (this *Protocol) ForwardMessage(chat_id interface{}, from_chat_id interface{}, message_id int, disable_notification bool) (*TMessage, error) {
-	return OutputToMessage(DoCall(&this.client, this.BuildForwardMessageURL(chat_id, from_chat_id, message_id, disable_notification)))
+	return OutputToMessage(DoCall(this.BuildForwardMessageReq(chat_id, from_chat_id, message_id, disable_notification)))
 }
 
 func (this *Protocol) KickMember(chat_id interface{}, member int) (error) {
-	_, err := DoCall(&this.client, this.BuildKickMemberURL(chat_id, member))
+	_, err := DoCall(this.BuildKickMemberReq(chat_id, member))
 	return err
 }
 
 func (this *Protocol) GetStickerSet(name string) (*TStickerSet, error) {
-	return OutputToStickerSet(DoCall(&this.client, this.BuildGetStickerSetURL(name)))
+	return OutputToStickerSet(DoCall(this.BuildGetStickerSetReq(name)))
 }
 
 func (this *Protocol) GetChatMember(chat_id interface{}, user_id int) (*TChatMember, error) {
-	return OutputToChatMember(DoCall(&this.client, this.BuildGetChatMemberURL(chat_id, user_id)))
+	return OutputToChatMember(DoCall(this.BuildGetChatMemberReq(chat_id, user_id)))
 }
 
 func (this *Protocol) RestrictChatMember(chat_id interface{}, user_id int, until int64, messages, media, basic_media, web_previews bool, rm ResponseHandler) (error) {
-	_, err := DoCall(&this.client, this.BuildRestrictChatMemberURL(chat_id, user_id, until, messages, media, basic_media, web_previews))
+	_, err := DoCall(this.BuildRestrictChatMemberReq(chat_id, user_id, until, messages, media, basic_media, web_previews))
 	return err
 }
 
 func (this *Protocol) GetFile(file_id string) (*TFile, error) {
-	return OutputToFile(DoCall(&this.client, this.BuildGetFileURL(file_id)))
+	return OutputToFile(DoCall(this.BuildGetFileReq(file_id)))
 }
 
-func (this *Protocol) DownloadFile(file_path string) ([]byte, error) {
-	return DoFetch(&this.client, this.BuildDownloadFileURL(file_path))
+func (this *Protocol) DownloadFile(file_path string) (io.ReadCloser, error) {
+	return DoGetReader(this.BuildDownloadFileReq(file_path))
 }
 
 func (this *Protocol) AnswerCallbackQuery(query_id, notification string, show_alert bool) (error) {
-	_, err := DoCall(&this.client, this.BuildAnswerCallbackQueryURL(query_id, notification, show_alert))
+	_, err := DoCall(this.BuildAnswerCallbackQueryReq(query_id, notification, show_alert))
 	return err
 }
 
 // Updates
 
 func (this *Protocol) GetUpdates() ([]TUpdate, error) {
-	url := apiEndpoint + this.apiKey + "/getUpdates?" + 
-	       "offset=" + strconv.Itoa(this.mostRecentlyReceived) +
-	       "&timeout=3600"
-	r, e := this.client.Get(url)
+	r, e := this.client.New("getUpdates").
+			    Arg("offset", strconv.Itoa(this.mostRecentlyReceived)).
+			    Arg("timeout", "3600").
+			    Do()
 
 	if r != nil {
 		defer r.Body.Close()

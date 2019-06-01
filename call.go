@@ -4,7 +4,8 @@ import (
 	"errors"
 	"encoding/json"
 	"io/ioutil"
-	"net/http"
+	"io"
+	"github.com/thewug/reqtify"
 )
 
 var CallResponseChannel chan HandlerBox = make(chan HandlerBox, 10)
@@ -16,17 +17,15 @@ type HandlerBox struct {
 	Handler   ResponseHandler
 	Output   *json.RawMessage
 	Bytes   []byte
+	Reader   io.ReadCloser
 }
 
 // call this in a goroutine.
-func DoAsyncFetch(client *http.Client, handler ResponseHandler, output *chan HandlerBox, apiurl string) {
+func DoAsyncGetReader(request *reqtify.Request, handler ResponseHandler, output *chan HandlerBox) {
 	var hbox HandlerBox
 	hbox.Handler = handler
 
-	r, e := client.Get(apiurl)
-	if r != nil {
-		defer r.Body.Close()
-	}
+	r, e := request.Do()
 	if e != nil {
 		hbox.Error = e
 		if (output != nil) { *output <- hbox }
@@ -34,9 +33,31 @@ func DoAsyncFetch(client *http.Client, handler ResponseHandler, output *chan Han
 	}
 
 	hbox.Http_code = r.StatusCode
-	hbox.Bytes, e = ioutil.ReadAll(r.Body)
-	if e != nil {
-		hbox.Error = e
+	hbox.Reader = r.Body
+
+	hbox.Success = true
+	if (output != nil) { *output <- hbox }
+	return
+}
+
+// call this in a goroutine.
+func DoAsyncFetch(request *reqtify.Request, handler ResponseHandler, output *chan HandlerBox) {
+	temp := make(chan HandlerBox, 1)
+	DoAsyncGetReader(request, handler, &temp)
+	close(temp)
+	hbox := <- temp
+
+	if hbox.Reader != nil { defer hbox.Reader.Close() }
+
+	if !hbox.Success {
+		if (output != nil) { *output <- hbox }
+		return
+	}
+
+	hbox.Success = false
+
+	hbox.Bytes, hbox.Error = ioutil.ReadAll(hbox.Reader)
+	if hbox.Error != nil {
 		if (output != nil) { *output <- hbox }
 		return
 	}
@@ -46,11 +67,18 @@ func DoAsyncFetch(client *http.Client, handler ResponseHandler, output *chan Han
 	return
 }
 
-func DoAsyncCall(client *http.Client, handler ResponseHandler, output *chan HandlerBox, apiurl string) {
+// call this in a goroutine.
+func DoAsyncCall(request *reqtify.Request, handler ResponseHandler, output *chan HandlerBox) {
 	temp := make(chan HandlerBox, 1)
-	DoAsyncFetch(client, handler, &temp, apiurl)
+	DoAsyncFetch(request, handler, &temp)
 	close(temp)
 	hbox := <- temp
+
+	if !hbox.Success {
+		if (output != nil) { *output <- hbox }
+		return
+	}
+
 	hbox.Success = false
 
 	var out TGenericResponse
@@ -76,20 +104,30 @@ func DoAsyncCall(client *http.Client, handler ResponseHandler, output *chan Hand
 	return
 }
 
-func DoFetch(client *http.Client, apiurl string) ([]byte, error) {
+func DoGetReader(request *reqtify.Request) (io.ReadCloser, error) {
 	ch := make(chan HandlerBox, 1)
 
-	DoAsyncFetch(client, nil, &ch, apiurl)
+	DoAsyncGetReader(request, nil, &ch)
+	close(ch)
+	output := <- ch
+
+	return output.Reader, output.Error
+}
+
+func DoFetch(request *reqtify.Request) ([]byte, error) {
+	ch := make(chan HandlerBox, 1)
+
+	DoAsyncFetch(request, nil, &ch)
 	close(ch)
 	output := <- ch
 
 	return output.Bytes, output.Error
 }
 
-func DoCall(client *http.Client, apiurl string) (*json.RawMessage, error) {
+func DoCall(request *reqtify.Request) (*json.RawMessage, error) {
 	ch := make(chan HandlerBox, 1)
 
-	DoAsyncCall(client, nil, &ch, apiurl)
+	DoAsyncCall(request, nil, &ch)
 	close(ch)
 	output := <- ch
 

@@ -6,6 +6,7 @@ import (
 
 // common state for the entire telegram package.
 
+var userAgent string = "@KnottyBot (v1.0, operator: @wuuug id:68060168)"
 var apiEndpoint string = "https://api.telegram.org/bot"
 var apiFileEndpoint string = "https://api.telegram.org/file/bot"
 
