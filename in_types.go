@@ -4,14 +4,6 @@ import (
 	"encoding/json"
 )
 
-type UserID int
-type ChatID int64
-
-type Sender struct {
-	User UserID
-	Channel ChatID
-}
-
 type TUser struct {
 	Id          int    `json:"id"`
 	First_name  string `json:"first_name"`
@@ -251,8 +243,4 @@ type TInputMessageTextContent struct {
 	Message_text string `json:"message_text"`
 	Parse_mode   string `json:"parse_mode"`
 	No_preview   bool   `json:"disable_web_page_preview"`
-}
-
-type ResponseHandler interface {
-	Callback(result *json.RawMessage, success bool, err error, http_code int)
 }
