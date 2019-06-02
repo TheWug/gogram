@@ -82,7 +82,7 @@ func (this *TelegramBot) AddCommand(cmd string, cb Command) {
 	this.Commands[strings.ToLower(cmd)] = cb
 }
 
-func (this *TelegramBot) AsyncUpdateLoop(output chan []gogram.TUpdate) () {
+func (this *TelegramBot) asyncUpdateLoop(output chan []gogram.TUpdate) () {
 	for {
 		updates, e := this.Remote.GetUpdates()
 		if e != nil {
@@ -113,7 +113,7 @@ func (this *TelegramBot) Init(filename string, s InitSettings) (error) {
 
 func (this *TelegramBot) MainLoop() {
 	this.update_channel = make(chan []gogram.TUpdate, 3)
-	go this.AsyncUpdateLoop(this.update_channel)
+	go this.asyncUpdateLoop(this.update_channel)
 
 	this.maintenance_ticker = time.NewTicker(time.Second)
 
