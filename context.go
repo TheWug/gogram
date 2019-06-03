@@ -88,7 +88,8 @@ func (this *MessageCtx) GetState() (State) {
 }
 
 func (this *MessageCtx) Respond(m data.OMessage) (*MessageCtx, error) {
-	msg, err := this.Bot.Remote.SendMessage(this.Msg.Chat.Id, m.Text, m.ReplyTo, m.ParseMode, m.ReplyMarkup, !m.EnableWebPreview)
+	m.ChatID = this.Msg.Chat.Id
+	msg, err := this.Bot.Remote.SendMessage(m)
 	return &MessageCtx {
 		Msg: msg,
 		Bot: this.Bot,
@@ -96,7 +97,9 @@ func (this *MessageCtx) Respond(m data.OMessage) (*MessageCtx, error) {
 }
 
 func (this *MessageCtx) Reply(m data.OMessage) (*MessageCtx, error) {
-	msg, err := this.Bot.Remote.SendMessage(this.Msg.Chat.Id, m.Text, &this.Msg.Message_id, m.ParseMode, m.ReplyMarkup, !m.EnableWebPreview)
+	m.ChatID = this.Msg.Chat.Id
+	m.ReplyTo = &this.Msg.Message_id
+	msg, err := this.Bot.Remote.SendMessage(m)
 	return &MessageCtx {
 		Msg: msg,
 		Bot: this.Bot,
@@ -104,17 +107,20 @@ func (this *MessageCtx) Reply(m data.OMessage) (*MessageCtx, error) {
 }
 
 func (this *MessageCtx) Delete() (error) {
-	return this.Bot.Remote.DeleteMessage(this.Msg.Chat.Id, this.Msg.Message_id)
+	return this.Bot.Remote.DeleteMessage(data.OMessage{ChatID: this.Msg.Chat.Id, MessageID: this.Msg.Message_id})
 }
 
 func (this *MessageCtx) RespondAsync(m data.OMessage, handler data.ResponseHandler) {
-	this.Bot.Remote.SendMessageAsync(this.Msg.Chat.Id, m.Text, m.ReplyTo, m.ParseMode, m.ReplyMarkup, !m.EnableWebPreview, handler)
+	m.ChatID = this.Msg.Chat.Id
+	this.Bot.Remote.SendMessageAsync(m, handler)
 }
 
 func (this *MessageCtx) ReplyAsync(m data.OMessage, handler data.ResponseHandler) {
-	this.Bot.Remote.SendMessageAsync(this.Msg.Chat.Id, m.Text, &this.Msg.Message_id, m.ParseMode, m.ReplyMarkup, !m.EnableWebPreview, handler)
+	m.ChatID = this.Msg.Chat.Id
+	m.ReplyTo = &this.Msg.Message_id
+	this.Bot.Remote.SendMessageAsync(m, handler)
 }
 
 func (this *MessageCtx) DeleteAsync(handler data.ResponseHandler) {
-	this.Bot.Remote.DeleteMessageAsync(this.Msg.Chat.Id, this.Msg.Message_id, handler)
+	this.Bot.Remote.DeleteMessageAsync(data.OMessage{ChatID: this.Msg.Chat.Id, MessageID: this.Msg.Message_id}, handler)
 }
