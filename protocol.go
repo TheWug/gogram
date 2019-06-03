@@ -132,8 +132,9 @@ func (this *Protocol) BuildSendMessageReq(chat_id interface{}, text string, repl
 
 func (this *Protocol) BuildEditMessageReq(chat_id interface{}, message_id int, inline_id string, text string, parse_mode string, reply_markup interface{}, disable_preview bool) (*reqtify.Request) {
 	req := this.client.New("editMessageText").Method(reqtify.POST).
-			   Arg("chat_id", GetStringId(chat_id)).
-			   Arg("message_id", strconv.Itoa(message_id)).
+			   ArgDefault("chat_id", GetStringId(chat_id), "").
+			   ArgDefault("message_id", strconv.Itoa(message_id), "0").
+			   ArgDefault("inline_id", inline_id, "").
 			   Arg("text", text).
 			   ArgDefault("parse_mode", parse_mode, "").
 			   ArgDefault("disable_web_page_preview", strconv.FormatBool(disable_preview), "false")
