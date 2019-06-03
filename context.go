@@ -2,27 +2,74 @@ package gogram
 
 import (
 	"github.com/thewug/gogram/data"
+
+	"github.com/kballard/go-shellquote"
+
+	"strings"
 )
+
+type CommandData struct {
+	Command    string
+	Target     string
+	Line	   string
+	Argstr     string
+	Args     []string
+	ParseError error
+}
+
+func ParseCommand(m *data.TMessage) (CommandData) {
+	var line string
+	if m.Text != nil && *m.Text != "" {
+		line = *m.Text
+	} else if m.Caption != nil {
+		line = *m.Caption
+	}
+
+	return ParseCommandFromString(line)
+}
+
+func ParseCommandFromString(line string) (CommandData) {
+	var c CommandData
+
+	c.Line = line
+	if strings.HasPrefix(line, "/") {
+		tokens := strings.SplitN(line, " ", 2)
+		if len(tokens) == 2 {
+			line = tokens[1]
+		} else {
+			line = ""
+		}
+		command := tokens[0]
+		tokens = strings.SplitN(command, "@", 2)
+		if len(tokens) == 2 {
+			c.Target = tokens[1]
+		} else {
+			c.Target = ""
+		}
+		c.Command = tokens[0]
+	}
+
+	c.Argstr = line
+	c.Args, c.ParseError = shellquote.Split(line)
+	return c
+}
 
 type MessageCtx struct {
 	Msg          *data.TMessage
 	Edited        bool
 	Cmd           CommandData
-	CmdParseError error
 	Bot          *TelegramBot
 	Machine      *MessageStateMachine
 }
 
 func NewMessageCtx(msg *data.TMessage, edited bool, bot *TelegramBot) (*MessageCtx) {
-	ctx := MessageCtx{
+	return &MessageCtx{
 		Msg: msg,
 		Edited: edited,
+		Cmd: ParseCommand(msg),
 		Bot: bot,
 		Machine: bot.state_machine,
 	}
-
-	ctx.Cmd, ctx.CmdParseError = ParseCommand(ctx.Msg)
-	return &ctx
 }
 
 func (this *MessageCtx) SetState(newstate State) {

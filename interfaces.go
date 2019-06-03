@@ -30,11 +30,3 @@ type Maintainer interface {
 type InitSettings interface {
 	InitializeAll(*TelegramBot) error
 }
-
-type CommandData struct {
-	Command string
-	Target  string
-	Line	string
-	Argstr  string
-	Args  []string
-}

@@ -10,8 +10,6 @@ import (
 
 	"io/ioutil"
 	"encoding/json"
-
-	"github.com/kballard/go-shellquote"
 )
 
 
@@ -201,44 +199,4 @@ func (this *MessageStateMachine) Handle(ctx *MessageCtx) {
 
 	callback := this.Handlers[strings.ToLower(ctx.Cmd.Command)]
 	if callback != nil { callback.Handle(ctx) }
-}
-
-
-func ParseCommand(m *data.TMessage) (CommandData, error) {
-	var line string
-	if m.Text != nil && *m.Text != "" {
-		line = *m.Text
-	} else if m.Caption != nil {
-		line = *m.Caption
-	}
-
-	c, e := ParseCommandFromString(line)
-	return c, e
-}
-
-func ParseCommandFromString(line string) (CommandData, error) {
-	var c CommandData
-	var err error
-
-	c.Line = line
-	if strings.HasPrefix(line, "/") {
-		tokens := strings.SplitN(line, " ", 2)
-		if len(tokens) == 2 {
-			line = tokens[1]
-		} else {
-			line = ""
-		}
-		command := tokens[0]
-		tokens = strings.SplitN(command, "@", 2)
-		if len(tokens) == 2 {
-			c.Target = tokens[1]
-		} else {
-			c.Target = ""
-		}
-		c.Command = tokens[0]
-	}
-
-	c.Argstr = line
-	c.Args, err = shellquote.Split(line)
-	return c, err
 }
