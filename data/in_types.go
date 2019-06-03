@@ -97,6 +97,14 @@ type TMessage struct {
 	Pinned_message     *TMessage         `json:"pinned_message"`
 }
 
+const Creator string = "creator"
+const Admin string = "administrator"
+const Member string = "member"
+const Restricted string = "restricted"
+const Left string = "left"
+const Kicked string = "kicked"
+const Banned string = Kicked
+
 type TChatMember struct {
 	User                   TUser  `json:"user"`
 	Status                 string `json:"status"`
