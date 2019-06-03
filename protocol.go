@@ -1,6 +1,8 @@
 package gogram
 
 import (
+	"github.com/thewug/gogram/data"
+
 	"github.com/thewug/reqtify"
 
 	"errors"
@@ -22,7 +24,7 @@ type Protocol struct {
 	client reqtify.Reqtifier
 	file_client reqtify.Reqtifier
 	apiKey string
-	me TUser
+	me data.TUser
 	current_async_id int
 	mostRecentlyReceived int
 }
@@ -47,7 +49,7 @@ func (this *Protocol) SetAPIKey(newKey string) () {
 	this.file_client.Root = apiFileEndpoint + this.apiKey + "/"
 }
 
-func (this *Protocol) GetMe() (TUser) {
+func (this *Protocol) GetMe() (data.TUser) {
 	return this.me
 }
 
@@ -71,7 +73,7 @@ func (this *Protocol) Test() (error) {
 	b, e := ioutil.ReadAll(r.Body)
 	if e != nil { return e }
 
-	var resp TGenericResponse
+	var resp data.TGenericResponse
 	e = json.Unmarshal(b, &resp)
 	if e != nil { return e }
 
@@ -97,7 +99,7 @@ func (this *Protocol) BuildGetChatMemberReq(chat_id interface{}, user_id int) (*
 			   Arg("user_id", strconv.Itoa(user_id))
 }
 
-func (this *Protocol) BuildAnswerInlineQueryReq(q TInlineQuery, next_offset string, results []interface{}) (*reqtify.Request) {
+func (this *Protocol) BuildAnswerInlineQueryReq(q data.TInlineQuery, next_offset string, results []interface{}) (*reqtify.Request) {
 	// next_offset should get stuck at -1 forever if pagination breaks somehow, to prevent infinite loops.
 
 	b, e := json.Marshal(results)
@@ -206,70 +208,70 @@ func (this *Protocol) BuildAnswerCallbackQueryReq(query_id, notification string,
 
 // Async calls
 
-func (this *Protocol) AnswerInlineQueryAsync(q TInlineQuery, results []interface{}, offset string, rm ResponseHandler) {
+func (this *Protocol) AnswerInlineQueryAsync(q data.TInlineQuery, results []interface{}, offset string, rm data.ResponseHandler) {
 	go DoAsyncCall(this.BuildAnswerInlineQueryReq(q, offset, results), rm, &CallResponseChannel)
 }
 
-func (this *Protocol) SendMessageAsync(chat_id interface{}, text string, reply_to *int, parse_mode string, reply_markup interface{}, disable_preview bool, sm ResponseHandler) () {
+func (this *Protocol) SendMessageAsync(chat_id interface{}, text string, reply_to *int, parse_mode string, reply_markup interface{}, disable_preview bool, sm data.ResponseHandler) () {
 	go DoAsyncCall(this.BuildSendMessageReq(chat_id, text, reply_to, parse_mode, reply_markup, disable_preview), sm, &CallResponseChannel)
 }
 
-func (this *Protocol) EditMessageTextAsync(chat_id interface{}, message_id int, inline_id string, text string, parse_mode string, reply_markup interface{}, disable_preview bool, sm ResponseHandler) () {
+func (this *Protocol) EditMessageTextAsync(chat_id interface{}, message_id int, inline_id string, text string, parse_mode string, reply_markup interface{}, disable_preview bool, sm data.ResponseHandler) () {
 	go DoAsyncCall(this.BuildEditMessageReq(chat_id, message_id, inline_id, text, parse_mode, reply_markup, disable_preview), sm, &CallResponseChannel)
 }
 
-func (this *Protocol) DeleteMessageAsync(chat_id interface{}, message_id int, sm ResponseHandler) () {
+func (this *Protocol) DeleteMessageAsync(chat_id interface{}, message_id int, sm data.ResponseHandler) () {
 	go DoAsyncCall(this.BuildDeleteMessageReq(chat_id, message_id), sm, &CallResponseChannel)
 }
 
-func (this *Protocol) SendStickerAsync(chat_id interface{}, sticker_id string, reply_to *int, disable_notification bool, sm ResponseHandler) () {
+func (this *Protocol) SendStickerAsync(chat_id interface{}, sticker_id string, reply_to *int, disable_notification bool, sm data.ResponseHandler) () {
 	go DoAsyncCall(this.BuildSendStickerReq(chat_id, sticker_id, reply_to, disable_notification), sm, &CallResponseChannel)
 }
 
-func (this *Protocol) ForwardMessageAsync(chat_id interface{}, from_chat_id interface{}, message_id int, disable_notification bool, sm ResponseHandler) () {
+func (this *Protocol) ForwardMessageAsync(chat_id interface{}, from_chat_id interface{}, message_id int, disable_notification bool, sm data.ResponseHandler) () {
 	go DoAsyncCall(this.BuildForwardMessageReq(chat_id, from_chat_id, message_id, disable_notification), sm, &CallResponseChannel)
 }
 
-func (this *Protocol) KickMemberAsync(chat_id interface{}, member int, si ResponseHandler) () {
+func (this *Protocol) KickMemberAsync(chat_id interface{}, member int, si data.ResponseHandler) () {
 	go DoAsyncCall(this.BuildKickMemberReq(chat_id, member), si, &CallResponseChannel)
 }
 
-func (this *Protocol) GetStickerSetAsync(name string, rm ResponseHandler) () {
+func (this *Protocol) GetStickerSetAsync(name string, rm data.ResponseHandler) () {
 	go DoAsyncCall(this.BuildGetStickerSetReq(name), rm, &CallResponseChannel)
 }
 
-func (this *Protocol) GetChatMemberAsync(chat_id interface{}, user_id int, rm ResponseHandler) () {
+func (this *Protocol) GetChatMemberAsync(chat_id interface{}, user_id int, rm data.ResponseHandler) () {
 	go DoAsyncCall(this.BuildGetChatMemberReq(chat_id, user_id), rm, &CallResponseChannel, )
 }
 
-func (this *Protocol) RestrictChatMemberAsync(chat_id interface{}, user_id int, until int64, messages, media, basic_media, web_previews bool, rm ResponseHandler) () {
+func (this *Protocol) RestrictChatMemberAsync(chat_id interface{}, user_id int, until int64, messages, media, basic_media, web_previews bool, rm data.ResponseHandler) () {
 	go DoAsyncCall(this.BuildRestrictChatMemberReq(chat_id, user_id, until, messages, media, basic_media, web_previews), rm, &CallResponseChannel)
 }
 
-func (this *Protocol) GetFileAsync(file_id string, rm ResponseHandler) () {
+func (this *Protocol) GetFileAsync(file_id string, rm data.ResponseHandler) () {
 	go DoAsyncCall(this.BuildGetFileReq(file_id), rm, &CallResponseChannel)
 }
 
-func (this *Protocol) DownloadFileAsync(file_path string, rm ResponseHandler) () {
+func (this *Protocol) DownloadFileAsync(file_path string, rm data.ResponseHandler) () {
 	go DoAsyncFetch(this.BuildDownloadFileReq(file_path), rm, &CallResponseChannel)
 }
 
-func (this *Protocol) AnswerCallbackQueryAsync(query_id, notification string, show_alert bool, rm ResponseHandler) () {
+func (this *Protocol) AnswerCallbackQueryAsync(query_id, notification string, show_alert bool, rm data.ResponseHandler) () {
 	go DoAsyncCall(this.BuildAnswerCallbackQueryReq(query_id, notification, show_alert), rm, &CallResponseChannel)
 }
 
 // Synchronous calls
 
-func (this *Protocol) AnswerInlineQuery(q TInlineQuery, results []interface{}, offset string) (error) {
+func (this *Protocol) AnswerInlineQuery(q data.TInlineQuery, results []interface{}, offset string) (error) {
 	_, err := DoCall(this.BuildAnswerInlineQueryReq(q, offset, results))
 	return err
 }
 
-func (this *Protocol) SendMessage(chat_id interface{}, text string, reply_to *int, mtype string, reply_markup interface{}, disable_preview bool) (*TMessage, error) {
+func (this *Protocol) SendMessage(chat_id interface{}, text string, reply_to *int, mtype string, reply_markup interface{}, disable_preview bool) (*data.TMessage, error) {
 	return OutputToMessage(DoCall(this.BuildSendMessageReq(chat_id, text, reply_to, mtype, reply_markup, disable_preview)))
 }
 
-func (this *Protocol) EditMessageText(chat_id interface{}, message_id int, inline_id string, text string, parse_mode string, reply_markup interface{}, disable_preview bool) (*TMessage, error) {
+func (this *Protocol) EditMessageText(chat_id interface{}, message_id int, inline_id string, text string, parse_mode string, reply_markup interface{}, disable_preview bool) (*data.TMessage, error) {
 	return OutputToMessage(DoCall(this.BuildEditMessageReq(chat_id, message_id, inline_id, text, parse_mode, reply_markup, disable_preview)))
 }
 
@@ -278,11 +280,11 @@ func (this *Protocol) DeleteMessage(chat_id interface{}, message_id int) (error)
 	return err
 }
 
-func (this *Protocol) SendSticker(chat_id interface{}, sticker_id string, reply_to *int, disable_notification bool) (*TMessage, error) {
+func (this *Protocol) SendSticker(chat_id interface{}, sticker_id string, reply_to *int, disable_notification bool) (*data.TMessage, error) {
 	return OutputToMessage(DoCall(this.BuildSendStickerReq(chat_id, sticker_id, reply_to, disable_notification)))
 }
 
-func (this *Protocol) ForwardMessage(chat_id interface{}, from_chat_id interface{}, message_id int, disable_notification bool) (*TMessage, error) {
+func (this *Protocol) ForwardMessage(chat_id interface{}, from_chat_id interface{}, message_id int, disable_notification bool) (*data.TMessage, error) {
 	return OutputToMessage(DoCall(this.BuildForwardMessageReq(chat_id, from_chat_id, message_id, disable_notification)))
 }
 
@@ -291,20 +293,20 @@ func (this *Protocol) KickMember(chat_id interface{}, member int) (error) {
 	return err
 }
 
-func (this *Protocol) GetStickerSet(name string) (*TStickerSet, error) {
+func (this *Protocol) GetStickerSet(name string) (*data.TStickerSet, error) {
 	return OutputToStickerSet(DoCall(this.BuildGetStickerSetReq(name)))
 }
 
-func (this *Protocol) GetChatMember(chat_id interface{}, user_id int) (*TChatMember, error) {
+func (this *Protocol) GetChatMember(chat_id interface{}, user_id int) (*data.TChatMember, error) {
 	return OutputToChatMember(DoCall(this.BuildGetChatMemberReq(chat_id, user_id)))
 }
 
-func (this *Protocol) RestrictChatMember(chat_id interface{}, user_id int, until int64, messages, media, basic_media, web_previews bool, rm ResponseHandler) (error) {
+func (this *Protocol) RestrictChatMember(chat_id interface{}, user_id int, until int64, messages, media, basic_media, web_previews bool, rm data.ResponseHandler) (error) {
 	_, err := DoCall(this.BuildRestrictChatMemberReq(chat_id, user_id, until, messages, media, basic_media, web_previews))
 	return err
 }
 
-func (this *Protocol) GetFile(file_id string) (*TFile, error) {
+func (this *Protocol) GetFile(file_id string) (*data.TFile, error) {
 	return OutputToFile(DoCall(this.BuildGetFileReq(file_id)))
 }
 
@@ -319,7 +321,7 @@ func (this *Protocol) AnswerCallbackQuery(query_id, notification string, show_al
 
 // Updates
 
-func (this *Protocol) GetUpdates() ([]TUpdate, error) {
+func (this *Protocol) GetUpdates() ([]data.TUpdate, error) {
 	r, e := this.client.New("getUpdates").
 			    Arg("offset", strconv.Itoa(this.mostRecentlyReceived)).
 			    Arg("timeout", "3600").
@@ -340,7 +342,7 @@ func (this *Protocol) GetUpdates() ([]TUpdate, error) {
 		return nil, e
 	}
 
-	var out TGenericResponse
+	var out data.TGenericResponse
 	e = json.Unmarshal(b, &out)
 
 	if e != nil {
@@ -352,7 +354,7 @@ func (this *Protocol) GetUpdates() ([]TUpdate, error) {
 		return nil, e
 	}
 
-	var updates []TUpdate
+	var updates []data.TUpdate
 	e = json.Unmarshal(*out.Result, &updates)
 
 	if e != nil {

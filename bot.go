@@ -1,25 +1,25 @@
-package bot
+package gogram
 
 import (
-	"github.com/thewug/gogram"
+	"github.com/thewug/gogram/data"
 
 	"log"
 )
 
 
 type InlineQueryable interface {
-	ProcessInlineQuery(Bot, *gogram.TInlineQuery)
-	ProcessInlineQueryResult(Bot, *gogram.TChosenInlineResult)
+	ProcessInlineQuery(Bot, *data.TInlineQuery)
+	ProcessInlineQueryResult(Bot, *data.TChosenInlineResult)
 }
 
 
 type Callbackable interface {
-	ProcessCallback(Bot, *gogram.TCallbackQuery)
+	ProcessCallback(Bot, *data.TCallbackQuery)
 }
 
 
 type Messagable interface {
-	ProcessMessage(Bot, *gogram.TMessage, bool)
+	ProcessMessage(Bot, *data.TMessage, bool)
 }
 
 
@@ -40,7 +40,7 @@ type Command interface {
 }
 
 type CommandData struct {
-	M      *gogram.TMessage
+	M      *data.TMessage
 	Command string
 	Target  string
 	Line	string
@@ -57,10 +57,10 @@ type Bot interface {
 
 	Log() (*log.Logger)
 	ErrorLog() (*log.Logger)
-	Remote() (Protocol)
+	Remote() (*Protocol)
 
 	// DEPRECATED! instead, use MessageStateMachine.
 	AddCommand(cmd string, cb Command)
-	HandleCommand(m *gogram.TMessage)
+	HandleCommand(m *data.TMessage)
 }
 

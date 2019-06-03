@@ -1,4 +1,4 @@
-package gogram
+package data
 
 import (
 	"encoding/json"

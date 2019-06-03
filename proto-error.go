@@ -1,11 +1,13 @@
 package gogram
 
 import (
+	"github.com/thewug/gogram/data"
+
 	"errors"
 	"fmt"
 )
 
-func HandleSoftError(resp *TGenericResponse) (error) {
+func HandleSoftError(resp *data.TGenericResponse) (error) {
 	if resp.Ok != true {
 		return errors.New(fmt.Sprintf("Failure indicated by API endpoint (%d: %s)\n", *resp.Error_code, *resp.Description))
 	}

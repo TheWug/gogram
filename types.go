@@ -1,8 +1,7 @@
-package telebot
+package gogram
 
 import (
-	"github.com/thewug/gogram"
-	"github.com/thewug/gogram/bot"
+	"github.com/thewug/gogram/data"
 
 	"log"
 	"time"
@@ -17,20 +16,22 @@ import (
 
 
 type TelegramBot struct {
-	callback_callback bot.Callbackable
-	message_callback bot.Messagable
-	inline_callback bot.InlineQueryable
-	maintenance_callbacks []bot.Maintainer
+	callback_callback Callbackable
+	message_callback Messagable
+	inline_callback InlineQueryable
+	maintenance_callbacks []Maintainer
 
-	update_channel chan []gogram.TUpdate
+	state_machine *MessageStateMachine
+
+	update_channel chan []data.TUpdate
 	maintenance_ticker *time.Ticker
-	settings bot.InitSettings
+	settings InitSettings
 
 	log *log.Logger
 	errorlog *log.Logger
 
-	remote gogram.Protocol
-	commands map[string]bot.Command
+	remote Protocol
+	commands map[string]Command
 }
 
 func (this *TelegramBot) Log() (*log.Logger) {
@@ -49,34 +50,38 @@ func (this *TelegramBot) ErrorLog() (*log.Logger) {
 	return this.errorlog
 }
 
-func (this *TelegramBot) Remote() (bot.Protocol) {
+func (this *TelegramBot) Remote() (*Protocol) {
 	return &this.remote
 }
 
-func (this *TelegramBot) SetMessageCallback(cb bot.Messagable) {
+func (this *TelegramBot) SetStateMachine(m *MessageStateMachine) {
+	this.state_machine = m
+}
+
+func (this *TelegramBot) SetMessageCallback(cb Messagable) {
 	this.message_callback = cb
 }
 
-func (this *TelegramBot) SetInlineCallback(cb bot.InlineQueryable) {
+func (this *TelegramBot) SetInlineCallback(cb InlineQueryable) {
 	this.inline_callback = cb
 }
 
-func (this *TelegramBot) SetCallbackCallback(cb bot.Callbackable) {
+func (this *TelegramBot) SetCallbackCallback(cb Callbackable) {
 	this.callback_callback = cb
 }
 
-func (this *TelegramBot) AddMaintenanceCallback(cb bot.Maintainer) {
+func (this *TelegramBot) AddMaintenanceCallback(cb Maintainer) {
 	this.maintenance_callbacks = append(this.maintenance_callbacks, cb)
 }
 
-func (this *TelegramBot) AddCommand(cmd string, cb bot.Command) {
+func (this *TelegramBot) AddCommand(cmd string, cb Command) {
 	if this.commands == nil {
-		this.commands = make(map[string]bot.Command)
+		this.commands = make(map[string]Command)
 	}
 	this.commands[strings.ToLower(cmd)] = cb
 }
 
-func (this *TelegramBot) asyncUpdateLoop(output chan []gogram.TUpdate) () {
+func (this *TelegramBot) asyncUpdateLoop(output chan []data.TUpdate) () {
 	for {
 		updates, e := this.remote.GetUpdates()
 		if e != nil {
@@ -89,10 +94,10 @@ func (this *TelegramBot) asyncUpdateLoop(output chan []gogram.TUpdate) () {
 	}
 }
 
-func (this *TelegramBot) Init(filename string, s bot.InitSettings) (error) {
+func (this *TelegramBot) Init(filename string, s InitSettings) (error) {
 	this.log = log.New(os.Stdout, "", log.LstdFlags)
 	this.errorlog = this.log
-	this.remote = gogram.NewProtocol()
+	this.remote = NewProtocol()
 
 	bytes, e := ioutil.ReadFile(filename)
 	if e != nil { return e }
@@ -106,7 +111,7 @@ func (this *TelegramBot) Init(filename string, s bot.InitSettings) (error) {
 }
 
 func (this *TelegramBot) MainLoop() {
-	this.update_channel = make(chan []gogram.TUpdate, 3)
+	this.update_channel = make(chan []data.TUpdate, 3)
 	go this.asyncUpdateLoop(this.update_channel)
 
 	this.maintenance_ticker = time.NewTicker(time.Second)
@@ -143,7 +148,7 @@ func (this *TelegramBot) MainLoop() {
 				if (seconds % m.GetInterval() == 0) { m.DoMaintenance(this) }
 			}
 			seconds++
-		case hbox := <- gogram.CallResponseChannel:
+		case hbox := <- CallResponseChannel:
 			if hbox.Error != nil {
 				log.Println(hbox.Error.Error())
 			}
@@ -155,7 +160,7 @@ func (this *TelegramBot) MainLoop() {
 }
 
 // bot command main handler.
-func (this *TelegramBot) HandleCommand(m *gogram.TMessage) () {
+func (this *TelegramBot) HandleCommand(m *data.TMessage) () {
 	cmd, err := ParseCommand(m)
 
 	if err != nil { return }
@@ -173,41 +178,23 @@ func (this *TelegramBot) HandleCommand(m *gogram.TMessage) () {
 	callback.Callback(&cmd)
 }
 
-func (this *TelegramBot) IsMyCommand(cmd *bot.CommandData) (bool) {
+func (this *TelegramBot) IsMyCommand(cmd *CommandData) (bool) {
 	return strings.ToLower(*this.remote.GetMe().Username) == strings.ToLower(cmd.Target) || len(cmd.Target) == 0
 }
 
-type MsgContext struct {
-	Cmd      bot.CommandData
-	CmdError error
-	Msg      gogram.TMessage
-	MsgEdit  bool
-	Bot     *TelegramBot
-	Machine *MessageStateMachine
-}
-
-func (this *MsgContext) SetState(newstate State) {
-	this.Machine.SetState(this.Msg.Sender(), newstate)
-}
-
-func (this *MsgContext) GetState() (State) {
-	state, _ := this.Machine.UserStates[this.Msg.Sender()]
-	return state
-}
-
 type MessageStateMachine struct {
-	UserStates     map[gogram.Sender]State
+	UserStates     map[data.Sender]State
 	Handlers       map[string]State
 	Default        State
 }
 
 type State interface {
-	Handle(*MsgContext)
+	Handle(*MessageCtx)
 }
 
 func NewMessageStateMachine() (*MessageStateMachine) {
 	csm := MessageStateMachine{
-		UserStates: make(map[gogram.Sender]State),
+		UserStates: make(map[data.Sender]State),
 		Handlers: make(map[string]State),
 	}
 	csm.Default = &csm
@@ -219,7 +206,7 @@ func (this *MessageStateMachine) AddCommand(cmd string, state State) {
 	this.Handlers[strings.ToLower(cmd)] = state
 }
 
-func (this *MessageStateMachine) SetState(sender gogram.Sender, state State) {
+func (this *MessageStateMachine) SetState(sender data.Sender, state State) {
 	if state != nil {
 		this.UserStates[sender] = state
 	} else {
@@ -227,25 +214,25 @@ func (this *MessageStateMachine) SetState(sender gogram.Sender, state State) {
 	}
 }
 
-func (this *MessageStateMachine) ProcessMessage(bot *TelegramBot, msg *gogram.TMessage, edited bool) {
-	var ctx MsgContext
-	ctx.Msg = *msg
-	ctx.MsgEdit = edited
-	ctx.Cmd, ctx.CmdError = ParseCommand(&ctx.Msg)
+func (this *MessageStateMachine) ProcessMessage(bot *TelegramBot, msg *data.TMessage, edited bool) {
+	var ctx MessageCtx
+	ctx.Msg = msg
+	ctx.Edited = edited
+	ctx.Cmd, ctx.CmdParseError = ParseCommand(ctx.Msg)
 	ctx.Bot = bot
 	ctx.Machine = this
 
 	this.FeedContext(&ctx)
 }
 
-func (this *MessageStateMachine) FeedContext(ctx *MsgContext) {
+func (this *MessageStateMachine) FeedContext(ctx *MessageCtx) {
 	state, _ := this.UserStates[ctx.Msg.Sender()]
 	if state == nil { state = this.Default }
 
 	state.Handle(ctx)
 }
 
-func (this *MessageStateMachine) Handle(ctx *MsgContext) {
+func (this *MessageStateMachine) Handle(ctx *MessageCtx) {
 	if !ctx.Bot.IsMyCommand(&ctx.Cmd) || len(ctx.Cmd.Command) == 0 {
 		return
 	}
@@ -255,7 +242,7 @@ func (this *MessageStateMachine) Handle(ctx *MsgContext) {
 }
 
 
-func ParseCommand(m *gogram.TMessage) (bot.CommandData, error) {
+func ParseCommand(m *data.TMessage) (CommandData, error) {
 	var line string
 	if m.Text != nil && *m.Text != "" {
 		line = *m.Text
@@ -268,8 +255,8 @@ func ParseCommand(m *gogram.TMessage) (bot.CommandData, error) {
 	return c, e
 }
 
-func ParseCommandFromString(line string) (bot.CommandData, error) {
-	var c bot.CommandData
+func ParseCommandFromString(line string) (CommandData, error) {
+	var c CommandData
 	var err error
 
 	c.Line = line

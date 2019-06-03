@@ -1,11 +1,14 @@
 package gogram
 
 import (
+	"github.com/thewug/reqtify"
+
+	"github.com/thewug/gogram/data"
+
 	"errors"
 	"encoding/json"
 	"io/ioutil"
 	"io"
-	"github.com/thewug/reqtify"
 )
 
 var CallResponseChannel chan HandlerBox = make(chan HandlerBox, 10)
@@ -14,14 +17,14 @@ type HandlerBox struct {
 	Success   bool
 	Error     error
 	Http_code int
-	Handler   ResponseHandler
+	Handler   data.ResponseHandler
 	Output   *json.RawMessage
 	Bytes   []byte
 	Reader   io.ReadCloser
 }
 
 // call this in a goroutine.
-func DoAsyncGetReader(request *reqtify.Request, handler ResponseHandler, output *chan HandlerBox) {
+func DoAsyncGetReader(request *reqtify.Request, handler data.ResponseHandler, output *chan HandlerBox) {
 	var hbox HandlerBox
 	hbox.Handler = handler
 
@@ -41,7 +44,7 @@ func DoAsyncGetReader(request *reqtify.Request, handler ResponseHandler, output 
 }
 
 // call this in a goroutine.
-func DoAsyncFetch(request *reqtify.Request, handler ResponseHandler, output *chan HandlerBox) {
+func DoAsyncFetch(request *reqtify.Request, handler data.ResponseHandler, output *chan HandlerBox) {
 	temp := make(chan HandlerBox, 1)
 	DoAsyncGetReader(request, handler, &temp)
 	close(temp)
@@ -68,7 +71,7 @@ func DoAsyncFetch(request *reqtify.Request, handler ResponseHandler, output *cha
 }
 
 // call this in a goroutine.
-func DoAsyncCall(request *reqtify.Request, handler ResponseHandler, output *chan HandlerBox) {
+func DoAsyncCall(request *reqtify.Request, handler data.ResponseHandler, output *chan HandlerBox) {
 	temp := make(chan HandlerBox, 1)
 	DoAsyncFetch(request, handler, &temp)
 	close(temp)
@@ -81,7 +84,7 @@ func DoAsyncCall(request *reqtify.Request, handler ResponseHandler, output *chan
 
 	hbox.Success = false
 
-	var out TGenericResponse
+	var out data.TGenericResponse
 	e := json.Unmarshal(hbox.Bytes, &out)
 
 	if e != nil {
@@ -136,10 +139,10 @@ func DoCall(request *reqtify.Request) (*json.RawMessage, error) {
 
 // Type Helpers
 
-func OutputToMessage(raw *json.RawMessage, err error) (*TMessage, error) {
+func OutputToMessage(raw *json.RawMessage, err error) (*data.TMessage, error) {
 	if err != nil { return nil, err }
 
-	var msg TMessage
+	var msg data.TMessage
 	err = json.Unmarshal(*raw, &msg)
 
 	if err != nil { return nil, err }
@@ -147,10 +150,10 @@ func OutputToMessage(raw *json.RawMessage, err error) (*TMessage, error) {
 	return &msg, nil
 }
 
-func OutputToStickerSet(raw *json.RawMessage, err error) (*TStickerSet, error) {
+func OutputToStickerSet(raw *json.RawMessage, err error) (*data.TStickerSet, error) {
 	if err != nil { return nil, err }
 
-	var set TStickerSet
+	var set data.TStickerSet
 	err = json.Unmarshal(*raw, &set)
 
 	if err != nil { return nil, err }
@@ -158,10 +161,10 @@ func OutputToStickerSet(raw *json.RawMessage, err error) (*TStickerSet, error) {
 	return &set, nil
 }
 
-func OutputToChatMember(raw *json.RawMessage, err error) (*TChatMember, error) {
+func OutputToChatMember(raw *json.RawMessage, err error) (*data.TChatMember, error) {
 	if err != nil { return nil, err }
 
-	var cm TChatMember
+	var cm data.TChatMember
 	err = json.Unmarshal(*raw, &cm)
 
 	if err != nil { return nil, err }
@@ -169,10 +172,10 @@ func OutputToChatMember(raw *json.RawMessage, err error) (*TChatMember, error) {
 	return &cm, nil
 }
 
-func OutputToFile(raw *json.RawMessage, err error) (*TFile, error) {
+func OutputToFile(raw *json.RawMessage, err error) (*data.TFile, error) {
 	if err != nil { return nil, err }
 
-	var out TFile
+	var out data.TFile
 	err = json.Unmarshal(*raw, &out)
 
 	if err != nil { return nil, err }
