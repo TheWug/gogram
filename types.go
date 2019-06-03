@@ -224,7 +224,6 @@ func ParseCommand(m *data.TMessage) (CommandData, error) {
 	}
 
 	c, e := ParseCommandFromString(line)
-	c.M = m
 	return c, e
 }
 

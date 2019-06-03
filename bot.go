@@ -32,7 +32,6 @@ type InitSettings interface {
 }
 
 type CommandData struct {
-	M      *data.TMessage
 	Command string
 	Target  string
 	Line	string
