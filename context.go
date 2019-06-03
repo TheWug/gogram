@@ -6,6 +6,7 @@ import (
 	"github.com/kballard/go-shellquote"
 
 	"strings"
+	"errors"
 )
 
 type CommandData struct {
@@ -62,6 +63,11 @@ type MessageCtx struct {
 	Machine      *MessageStateMachine
 }
 
+type ChatMemberCtx struct {
+	Member *data.TChatMember
+	Bot    *TelegramBot
+}
+
 func NewMessageCtx(msg *data.TMessage, edited bool, bot *TelegramBot) (*MessageCtx) {
 	return &MessageCtx{
 		Msg: msg,
@@ -110,6 +116,26 @@ func (this *MessageCtx) Delete() (error) {
 	return this.Bot.Remote.DeleteMessage(data.OMessage{ChatID: this.Msg.Chat.Id, MessageID: this.Msg.Message_id})
 }
 
+func (this *MessageCtx) KickSender() (error) {
+	if this.Msg.Chat.Type == "group" || this.Msg.Chat.Type == "supergroup" {
+		return this.Bot.Remote.KickMember(data.OChatMember{ChatID: this.Msg.Chat.Id, UserID: this.Msg.From.Id})
+	} else {
+		return errors.New("Tried to kick message sender from channel or PM")
+	}
+}
+
+func (this *MessageCtx) Member() (*ChatMemberCtx, error) {
+	if this.Msg.Chat.Type == "group" || this.Msg.Chat.Type == "supergroup" {
+		member, err := this.Bot.Remote.GetChatMember(data.OChatMember{ChatID: this.Msg.Chat.Id, UserID: this.Msg.From.Id})
+		return &ChatMemberCtx{
+			Member: member,
+			Bot: this.Bot,
+		}, err
+	} else {
+		return nil, errors.New("Tried to fetch chat info for sender from channel or PM")
+	}
+}
+
 func (this *MessageCtx) RespondAsync(m data.OMessage, handler data.ResponseHandler) {
 	m.ChatID = this.Msg.Chat.Id
 	this.Bot.Remote.SendMessageAsync(m, handler)
@@ -123,4 +149,20 @@ func (this *MessageCtx) ReplyAsync(m data.OMessage, handler data.ResponseHandler
 
 func (this *MessageCtx) DeleteAsync(handler data.ResponseHandler) {
 	this.Bot.Remote.DeleteMessageAsync(data.OMessage{ChatID: this.Msg.Chat.Id, MessageID: this.Msg.Message_id}, handler)
+}
+
+func (this *MessageCtx) KickSenderAsync(handler data.ResponseHandler) {
+	if this.Msg.Chat.Type == "group" || this.Msg.Chat.Type == "supergroup" {
+		this.Bot.Remote.KickMemberAsync(data.OChatMember{ChatID: this.Msg.Chat.Id, UserID: this.Msg.From.Id}, handler)
+	} else {
+		handler.Callback(nil, false, errors.New("Tried to kick message sender from channel or PM"), 0)
+	}
+}
+
+func (this *MessageCtx) MemberAsync(handler data.ResponseHandler) {
+	if this.Msg.Chat.Type == "group" || this.Msg.Chat.Type == "supergroup" {
+		this.Bot.Remote.GetChatMemberAsync(data.OChatMember{ChatID: this.Msg.Chat.Id, UserID: this.Msg.From.Id}, handler)
+	} else {
+		handler.Callback(nil, false, errors.New("Tried to fetch chat info for sender from channel or PM"), 0)
+	}
 }
