@@ -28,7 +28,7 @@ type Maintainer interface {
 
 
 type InitSettings interface {
-	InitializeAll() error
+	InitializeAll(*TelegramBot) error
 }
 
 type CommandData struct {

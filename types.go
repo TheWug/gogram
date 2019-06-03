@@ -98,7 +98,7 @@ func (this *TelegramBot) Init(filename string, s InitSettings) (error) {
 	if e != nil { return e }
 
 	this.settings = s
-	e = this.settings.InitializeAll()
+	e = this.settings.InitializeAll(this)
 	return e
 }
 
