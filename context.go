@@ -26,10 +26,16 @@ func NewMessageCtx(msg *data.TMessage, edited bool, bot *TelegramBot) (*MessageC
 }
 
 func (this *MessageCtx) SetState(newstate State) {
+	if this.Machine == nil {
+		panic("Tried to set state, but there was no state machine!")
+	}
 	this.Machine.SetState(this.Msg.Sender(), newstate)
 }
 
 func (this *MessageCtx) GetState() (State) {
+	if this.Machine == nil {
+		panic("Tried to get state, but there was no state machine!")
+	}
 	state, _ := this.Machine.UserStates[this.Msg.Sender()]
 	return state
 }
