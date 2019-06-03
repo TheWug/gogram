@@ -19,3 +19,8 @@ type OMessage struct {
 	ReplyMarkup         interface{} // types: TInlineKeyboard, TReplyMarkup, TReplyKeyboardRemove, or TForceReply
 	DisableNotification bool
 }
+
+type OChatMember struct {
+	ChatID interface{} // types: int, int64, or string
+	UserID int
+}

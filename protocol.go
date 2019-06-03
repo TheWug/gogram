@@ -94,10 +94,10 @@ func (this *Protocol) Test() (error) {
 
 // URL building functions
 
-func (this *Protocol) BuildGetChatMemberReq(chat_id interface{}, user_id int) (*reqtify.Request) {
+func (this *Protocol) BuildGetChatMemberReq(o data.OChatMember) (*reqtify.Request) {
 	return this.client.New("getChatMember").
-			   Arg("chat_id", GetStringId(chat_id)).
-			   Arg("user_id", strconv.Itoa(user_id))
+			   Arg("chat_id", GetStringId(o.ChatID)).
+			   Arg("user_id", strconv.Itoa(o.UserID))
 }
 
 func (this *Protocol) BuildAnswerInlineQueryReq(q data.TInlineQuery, next_offset string, results []interface{}) (*reqtify.Request) {
@@ -187,10 +187,10 @@ func (this *Protocol) BuildForwardMessageReq(o data.OMessage) (*reqtify.Request)
 			   ArgDefault("disable_notification", strconv.FormatBool(o.DisableNotification), "false")
 }
 
-func (this *Protocol) BuildKickMemberReq(chat_id interface{}, member int) (*reqtify.Request) {
+func (this *Protocol) BuildKickMemberReq(o data.OChatMember) (*reqtify.Request) {
 	return this.client.New("kickChatMember").
-			   Arg("chat_id", GetStringId(chat_id)).
-			   Arg("user_id", strconv.Itoa(member))
+			   Arg("chat_id", GetStringId(o.ChatID)).
+			   Arg("user_id", strconv.Itoa(o.UserID))
 }
 
 func (this *Protocol) BuildGetStickerSetReq(name string) (*reqtify.Request) {
@@ -249,16 +249,16 @@ func (this *Protocol) ForwardMessageAsync(o data.OMessage, sm data.ResponseHandl
 	go DoAsyncCall(this.BuildForwardMessageReq(o), sm)
 }
 
-func (this *Protocol) KickMemberAsync(chat_id interface{}, member int, si data.ResponseHandler) () {
-	go DoAsyncCall(this.BuildKickMemberReq(chat_id, member), si)
+func (this *Protocol) KickMemberAsync(o data.OChatMember, si data.ResponseHandler) () {
+	go DoAsyncCall(this.BuildKickMemberReq(o), si)
 }
 
 func (this *Protocol) GetStickerSetAsync(name string, rm data.ResponseHandler) () {
 	go DoAsyncCall(this.BuildGetStickerSetReq(name), rm)
 }
 
-func (this *Protocol) GetChatMemberAsync(chat_id interface{}, user_id int, rm data.ResponseHandler) () {
-	go DoAsyncCall(this.BuildGetChatMemberReq(chat_id, user_id), rm, )
+func (this *Protocol) GetChatMemberAsync(o data.OChatMember, rm data.ResponseHandler) () {
+	go DoAsyncCall(this.BuildGetChatMemberReq(o), rm, )
 }
 
 func (this *Protocol) RestrictChatMemberAsync(chat_id interface{}, user_id int, until int64, messages, media, basic_media, web_previews bool, rm data.ResponseHandler) () {
@@ -313,8 +313,8 @@ func (this *Protocol) ForwardMessage(o data.OMessage) (*data.TMessage, error) {
 	return &m, OutputToObject(j, e, &m)
 }
 
-func (this *Protocol) KickMember(chat_id interface{}, member int) (error) {
-	_, err := DoCall(this.BuildKickMemberReq(chat_id, member))
+func (this *Protocol) KickMember(o data.OChatMember) (error) {
+	_, err := DoCall(this.BuildKickMemberReq(o))
 	return err
 }
 
@@ -324,9 +324,9 @@ func (this *Protocol) GetStickerSet(name string) (*data.TStickerSet, error) {
 	return &m, OutputToObject(j, e, &m)
 }
 
-func (this *Protocol) GetChatMember(chat_id interface{}, user_id int) (*data.TChatMember, error) {
+func (this *Protocol) GetChatMember(o data.OChatMember) (*data.TChatMember, error) {
 	var m data.TChatMember
-	j, e := DoCall(this.BuildGetChatMemberReq(chat_id, user_id))
+	j, e := DoCall(this.BuildGetChatMemberReq(o))
 	return &m, OutputToObject(j, e, &m)
 }
 
