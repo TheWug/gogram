@@ -53,3 +53,11 @@ type ORestrict struct {
 	CanSendInline      bool
 	CanSendWebPreviews bool
 }
+
+type OGetFile struct {
+	FileID string
+}
+
+type OFile struct {
+	FilePath string
+}

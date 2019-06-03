@@ -208,12 +208,12 @@ func (this *Protocol) BuildRestrictChatMemberReq(o data.ORestrict) (*reqtify.Req
 		Arg("can_send_web_page_previews", strconv.FormatBool(o.CanSendWebPreviews))
 }
 
-func (this *Protocol) BuildGetFileReq(file_id string) (*reqtify.Request) {
-	return this.client.New("getFile").Arg("file_id", file_id)
+func (this *Protocol) BuildGetFileReq(o data.OGetFile) (*reqtify.Request) {
+	return this.client.New("getFile").Arg("file_id", o.FileID)
 }
 
-func (this *Protocol) BuildDownloadFileReq(file_path string) (*reqtify.Request) {
-	return this.file_client.New(file_path)
+func (this *Protocol) BuildDownloadFileReq(o data.OFile) (*reqtify.Request) {
+	return this.file_client.New(o.FilePath)
 }
 
 func (this *Protocol) BuildAnswerCallbackQueryReq(o data.OCallback) (*reqtify.Request) {
@@ -267,12 +267,12 @@ func (this *Protocol) RestrictChatMemberAsync(o data.ORestrict, rm data.Response
 	go DoAsyncCall(this.BuildRestrictChatMemberReq(o), rm)
 }
 
-func (this *Protocol) GetFileAsync(file_id string, rm data.ResponseHandler) () {
-	go DoAsyncCall(this.BuildGetFileReq(file_id), rm)
+func (this *Protocol) GetFileAsync(o data.OGetFile, rm data.ResponseHandler) () {
+	go DoAsyncCall(this.BuildGetFileReq(o), rm)
 }
 
-func (this *Protocol) DownloadFileAsync(file_path string, rm data.ResponseHandler) () {
-	go DoAsyncFetch(this.BuildDownloadFileReq(file_path), rm)
+func (this *Protocol) DownloadFileAsync(o data.OFile, rm data.ResponseHandler) () {
+	go DoAsyncFetch(this.BuildDownloadFileReq(o), rm)
 }
 
 func (this *Protocol) AnswerCallbackQueryAsync(o data.OCallback, rm data.ResponseHandler) () {
@@ -337,14 +337,14 @@ func (this *Protocol) RestrictChatMember(o data.ORestrict, rm data.ResponseHandl
 	return err
 }
 
-func (this *Protocol) GetFile(file_id string) (*data.TFile, error) {
+func (this *Protocol) GetFile(o data.OGetFile) (*data.TFile, error) {
 	var m data.TFile
-	j, e := DoCall(this.BuildGetFileReq(file_id))
+	j, e := DoCall(this.BuildGetFileReq(o))
 	return &m, OutputToObject(j, e, &m)
 }
 
-func (this *Protocol) DownloadFile(file_path string) (io.ReadCloser, error) {
-	return DoGetReader(this.BuildDownloadFileReq(file_path))
+func (this *Protocol) DownloadFile(o data.OFile) (io.ReadCloser, error) {
+	return DoGetReader(this.BuildDownloadFileReq(o))
 }
 
 func (this *Protocol) AnswerCallbackQuery(o data.OCallback) (error) {
