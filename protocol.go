@@ -100,16 +100,16 @@ func (this *Protocol) BuildGetChatMemberReq(o data.OChatMember) (*reqtify.Reques
 			   Arg("user_id", strconv.Itoa(o.UserID))
 }
 
-func (this *Protocol) BuildAnswerInlineQueryReq(q data.TInlineQuery, next_offset string, results []interface{}) (*reqtify.Request) {
+func (this *Protocol) BuildAnswerInlineQueryReq(o data.OInlineQueryAnswer) (*reqtify.Request) {
 	// next_offset should get stuck at -1 forever if pagination breaks somehow, to prevent infinite loops.
 
-	b, e := json.Marshal(results)
+	b, e := json.Marshal(o.Results)
 	if e != nil { return nil }
 
 	return this.client.New("answerInlineQuery").Method(reqtify.POST).
-			   Arg("inline_query_id", q.Id).
-			   Arg("cache_time", "30").
-			   Arg("next_offset", next_offset).
+			   Arg("inline_query_id", o.QueryID).
+			   ArgDefault("cache_time", strconv.Itoa(o.CacheTime), "0").
+			   Arg("next_offset", o.NextOffset).
 			   Arg("results", string(b))
 }
 
@@ -225,8 +225,8 @@ func (this *Protocol) BuildAnswerCallbackQueryReq(query_id, notification string,
 
 // Async calls
 
-func (this *Protocol) AnswerInlineQueryAsync(q data.TInlineQuery, results []interface{}, offset string, rm data.ResponseHandler) {
-	go DoAsyncCall(this.BuildAnswerInlineQueryReq(q, offset, results), rm)
+func (this *Protocol) AnswerInlineQueryAsync(o data.OInlineQueryAnswer, rm data.ResponseHandler) {
+	go DoAsyncCall(this.BuildAnswerInlineQueryReq(o), rm)
 }
 
 func (this *Protocol) SendMessageAsync(o data.OMessage, sm data.ResponseHandler) () {
@@ -279,8 +279,8 @@ func (this *Protocol) AnswerCallbackQueryAsync(query_id, notification string, sh
 
 // Synchronous calls
 
-func (this *Protocol) AnswerInlineQuery(q data.TInlineQuery, results []interface{}, offset string) (error) {
-	_, err := DoCall(this.BuildAnswerInlineQueryReq(q, offset, results))
+func (this *Protocol) AnswerInlineQuery(o data.OInlineQueryAnswer) (error) {
+	_, err := DoCall(this.BuildAnswerInlineQueryReq(o))
 	return err
 }
 

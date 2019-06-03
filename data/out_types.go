@@ -28,3 +28,10 @@ type OChatMember struct {
 type OStickerSet struct {
 	Name string
 }
+
+type OInlineQueryAnswer struct {
+	QueryID    string
+	Results  []interface{} // types: array of TInlineQueryResult*
+	NextOffset string
+	CacheTime  int
+}
