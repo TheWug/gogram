@@ -193,8 +193,8 @@ func (this *Protocol) BuildKickMemberReq(o data.OChatMember) (*reqtify.Request) 
 			   Arg("user_id", strconv.Itoa(o.UserID))
 }
 
-func (this *Protocol) BuildGetStickerSetReq(name string) (*reqtify.Request) {
-	return this.client.New("getStickerSet").Arg("name", name)
+func (this *Protocol) BuildGetStickerSetReq(o data.OStickerSet) (*reqtify.Request) {
+	return this.client.New("getStickerSet").Arg("name", o.Name)
 }
 
 func (this *Protocol) BuildRestrictChatMemberReq(chat_id interface{}, user_id int, until int64, messages, media, basic_media, web_previews bool) (*reqtify.Request) {
@@ -253,12 +253,12 @@ func (this *Protocol) KickMemberAsync(o data.OChatMember, si data.ResponseHandle
 	go DoAsyncCall(this.BuildKickMemberReq(o), si)
 }
 
-func (this *Protocol) GetStickerSetAsync(name string, rm data.ResponseHandler) () {
-	go DoAsyncCall(this.BuildGetStickerSetReq(name), rm)
+func (this *Protocol) GetStickerSetAsync(o data.OStickerSet, rm data.ResponseHandler) () {
+	go DoAsyncCall(this.BuildGetStickerSetReq(o), rm)
 }
 
 func (this *Protocol) GetChatMemberAsync(o data.OChatMember, rm data.ResponseHandler) () {
-	go DoAsyncCall(this.BuildGetChatMemberReq(o), rm, )
+	go DoAsyncCall(this.BuildGetChatMemberReq(o), rm)
 }
 
 func (this *Protocol) RestrictChatMemberAsync(chat_id interface{}, user_id int, until int64, messages, media, basic_media, web_previews bool, rm data.ResponseHandler) () {
@@ -318,9 +318,9 @@ func (this *Protocol) KickMember(o data.OChatMember) (error) {
 	return err
 }
 
-func (this *Protocol) GetStickerSet(name string) (*data.TStickerSet, error) {
+func (this *Protocol) GetStickerSet(o data.OStickerSet) (*data.TStickerSet, error) {
 	var m data.TStickerSet
-	j, e := DoCall(this.BuildGetStickerSetReq(name))
+	j, e := DoCall(this.BuildGetStickerSetReq(o))
 	return &m, OutputToObject(j, e, &m)
 }
 

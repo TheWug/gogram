@@ -24,3 +24,7 @@ type OChatMember struct {
 	ChatID interface{} // types: int, int64, or string
 	UserID int
 }
+
+type OStickerSet struct {
+	Name string
+}
