@@ -87,17 +87,17 @@ func (this *MessageCtx) GetState() (State) {
 	return state
 }
 
-func (this *MessageCtx) Respond(m data.OMessage) (MessageCtx, error) {
+func (this *MessageCtx) Respond(m data.OMessage) (*MessageCtx, error) {
 	msg, err := this.Bot.Remote().SendMessage(this.Msg.Chat.Id, m.Text, m.ReplyTo, m.ParseMode, m.ReplyMarkup, !m.EnableWebPreview)
-	return MessageCtx {
+	return &MessageCtx {
 		Msg: msg,
 		Bot: this.Bot,
 	}, err
 }
 
-func (this *MessageCtx) Reply(m data.OMessage) (MessageCtx, error) {
+func (this *MessageCtx) Reply(m data.OMessage) (*MessageCtx, error) {
 	msg, err := this.Bot.Remote().SendMessage(this.Msg.Chat.Id, m.Text, &this.Msg.Message_id, m.ParseMode, m.ReplyMarkup, !m.EnableWebPreview)
-	return MessageCtx {
+	return &MessageCtx {
 		Msg: msg,
 		Bot: this.Bot,
 	}, err
