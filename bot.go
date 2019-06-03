@@ -17,7 +17,7 @@ type Callbackable interface {
 
 
 type Messagable interface {
-	ProcessMessage(*TelegramBot, *data.TMessage, bool)
+	ProcessMessage(*MessageCtx)
 }
 
 

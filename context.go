@@ -13,6 +13,18 @@ type MessageCtx struct {
 	Machine      *MessageStateMachine
 }
 
+func NewMessageCtx(msg *data.TMessage, edited bool, bot *TelegramBot) (*MessageCtx) {
+	ctx := MessageCtx{
+		Msg: msg,
+		Edited: edited,
+		Bot: bot,
+		Machine: bot.state_machine,
+	}
+
+	ctx.Cmd, ctx.CmdParseError = ParseCommand(ctx.Msg)
+	return &ctx
+}
+
 func (this *MessageCtx) SetState(newstate State) {
 	this.Machine.SetState(this.Msg.Sender(), newstate)
 }

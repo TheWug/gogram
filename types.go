@@ -113,26 +113,26 @@ func (this *TelegramBot) MainLoop() {
 		select {
 		case updates := <- this.update_channel:
 			for _, u := range updates {
+				if u.Message != nil && this.message_callback != nil {
+					this.message_callback.ProcessMessage(NewMessageCtx(u.Message, false, this))
+				}
+				if u.Edited_message != nil && this.message_callback != nil {
+					this.message_callback.ProcessMessage(NewMessageCtx(u.Edited_message, true, this))
+				}
+				if u.Channel_post != nil && this.message_callback != nil {
+					this.message_callback.ProcessMessage(NewMessageCtx(u.Channel_post, false, this))
+				}
+				if u.Edited_channel_post != nil && this.message_callback != nil {
+					this.message_callback.ProcessMessage(NewMessageCtx(u.Edited_channel_post, true, this))
+				}
 				if u.Inline_query != nil && this.inline_callback != nil {
 					this.inline_callback.ProcessInlineQuery(this, u.Inline_query)
 				}
 				if u.Chosen_inline_result != nil && this.inline_callback != nil {
 					this.inline_callback.ProcessInlineQueryResult(this, u.Chosen_inline_result)
 				}
-				if u.Message != nil && this.message_callback != nil {
-					this.message_callback.ProcessMessage(this, u.Message, false)
-				}
-				if u.Edited_message != nil && this.message_callback != nil {
-					this.message_callback.ProcessMessage(this, u.Edited_message, true)
-				}
 				if u.Callback_query != nil && this.callback_callback != nil {
 					this.callback_callback.ProcessCallback(this, u.Callback_query)
-				}
-				if u.Channel_post != nil && this.message_callback != nil {
-					this.message_callback.ProcessMessage(this, u.Channel_post, false)
-				}
-				if u.Edited_channel_post != nil && this.message_callback != nil {
-					this.message_callback.ProcessMessage(this, u.Edited_channel_post, true)
 				}
 			}
 		case <- this.maintenance_ticker.C:
@@ -187,18 +187,7 @@ func (this *MessageStateMachine) SetState(sender data.Sender, state State) {
 	}
 }
 
-func (this *MessageStateMachine) ProcessMessage(bot *TelegramBot, msg *data.TMessage, edited bool) {
-	var ctx MessageCtx
-	ctx.Msg = msg
-	ctx.Edited = edited
-	ctx.Cmd, ctx.CmdParseError = ParseCommand(ctx.Msg)
-	ctx.Bot = bot
-	ctx.Machine = this
-
-	this.FeedContext(&ctx)
-}
-
-func (this *MessageStateMachine) FeedContext(ctx *MessageCtx) {
+func (this *MessageStateMachine) ProcessMessage(ctx *MessageCtx) {
 	state, _ := this.UserStates[ctx.Msg.Sender()]
 	if state == nil { state = this.Default }
 
