@@ -216,11 +216,13 @@ func (this *Protocol) BuildDownloadFileReq(file_path string) (*reqtify.Request) 
 	return this.file_client.New(file_path)
 }
 
-func (this *Protocol) BuildAnswerCallbackQueryReq(query_id, notification string, show_alert bool) (*reqtify.Request) {
+func (this *Protocol) BuildAnswerCallbackQueryReq(o data.OCallback) (*reqtify.Request) {
 	return this.client.New("answerCallbackQuery").Method(reqtify.POST).
-			   Arg("callback_query_id", query_id).
-			   Arg("text", notification).
-			   ArgDefault("show_alert", strconv.FormatBool(show_alert), "false")
+			   Arg("callback_query_id", o.QueryID).
+			   ArgDefault("text", o.Notification, "").
+			   ArgDefault("show_alert", strconv.FormatBool(o.ShowAlert), "false").
+			   ArgDefault("cache_time", strconv.Itoa(o.CacheTime), "0").
+			   ArgDefault("url", o.URL, "")
 }
 
 // Async calls
@@ -273,8 +275,8 @@ func (this *Protocol) DownloadFileAsync(file_path string, rm data.ResponseHandle
 	go DoAsyncFetch(this.BuildDownloadFileReq(file_path), rm)
 }
 
-func (this *Protocol) AnswerCallbackQueryAsync(query_id, notification string, show_alert bool, rm data.ResponseHandler) () {
-	go DoAsyncCall(this.BuildAnswerCallbackQueryReq(query_id, notification, show_alert), rm)
+func (this *Protocol) AnswerCallbackQueryAsync(o data.OCallback, rm data.ResponseHandler) () {
+	go DoAsyncCall(this.BuildAnswerCallbackQueryReq(o), rm)
 }
 
 // Synchronous calls
@@ -345,8 +347,8 @@ func (this *Protocol) DownloadFile(file_path string) (io.ReadCloser, error) {
 	return DoGetReader(this.BuildDownloadFileReq(file_path))
 }
 
-func (this *Protocol) AnswerCallbackQuery(query_id, notification string, show_alert bool) (error) {
-	_, err := DoCall(this.BuildAnswerCallbackQueryReq(query_id, notification, show_alert))
+func (this *Protocol) AnswerCallbackQuery(o data.OCallback) (error) {
+	_, err := DoCall(this.BuildAnswerCallbackQueryReq(o))
 	return err
 }
 

@@ -35,3 +35,11 @@ type OInlineQueryAnswer struct {
 	NextOffset string
 	CacheTime  int
 }
+
+type OCallback struct {
+	QueryID      string
+	Notification string
+	ShowAlert    bool
+	CacheTime    int
+	URL          string
+}
