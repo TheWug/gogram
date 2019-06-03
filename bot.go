@@ -138,7 +138,7 @@ func (this *TelegramBot) MainLoop() {
 				if (seconds % m.GetInterval() == 0) { m.DoMaintenance(this) }
 			}
 			seconds++
-		case hbox := <- CallResponseChannel:
+		case hbox := <- call_response_channel:
 			if hbox.Error != nil {
 				log.Println(hbox.Error.Error())
 			}

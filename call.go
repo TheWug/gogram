@@ -10,7 +10,7 @@ import (
 	"io"
 )
 
-var CallResponseChannel chan HandlerBox = make(chan HandlerBox, 10)
+var call_response_channel chan HandlerBox = make(chan HandlerBox, 10)
 
 type HandlerBox struct {
 	Success   bool
@@ -23,14 +23,18 @@ type HandlerBox struct {
 }
 
 // call this in a goroutine.
-func DoAsyncGetReader(request *reqtify.Request, handler data.ResponseHandler, output *chan HandlerBox) {
+func DoAsyncGetReader(request *reqtify.Request, handler data.ResponseHandler) {
+	doAsyncGetReader(request, handler, call_response_channel)
+}
+
+func doAsyncGetReader(request *reqtify.Request, handler data.ResponseHandler, output chan HandlerBox) {
 	var hbox HandlerBox
 	hbox.Handler = handler
 
 	r, e := request.Do()
 	if e != nil {
 		hbox.Error = e
-		if (output != nil) { *output <- hbox }
+		if (output != nil) { output <- hbox }
 		return
 	}
 
@@ -38,21 +42,25 @@ func DoAsyncGetReader(request *reqtify.Request, handler data.ResponseHandler, ou
 	hbox.Reader = r.Body
 
 	hbox.Success = true
-	if (output != nil) { *output <- hbox }
+	if (output != nil) { output <- hbox }
 	return
 }
 
 // call this in a goroutine.
-func DoAsyncFetch(request *reqtify.Request, handler data.ResponseHandler, output *chan HandlerBox) {
+func DoAsyncFetch(request *reqtify.Request, handler data.ResponseHandler) {
+	doAsyncFetch(request, handler, call_response_channel)
+}
+
+func doAsyncFetch(request *reqtify.Request, handler data.ResponseHandler, output chan HandlerBox) {
 	temp := make(chan HandlerBox, 1)
-	DoAsyncGetReader(request, handler, &temp)
+	doAsyncGetReader(request, handler, temp)
 	close(temp)
 	hbox := <- temp
 
 	if hbox.Reader != nil { defer hbox.Reader.Close() }
 
 	if !hbox.Success {
-		if (output != nil) { *output <- hbox }
+		if (output != nil) { output <- hbox }
 		return
 	}
 
@@ -60,24 +68,28 @@ func DoAsyncFetch(request *reqtify.Request, handler data.ResponseHandler, output
 
 	hbox.Bytes, hbox.Error = ioutil.ReadAll(hbox.Reader)
 	if hbox.Error != nil {
-		if (output != nil) { *output <- hbox }
+		if (output != nil) { output <- hbox }
 		return
 	}
 
 	hbox.Success = true
-	if (output != nil) { *output <- hbox }
+	if (output != nil) { output <- hbox }
 	return
 }
 
 // call this in a goroutine.
-func DoAsyncCall(request *reqtify.Request, handler data.ResponseHandler, output *chan HandlerBox) {
+func DoAsyncCall(request *reqtify.Request, handler data.ResponseHandler) {
+	doAsyncCall(request, handler, call_response_channel)
+}
+
+func doAsyncCall(request *reqtify.Request, handler data.ResponseHandler, output chan HandlerBox) {
 	temp := make(chan HandlerBox, 1)
-	DoAsyncFetch(request, handler, &temp)
+	doAsyncFetch(request, handler, temp)
 	close(temp)
 	hbox := <- temp
 
 	if !hbox.Success {
-		if (output != nil) { *output <- hbox }
+		if (output != nil) { output <- hbox }
 		return
 	}
 
@@ -88,28 +100,28 @@ func DoAsyncCall(request *reqtify.Request, handler data.ResponseHandler, output 
 
 	if e != nil {
 		hbox.Error = e
-		if (output != nil) { *output <- hbox }
+		if (output != nil) { output <- hbox }
 		return
 	}
 
 	e = HandleSoftError(&out)
 	if e != nil {
 		hbox.Error = e
-		if (output != nil) { *output <- hbox }
+		if (output != nil) { output <- hbox }
 		return
 	}
 
 	hbox.Output = out.Result
 	hbox.Bytes = nil
 	hbox.Success = true
-	if (output != nil) { *output <- hbox }
+	if (output != nil) { output <- hbox }
 	return
 }
 
 func DoGetReader(request *reqtify.Request) (io.ReadCloser, error) {
 	ch := make(chan HandlerBox, 1)
 
-	DoAsyncGetReader(request, nil, &ch)
+	doAsyncGetReader(request, nil, ch)
 	close(ch)
 	output := <- ch
 
@@ -119,7 +131,7 @@ func DoGetReader(request *reqtify.Request) (io.ReadCloser, error) {
 func DoFetch(request *reqtify.Request) ([]byte, error) {
 	ch := make(chan HandlerBox, 1)
 
-	DoAsyncFetch(request, nil, &ch)
+	doAsyncFetch(request, nil, ch)
 	close(ch)
 	output := <- ch
 
@@ -129,7 +141,7 @@ func DoFetch(request *reqtify.Request) ([]byte, error) {
 func DoCall(request *reqtify.Request) (*json.RawMessage, error) {
 	ch := make(chan HandlerBox, 1)
 
-	DoAsyncCall(request, nil, &ch)
+	doAsyncCall(request, nil, ch)
 	close(ch)
 	output := <- ch
 

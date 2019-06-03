@@ -209,55 +209,55 @@ func (this *Protocol) BuildAnswerCallbackQueryReq(query_id, notification string,
 // Async calls
 
 func (this *Protocol) AnswerInlineQueryAsync(q data.TInlineQuery, results []interface{}, offset string, rm data.ResponseHandler) {
-	go DoAsyncCall(this.BuildAnswerInlineQueryReq(q, offset, results), rm, &CallResponseChannel)
+	go DoAsyncCall(this.BuildAnswerInlineQueryReq(q, offset, results), rm)
 }
 
 func (this *Protocol) SendMessageAsync(chat_id interface{}, text string, reply_to *int, parse_mode string, reply_markup interface{}, disable_preview bool, sm data.ResponseHandler) () {
-	go DoAsyncCall(this.BuildSendMessageReq(chat_id, text, reply_to, parse_mode, reply_markup, disable_preview), sm, &CallResponseChannel)
+	go DoAsyncCall(this.BuildSendMessageReq(chat_id, text, reply_to, parse_mode, reply_markup, disable_preview), sm)
 }
 
 func (this *Protocol) EditMessageTextAsync(chat_id interface{}, message_id int, inline_id string, text string, parse_mode string, reply_markup interface{}, disable_preview bool, sm data.ResponseHandler) () {
-	go DoAsyncCall(this.BuildEditMessageReq(chat_id, message_id, inline_id, text, parse_mode, reply_markup, disable_preview), sm, &CallResponseChannel)
+	go DoAsyncCall(this.BuildEditMessageReq(chat_id, message_id, inline_id, text, parse_mode, reply_markup, disable_preview), sm)
 }
 
 func (this *Protocol) DeleteMessageAsync(chat_id interface{}, message_id int, sm data.ResponseHandler) () {
-	go DoAsyncCall(this.BuildDeleteMessageReq(chat_id, message_id), sm, &CallResponseChannel)
+	go DoAsyncCall(this.BuildDeleteMessageReq(chat_id, message_id), sm)
 }
 
 func (this *Protocol) SendStickerAsync(chat_id interface{}, sticker_id string, reply_to *int, disable_notification bool, sm data.ResponseHandler) () {
-	go DoAsyncCall(this.BuildSendStickerReq(chat_id, sticker_id, reply_to, disable_notification), sm, &CallResponseChannel)
+	go DoAsyncCall(this.BuildSendStickerReq(chat_id, sticker_id, reply_to, disable_notification), sm)
 }
 
 func (this *Protocol) ForwardMessageAsync(chat_id interface{}, from_chat_id interface{}, message_id int, disable_notification bool, sm data.ResponseHandler) () {
-	go DoAsyncCall(this.BuildForwardMessageReq(chat_id, from_chat_id, message_id, disable_notification), sm, &CallResponseChannel)
+	go DoAsyncCall(this.BuildForwardMessageReq(chat_id, from_chat_id, message_id, disable_notification), sm)
 }
 
 func (this *Protocol) KickMemberAsync(chat_id interface{}, member int, si data.ResponseHandler) () {
-	go DoAsyncCall(this.BuildKickMemberReq(chat_id, member), si, &CallResponseChannel)
+	go DoAsyncCall(this.BuildKickMemberReq(chat_id, member), si)
 }
 
 func (this *Protocol) GetStickerSetAsync(name string, rm data.ResponseHandler) () {
-	go DoAsyncCall(this.BuildGetStickerSetReq(name), rm, &CallResponseChannel)
+	go DoAsyncCall(this.BuildGetStickerSetReq(name), rm)
 }
 
 func (this *Protocol) GetChatMemberAsync(chat_id interface{}, user_id int, rm data.ResponseHandler) () {
-	go DoAsyncCall(this.BuildGetChatMemberReq(chat_id, user_id), rm, &CallResponseChannel, )
+	go DoAsyncCall(this.BuildGetChatMemberReq(chat_id, user_id), rm, )
 }
 
 func (this *Protocol) RestrictChatMemberAsync(chat_id interface{}, user_id int, until int64, messages, media, basic_media, web_previews bool, rm data.ResponseHandler) () {
-	go DoAsyncCall(this.BuildRestrictChatMemberReq(chat_id, user_id, until, messages, media, basic_media, web_previews), rm, &CallResponseChannel)
+	go DoAsyncCall(this.BuildRestrictChatMemberReq(chat_id, user_id, until, messages, media, basic_media, web_previews), rm)
 }
 
 func (this *Protocol) GetFileAsync(file_id string, rm data.ResponseHandler) () {
-	go DoAsyncCall(this.BuildGetFileReq(file_id), rm, &CallResponseChannel)
+	go DoAsyncCall(this.BuildGetFileReq(file_id), rm)
 }
 
 func (this *Protocol) DownloadFileAsync(file_path string, rm data.ResponseHandler) () {
-	go DoAsyncFetch(this.BuildDownloadFileReq(file_path), rm, &CallResponseChannel)
+	go DoAsyncFetch(this.BuildDownloadFileReq(file_path), rm)
 }
 
 func (this *Protocol) AnswerCallbackQueryAsync(query_id, notification string, show_alert bool, rm data.ResponseHandler) () {
-	go DoAsyncCall(this.BuildAnswerCallbackQueryReq(query_id, notification, show_alert), rm, &CallResponseChannel)
+	go DoAsyncCall(this.BuildAnswerCallbackQueryReq(query_id, notification, show_alert), rm)
 }
 
 // Synchronous calls
