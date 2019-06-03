@@ -14,6 +14,19 @@ You should have Golang 1.10 or newer installed. It may work with older versions,
 
 Just import `github.com/thewug/gogram` and fetch it like any other golang library.
 
+### Using
+
+1. Declare a `TelegramBot.`
+2. Write yourself some callback providers that implement the interfaces in interfaces.go, and hook them to the bot.
+  a. `Messagable` for handling ordinary messages sent to pms, groups, or channels
+  b. `Callbackable` for handling callbacks from inline keyboard buttons
+  c. `InlineQueryable` for handling inline queries
+  d. `Maintainer` for periodic tasks
+3. Use a `MessageStateMachine` to handle bot commands.  It supports both mundane commands where one command equals one action, and more complicated flows that request user input.
+  a. Write yourself some command providers that implement the `State` interface and bind them to the state machine.
+4. Write yourself an `InitSettings` implementation. The `InitSettings.InitializeAll` function should, at minimum, set the bot's API key, but it may do other things, such as setting up database connections, etc.
+5. Call `TelegramBot.MainLoop` and off you go.
+
 ## Contributing
 
 Please be a reasonable person. If you notice an actual bug, or if you want to add support for existing bot API features, you are welcome to submit a pull request. You are welcome to submit pull requests for large architectural changes as well but do so at your own peril, I may decide not to use them.
