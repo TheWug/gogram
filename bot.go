@@ -25,30 +25,10 @@ type TelegramBot struct {
 	maintenance_ticker *time.Ticker
 	settings InitSettings
 
-	log *log.Logger
-	errorlog *log.Logger
+	Log *log.Logger
+	ErrorLog *log.Logger
 
-	remote Protocol
-}
-
-func (this *TelegramBot) Log() (*log.Logger) {
-	return this.log
-}
-
-func (this *TelegramBot) SetLog(log *log.Logger) {
-	this.log = log
-}
-
-func (this *TelegramBot) SetErrorLog(log *log.Logger) {
-	this.errorlog = log
-}
-
-func (this *TelegramBot) ErrorLog() (*log.Logger) {
-	return this.errorlog
-}
-
-func (this *TelegramBot) Remote() (*Protocol) {
-	return &this.remote
+	Remote Protocol
 }
 
 func (this *TelegramBot) SetStateMachine(m *MessageStateMachine) {
@@ -73,9 +53,9 @@ func (this *TelegramBot) AddMaintenanceCallback(cb Maintainer) {
 
 func (this *TelegramBot) asyncUpdateLoop(output chan []data.TUpdate) () {
 	for {
-		updates, e := this.remote.GetUpdates()
+		updates, e := this.Remote.GetUpdates()
 		if e != nil {
-			this.errorlog.Printf("Error (async update loop): %s\n", e.Error())
+			this.ErrorLog.Printf("Error (async update loop): %s\n", e.Error())
 			time.Sleep(time.Duration(5) * time.Second)
 			continue
 		}
@@ -85,9 +65,9 @@ func (this *TelegramBot) asyncUpdateLoop(output chan []data.TUpdate) () {
 }
 
 func (this *TelegramBot) Init(filename string, s InitSettings) (error) {
-	this.log = log.New(os.Stdout, "", log.LstdFlags)
-	this.errorlog = this.log
-	this.remote = NewProtocol()
+	this.Log = log.New(os.Stdout, "", log.LstdFlags)
+	this.ErrorLog = this.Log
+	this.Remote = NewProtocol()
 
 	bytes, e := ioutil.ReadFile(filename)
 	if e != nil { return e }
@@ -150,5 +130,5 @@ func (this *TelegramBot) MainLoop() {
 }
 
 func (this *TelegramBot) IsMyCommand(cmd *CommandData) (bool) {
-	return strings.ToLower(*this.remote.GetMe().Username) == strings.ToLower(cmd.Target) || len(cmd.Target) == 0
+	return strings.ToLower(*this.Remote.GetMe().Username) == strings.ToLower(cmd.Target) || len(cmd.Target) == 0
 }
