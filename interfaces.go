@@ -1,18 +1,14 @@
 package gogram
 
-import (
-	"github.com/thewug/gogram/data"
-)
-
 
 type InlineQueryable interface {
-	ProcessInlineQuery(*TelegramBot, *data.TInlineQuery)
-	ProcessInlineQueryResult(*TelegramBot, *data.TChosenInlineResult)
+	ProcessInlineQuery(*InlineCtx)
+	ProcessInlineQueryResult(*InlineResultCtx)
 }
 
 
 type Callbackable interface {
-	ProcessCallback(*TelegramBot, *data.TCallbackQuery)
+	ProcessCallback(*CallbackCtx)
 }
 
 

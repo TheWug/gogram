@@ -68,6 +68,21 @@ type ChatMemberCtx struct {
 	Bot    *TelegramBot
 }
 
+type InlineCtx struct {
+	Query *data.TInlineQuery
+	Bot   *TelegramBot
+}
+
+type InlineResultCtx struct {
+	Result *data.TChosenInlineResult
+	Bot    *TelegramBot
+}
+
+type CallbackCtx struct {
+	Cb  *data.TCallbackQuery
+	Bot *TelegramBot
+}
+
 func NewMessageCtx(msg *data.TMessage, edited bool, bot *TelegramBot) (*MessageCtx) {
 	return &MessageCtx{
 		Msg: msg,

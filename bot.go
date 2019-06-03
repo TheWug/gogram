@@ -104,13 +104,13 @@ func (this *TelegramBot) MainLoop() {
 					this.message_callback.ProcessMessage(NewMessageCtx(u.Edited_channel_post, true, this))
 				}
 				if u.Inline_query != nil && this.inline_callback != nil {
-					this.inline_callback.ProcessInlineQuery(this, u.Inline_query)
+					this.inline_callback.ProcessInlineQuery(&InlineCtx{Bot: this, Query: u.Inline_query})
 				}
 				if u.Chosen_inline_result != nil && this.inline_callback != nil {
-					this.inline_callback.ProcessInlineQueryResult(this, u.Chosen_inline_result)
+					this.inline_callback.ProcessInlineQueryResult(&InlineResultCtx{Bot: this, Result: u.Chosen_inline_result})
 				}
 				if u.Callback_query != nil && this.callback_callback != nil {
-					this.callback_callback.ProcessCallback(this, u.Callback_query)
+					this.callback_callback.ProcessCallback(&CallbackCtx{Bot: this, Cb: u.Callback_query})
 				}
 			}
 		case <- this.maintenance_ticker.C:
