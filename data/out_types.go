@@ -3,6 +3,9 @@ package data
 import (
 )
 
+const HTML string = "HTML"
+const Markdown string = "Markdown"
+
 type OMessage struct {
 	ChatID              interface{}
 	Text                string
