@@ -2,29 +2,27 @@ package gogram
 
 import (
 	"github.com/thewug/gogram/data"
-
-	"log"
 )
 
 
 type InlineQueryable interface {
-	ProcessInlineQuery(Bot, *data.TInlineQuery)
-	ProcessInlineQueryResult(Bot, *data.TChosenInlineResult)
+	ProcessInlineQuery(*TelegramBot, *data.TInlineQuery)
+	ProcessInlineQueryResult(*TelegramBot, *data.TChosenInlineResult)
 }
 
 
 type Callbackable interface {
-	ProcessCallback(Bot, *data.TCallbackQuery)
+	ProcessCallback(*TelegramBot, *data.TCallbackQuery)
 }
 
 
 type Messagable interface {
-	ProcessMessage(Bot, *data.TMessage, bool)
+	ProcessMessage(*TelegramBot, *data.TMessage, bool)
 }
 
 
 type Maintainer interface {
-	DoMaintenance(Bot)
+	DoMaintenance(*TelegramBot)
 	GetInterval() int64
 }
 
@@ -47,20 +45,3 @@ type CommandData struct {
 	Argstr  string
 	Args  []string
 }
-
-
-type Bot interface {
-	SetMessageCallback(cb Messagable)
-	SetInlineCallback(cb InlineQueryable)
-	SetCallbackCallback(cb Callbackable)
-	AddMaintenanceCallback(cb Maintainer)
-
-	Log() (*log.Logger)
-	ErrorLog() (*log.Logger)
-	Remote() (*Protocol)
-
-	// DEPRECATED! instead, use MessageStateMachine.
-	AddCommand(cmd string, cb Command)
-	HandleCommand(m *data.TMessage)
-}
-
