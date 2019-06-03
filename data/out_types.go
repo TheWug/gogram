@@ -43,3 +43,13 @@ type OCallback struct {
 	CacheTime    int
 	URL          string
 }
+
+type ORestrict struct {
+	ChatID             interface{} // types: int, int64, or string
+	UserID             int
+	Until              int64
+	CanSendMessages    bool
+	CanSendMedia       bool
+	CanSendInline      bool
+	CanSendWebPreviews bool
+}

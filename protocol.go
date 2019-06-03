@@ -197,15 +197,15 @@ func (this *Protocol) BuildGetStickerSetReq(o data.OStickerSet) (*reqtify.Reques
 	return this.client.New("getStickerSet").Arg("name", o.Name)
 }
 
-func (this *Protocol) BuildRestrictChatMemberReq(chat_id interface{}, user_id int, until int64, messages, media, basic_media, web_previews bool) (*reqtify.Request) {
+func (this *Protocol) BuildRestrictChatMemberReq(o data.ORestrict) (*reqtify.Request) {
 	return this.client.New("restrictChatMember").
-		Arg("chat_id", GetStringId(chat_id)).
-		Arg("user_id", strconv.Itoa(user_id)).
-		Arg("until_date", strconv.FormatInt(until, 10)).
-		Arg("can_send_messages", strconv.FormatBool(messages)).
-		Arg("can_send_media_messages", strconv.FormatBool(media)).
-		Arg("can_send_other_messages", strconv.FormatBool(basic_media)).
-		Arg("can_send_web_page_previews", strconv.FormatBool(web_previews))
+		Arg("chat_id", GetStringId(o.ChatID)).
+		Arg("user_id", strconv.Itoa(o.UserID)).
+		ArgDefault("until_date", strconv.FormatInt(o.Until, 10), "0").
+		Arg("can_send_messages", strconv.FormatBool(o.CanSendMessages)).
+		Arg("can_send_media_messages", strconv.FormatBool(o.CanSendMedia)).
+		Arg("can_send_other_messages", strconv.FormatBool(o.CanSendInline)).
+		Arg("can_send_web_page_previews", strconv.FormatBool(o.CanSendWebPreviews))
 }
 
 func (this *Protocol) BuildGetFileReq(file_id string) (*reqtify.Request) {
@@ -263,8 +263,8 @@ func (this *Protocol) GetChatMemberAsync(o data.OChatMember, rm data.ResponseHan
 	go DoAsyncCall(this.BuildGetChatMemberReq(o), rm)
 }
 
-func (this *Protocol) RestrictChatMemberAsync(chat_id interface{}, user_id int, until int64, messages, media, basic_media, web_previews bool, rm data.ResponseHandler) () {
-	go DoAsyncCall(this.BuildRestrictChatMemberReq(chat_id, user_id, until, messages, media, basic_media, web_previews), rm)
+func (this *Protocol) RestrictChatMemberAsync(o data.ORestrict, rm data.ResponseHandler) () {
+	go DoAsyncCall(this.BuildRestrictChatMemberReq(o), rm)
 }
 
 func (this *Protocol) GetFileAsync(file_id string, rm data.ResponseHandler) () {
@@ -332,8 +332,8 @@ func (this *Protocol) GetChatMember(o data.OChatMember) (*data.TChatMember, erro
 	return &m, OutputToObject(j, e, &m)
 }
 
-func (this *Protocol) RestrictChatMember(chat_id interface{}, user_id int, until int64, messages, media, basic_media, web_previews bool, rm data.ResponseHandler) (error) {
-	_, err := DoCall(this.BuildRestrictChatMemberReq(chat_id, user_id, until, messages, media, basic_media, web_previews))
+func (this *Protocol) RestrictChatMember(o data.ORestrict, rm data.ResponseHandler) (error) {
+	_, err := DoCall(this.BuildRestrictChatMemberReq(o))
 	return err
 }
 
