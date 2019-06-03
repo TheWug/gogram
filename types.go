@@ -31,7 +31,6 @@ type TelegramBot struct {
 	errorlog *log.Logger
 
 	remote Protocol
-	commands map[string]Command
 }
 
 func (this *TelegramBot) Log() (*log.Logger) {
@@ -72,13 +71,6 @@ func (this *TelegramBot) SetCallbackCallback(cb Callbackable) {
 
 func (this *TelegramBot) AddMaintenanceCallback(cb Maintainer) {
 	this.maintenance_callbacks = append(this.maintenance_callbacks, cb)
-}
-
-func (this *TelegramBot) AddCommand(cmd string, cb Command) {
-	if this.commands == nil {
-		this.commands = make(map[string]Command)
-	}
-	this.commands[strings.ToLower(cmd)] = cb
 }
 
 func (this *TelegramBot) asyncUpdateLoop(output chan []data.TUpdate) () {
@@ -157,25 +149,6 @@ func (this *TelegramBot) MainLoop() {
 			}
 		}
 	}
-}
-
-// bot command main handler.
-func (this *TelegramBot) HandleCommand(m *data.TMessage) () {
-	cmd, err := ParseCommand(m)
-
-	if err != nil { return }
-
-	// command directed at another user
-	if !this.IsMyCommand(&cmd) { return }
-
-	if this.commands == nil { return }
-	callback, has := this.commands[cmd.Command]
-
-	// tried to use nonexistent command
-	if !has { return }
-
-	// run the command
-	callback.Callback(&cmd)
 }
 
 func (this *TelegramBot) IsMyCommand(cmd *CommandData) (bool) {

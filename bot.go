@@ -31,12 +31,6 @@ type InitSettings interface {
 	InitializeAll() error
 }
 
-
-// DEPRECATED
-type Command interface {
-	Callback(*CommandData)
-}
-
 type CommandData struct {
 	M      *data.TMessage
 	Command string
