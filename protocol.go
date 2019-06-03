@@ -268,11 +268,15 @@ func (this *Protocol) AnswerInlineQuery(q data.TInlineQuery, results []interface
 }
 
 func (this *Protocol) SendMessage(chat_id interface{}, text string, reply_to *int, mtype string, reply_markup interface{}, disable_preview bool) (*data.TMessage, error) {
-	return OutputToMessage(DoCall(this.BuildSendMessageReq(chat_id, text, reply_to, mtype, reply_markup, disable_preview)))
+	var m data.TMessage
+	j, e := DoCall(this.BuildSendMessageReq(chat_id, text, reply_to, mtype, reply_markup, disable_preview))
+	return &m, OutputToObject(j, e, &m)
 }
 
 func (this *Protocol) EditMessageText(chat_id interface{}, message_id int, inline_id string, text string, parse_mode string, reply_markup interface{}, disable_preview bool) (*data.TMessage, error) {
-	return OutputToMessage(DoCall(this.BuildEditMessageReq(chat_id, message_id, inline_id, text, parse_mode, reply_markup, disable_preview)))
+	var m data.TMessage
+	j, e := DoCall(this.BuildEditMessageReq(chat_id, message_id, inline_id, text, parse_mode, reply_markup, disable_preview))
+	return &m, OutputToObject(j, e, &m)
 }
 
 func (this *Protocol) DeleteMessage(chat_id interface{}, message_id int) (error) {
@@ -281,11 +285,15 @@ func (this *Protocol) DeleteMessage(chat_id interface{}, message_id int) (error)
 }
 
 func (this *Protocol) SendSticker(chat_id interface{}, sticker_id string, reply_to *int, disable_notification bool) (*data.TMessage, error) {
-	return OutputToMessage(DoCall(this.BuildSendStickerReq(chat_id, sticker_id, reply_to, disable_notification)))
+	var m data.TMessage
+	j, e := DoCall(this.BuildSendStickerReq(chat_id, sticker_id, reply_to, disable_notification))
+	return &m, OutputToObject(j, e, &m)
 }
 
 func (this *Protocol) ForwardMessage(chat_id interface{}, from_chat_id interface{}, message_id int, disable_notification bool) (*data.TMessage, error) {
-	return OutputToMessage(DoCall(this.BuildForwardMessageReq(chat_id, from_chat_id, message_id, disable_notification)))
+	var m data.TMessage
+	j, e := DoCall(this.BuildForwardMessageReq(chat_id, from_chat_id, message_id, disable_notification))
+	return &m, OutputToObject(j, e, &m)
 }
 
 func (this *Protocol) KickMember(chat_id interface{}, member int) (error) {
@@ -294,11 +302,15 @@ func (this *Protocol) KickMember(chat_id interface{}, member int) (error) {
 }
 
 func (this *Protocol) GetStickerSet(name string) (*data.TStickerSet, error) {
-	return OutputToStickerSet(DoCall(this.BuildGetStickerSetReq(name)))
+	var m data.TStickerSet
+	j, e := DoCall(this.BuildGetStickerSetReq(name))
+	return &m, OutputToObject(j, e, &m)
 }
 
 func (this *Protocol) GetChatMember(chat_id interface{}, user_id int) (*data.TChatMember, error) {
-	return OutputToChatMember(DoCall(this.BuildGetChatMemberReq(chat_id, user_id)))
+	var m data.TChatMember
+	j, e := DoCall(this.BuildGetChatMemberReq(chat_id, user_id))
+	return &m, OutputToObject(j, e, &m)
 }
 
 func (this *Protocol) RestrictChatMember(chat_id interface{}, user_id int, until int64, messages, media, basic_media, web_previews bool, rm data.ResponseHandler) (error) {
@@ -307,7 +319,9 @@ func (this *Protocol) RestrictChatMember(chat_id interface{}, user_id int, until
 }
 
 func (this *Protocol) GetFile(file_id string) (*data.TFile, error) {
-	return OutputToFile(DoCall(this.BuildGetFileReq(file_id)))
+	var m data.TFile
+	j, e := DoCall(this.BuildGetFileReq(file_id))
+	return &m, OutputToObject(j, e, &m)
 }
 
 func (this *Protocol) DownloadFile(file_path string) (io.ReadCloser, error) {

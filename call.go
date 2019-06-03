@@ -5,7 +5,6 @@ import (
 
 	"github.com/thewug/gogram/data"
 
-	"errors"
 	"encoding/json"
 	"io/ioutil"
 	"io"
@@ -139,46 +138,7 @@ func DoCall(request *reqtify.Request) (*json.RawMessage, error) {
 
 // Type Helpers
 
-func OutputToMessage(raw *json.RawMessage, err error) (*data.TMessage, error) {
-	if err != nil { return nil, err }
-
-	var msg data.TMessage
-	err = json.Unmarshal(*raw, &msg)
-
-	if err != nil { return nil, err }
-	if msg.Message_id == 0 { return nil, errors.New("Missing message") }
-	return &msg, nil
-}
-
-func OutputToStickerSet(raw *json.RawMessage, err error) (*data.TStickerSet, error) {
-	if err != nil { return nil, err }
-
-	var set data.TStickerSet
-	err = json.Unmarshal(*raw, &set)
-
-	if err != nil { return nil, err }
-	if set.Stickers == nil { return nil, errors.New("Missing sticker set") }
-	return &set, nil
-}
-
-func OutputToChatMember(raw *json.RawMessage, err error) (*data.TChatMember, error) {
-	if err != nil { return nil, err }
-
-	var cm data.TChatMember
-	err = json.Unmarshal(*raw, &cm)
-
-	if err != nil { return nil, err }
-	if cm.Status == "" { return nil, errors.New("Missing chat member") }
-	return &cm, nil
-}
-
-func OutputToFile(raw *json.RawMessage, err error) (*data.TFile, error) {
-	if err != nil { return nil, err }
-
-	var out data.TFile
-	err = json.Unmarshal(*raw, &out)
-
-	if err != nil { return nil, err }
-	if out.File_id == "" { return nil, errors.New("Missing file metadata") }
-	return &out, nil
+func OutputToObject(raw *json.RawMessage, err error, output interface{}) (error) {
+	if err != nil { return err }
+	return json.Unmarshal(*raw, output)
 }
