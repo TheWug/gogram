@@ -98,9 +98,26 @@ type TMessage struct {
 }
 
 type TChatMember struct {
-	User                  TUser  `json:"user"`
-	Status                string `json:"status"`
-	Can_restrict_members *bool   `json:"can_restrict_members"`
+	User                   TUser  `json:"user"`
+	Status                 string `json:"status"`
+	// present only for restricted or kicked users
+	Until_date            *int64  `json:"until_date"`
+	// present only for administrators
+	Can_be_edited         *bool   `json:"can_be_edited"`
+	Can_change_info       *bool   `json:"can_change_info"`
+	Can_post_messages     *bool   `json:"can_post_messages"`
+	Can_edit_messages     *bool   `json:"can_edit_messages"`
+	Can_delete_messages   *bool   `json:"can_delete_messages"`
+	Can_invite_users      *bool   `json:"can_invite_users"`
+	Can_restrict_members  *bool   `json:"can_restrict_members"`
+	Can_pin_messages      *bool   `json:"can_pin_messages"`
+	Can_promote_members   *bool   `json:"can_promote_members"`
+	// present only for restricted users
+	Is_member             *bool   `json:"is_member"`
+	Can_send_anything     *bool   `json:"can_send_messages"`
+	Can_send_media        *bool   `json:"can_send_media_messages"`
+	Can_send_inline       *bool   `json:"can_send_other_messages"`
+	Can_send_web_previews *bool   `json:"can_send_web_page_previews"`
 }
 
 type TGenericFile struct {
