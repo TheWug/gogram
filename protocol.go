@@ -179,12 +179,12 @@ func (this *Protocol) BuildSendStickerReq(o data.OMessage) (*reqtify.Request) {
 	return req
 }
 
-func (this *Protocol) BuildForwardMessageReq(chat_id interface{}, from_chat_id interface{}, message_id int, disable_notification bool) (*reqtify.Request) {
+func (this *Protocol) BuildForwardMessageReq(o data.OMessage) (*reqtify.Request) {
 	return this.client.New("forwardMessage").
-			   Arg("chat_id", GetStringId(chat_id)).
-			   Arg("from_chat_id", GetStringId(from_chat_id)).
-			   Arg("message_id", strconv.Itoa(message_id)).
-			   ArgDefault("disable_notification", strconv.FormatBool(disable_notification), "false")
+			   Arg("chat_id", GetStringId(o.TargetChatID)).
+			   Arg("from_chat_id", GetStringId(o.ChatID)).
+			   Arg("message_id", strconv.Itoa(o.MessageID)).
+			   ArgDefault("disable_notification", strconv.FormatBool(o.DisableNotification), "false")
 }
 
 func (this *Protocol) BuildKickMemberReq(chat_id interface{}, member int) (*reqtify.Request) {
@@ -245,8 +245,8 @@ func (this *Protocol) SendStickerAsync(o data.OMessage, sm data.ResponseHandler)
 	go DoAsyncCall(this.BuildSendStickerReq(o), sm)
 }
 
-func (this *Protocol) ForwardMessageAsync(chat_id interface{}, from_chat_id interface{}, message_id int, disable_notification bool, sm data.ResponseHandler) () {
-	go DoAsyncCall(this.BuildForwardMessageReq(chat_id, from_chat_id, message_id, disable_notification), sm)
+func (this *Protocol) ForwardMessageAsync(o data.OMessage, sm data.ResponseHandler) () {
+	go DoAsyncCall(this.BuildForwardMessageReq(o), sm)
 }
 
 func (this *Protocol) KickMemberAsync(chat_id interface{}, member int, si data.ResponseHandler) () {
@@ -307,9 +307,9 @@ func (this *Protocol) SendSticker(o data.OMessage) (*data.TMessage, error) {
 	return &m, OutputToObject(j, e, &m)
 }
 
-func (this *Protocol) ForwardMessage(chat_id interface{}, from_chat_id interface{}, message_id int, disable_notification bool) (*data.TMessage, error) {
+func (this *Protocol) ForwardMessage(o data.OMessage) (*data.TMessage, error) {
 	var m data.TMessage
-	j, e := DoCall(this.BuildForwardMessageReq(chat_id, from_chat_id, message_id, disable_notification))
+	j, e := DoCall(this.BuildForwardMessageReq(o))
 	return &m, OutputToObject(j, e, &m)
 }
 

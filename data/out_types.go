@@ -8,6 +8,7 @@ const Markdown string = "Markdown"
 
 type OMessage struct {
 	ChatID              interface{} // types: int, int64, or string
+	TargetChatID        interface{} // "
 	MessageID           int
 	InlineID            string
 	ReplyTo            *int
