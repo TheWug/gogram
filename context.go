@@ -132,7 +132,7 @@ func (this *MessageCtx) Delete() (error) {
 }
 
 func (this *MessageCtx) KickSender() (error) {
-	if this.Msg.Chat.Type == "group" || this.Msg.Chat.Type == "supergroup" {
+	if this.Msg.Chat.Type == data.Group || this.Msg.Chat.Type == data.Supergroup {
 		return this.Bot.Remote.KickMember(data.OChatMember{ChatID: this.Msg.Chat.Id, UserID: this.Msg.From.Id})
 	} else {
 		return errors.New("Tried to kick message sender from channel or PM")
@@ -140,7 +140,7 @@ func (this *MessageCtx) KickSender() (error) {
 }
 
 func (this *MessageCtx) Member() (*ChatMemberCtx, error) {
-	if this.Msg.Chat.Type == "group" || this.Msg.Chat.Type == "supergroup" {
+	if this.Msg.Chat.Type == data.Group || this.Msg.Chat.Type == data.Supergroup {
 		member, err := this.Bot.Remote.GetChatMember(data.OChatMember{ChatID: this.Msg.Chat.Id, UserID: this.Msg.From.Id})
 		return &ChatMemberCtx{
 			Member: member,
@@ -167,7 +167,7 @@ func (this *MessageCtx) DeleteAsync(handler data.ResponseHandler) {
 }
 
 func (this *MessageCtx) KickSenderAsync(handler data.ResponseHandler) {
-	if this.Msg.Chat.Type == "group" || this.Msg.Chat.Type == "supergroup" {
+	if this.Msg.Chat.Type == data.Group || this.Msg.Chat.Type == data.Supergroup {
 		this.Bot.Remote.KickMemberAsync(data.OChatMember{ChatID: this.Msg.Chat.Id, UserID: this.Msg.From.Id}, handler)
 	} else {
 		handler.Callback(nil, false, errors.New("Tried to kick message sender from channel or PM"), 0)
@@ -175,7 +175,7 @@ func (this *MessageCtx) KickSenderAsync(handler data.ResponseHandler) {
 }
 
 func (this *MessageCtx) MemberAsync(handler data.ResponseHandler) {
-	if this.Msg.Chat.Type == "group" || this.Msg.Chat.Type == "supergroup" {
+	if this.Msg.Chat.Type == data.Group || this.Msg.Chat.Type == data.Supergroup {
 		this.Bot.Remote.GetChatMemberAsync(data.OChatMember{ChatID: this.Msg.Chat.Id, UserID: this.Msg.From.Id}, handler)
 	} else {
 		handler.Callback(nil, false, errors.New("Tried to fetch chat info for sender from channel or PM"), 0)
