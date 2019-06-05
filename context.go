@@ -93,6 +93,19 @@ func NewMessageCtx(msg *data.TMessage, edited bool, bot *TelegramBot) (*MessageC
 	}
 }
 
+func (this *MessageCtx) DispatchCommand() bool {
+	if len(this.Cmd.Command) > 0 {
+		if this.Bot.IsMyCommand(&this.Cmd) {
+			callback := this.Machine.Handlers[strings.ToLower(this.Cmd.Command)]
+			if callback != nil {
+				callback.Handle(this)
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func (this *MessageCtx) SetState(newstate State) {
 	if this.Machine == nil {
 		panic("Tried to set state, but there was no state machine!")
