@@ -127,6 +127,30 @@ func (this *MessageCtx) Reply(m data.OMessage) (*MessageCtx, error) {
 	}, err
 }
 
+func (this *MessageCtx) ReplyOrPM(m data.OMessage) (*MessageCtx, error) {
+	if this.Msg.Chat.Type == data.Channel { return nil, errors.New("Can't privately reply to a channel message!") }
+
+	m.ChatID = this.Msg.From.Id
+	if this.Msg.Chat.Type == data.Private {
+		m.ReplyTo = &this.Msg.Message_id
+	}
+	msg, err := this.Bot.Remote.SendMessage(m)
+	return &MessageCtx {
+		Msg: msg,
+		Bot: this.Bot,
+	}, err
+}
+
+func (this *MessageCtx) EditText(m data.OMessage) (*MessageCtx, error) {
+	m.ChatID = this.Msg.Chat.Id
+	m.MessageID = this.Msg.Message_id
+	msg, err := this.Bot.Remote.EditMessageText(m)
+	return &MessageCtx {
+		Msg: msg,
+		Bot: this.Bot,
+	}, err
+}
+
 func (this *MessageCtx) Delete() (error) {
 	return this.Bot.Remote.DeleteMessage(data.OMessage{ChatID: this.Msg.Chat.Id, MessageID: this.Msg.Message_id})
 }
@@ -160,6 +184,24 @@ func (this *MessageCtx) ReplyAsync(m data.OMessage, handler data.ResponseHandler
 	m.ChatID = this.Msg.Chat.Id
 	m.ReplyTo = &this.Msg.Message_id
 	this.Bot.Remote.SendMessageAsync(m, handler)
+}
+
+func (this *MessageCtx) ReplyOrPMAsync(m data.OMessage, handler data.ResponseHandler) {
+	if this.Msg.Chat.Type != data.Channel {
+		m.ChatID = this.Msg.From.Id
+		if this.Msg.Chat.Type == data.Private {
+			m.ReplyTo = &this.Msg.Message_id
+		}
+		this.Bot.Remote.SendMessageAsync(m, handler)
+	} else {
+		handler.Callback(nil, false, errors.New("Can't privately reply to a channel message!"), 0)
+	}
+}
+
+func (this *MessageCtx) EditTextAsync(m data.OMessage, handler data.ResponseHandler) {
+	m.ChatID = this.Msg.Chat.Id
+	m.MessageID = this.Msg.Message_id
+	this.Bot.Remote.EditMessageTextAsync(m, handler)
 }
 
 func (this *MessageCtx) DeleteAsync(handler data.ResponseHandler) {
