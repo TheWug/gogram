@@ -20,6 +20,11 @@ type TChat struct {
 	Last_name  *string `json:"last_name"`
 }
 
+const Private string = "private"
+const Group string = "group"
+const Supergroup string = "supergroup"
+const Channel string = "channel"
+
 type TPhotoSize struct {
 	File_id   string `json:"file_id"`
 	Width     int    `json:"width"`
