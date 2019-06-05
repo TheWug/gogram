@@ -223,3 +223,13 @@ func (this *MessageCtx) MemberAsync(handler data.ResponseHandler) {
 		handler.Callback(nil, false, errors.New("Tried to fetch chat info for sender from channel or PM"), 0)
 	}
 }
+
+func (this *InlineCtx) Answer(o data.OInlineQueryAnswer) (error) {
+	o.QueryID = this.Query.Id
+	return this.Bot.Remote.AnswerInlineQuery(o)
+}
+
+func (this *InlineCtx) AnswerAsync(o data.OInlineQueryAnswer, handler data.ResponseHandler) {
+	o.QueryID = this.Query.Id
+	this.Bot.Remote.AnswerInlineQueryAsync(o, handler)
+}
