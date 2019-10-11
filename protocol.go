@@ -100,6 +100,11 @@ func (this *Protocol) BuildGetChatMemberReq(o data.OChatMember) (*reqtify.Reques
 			   Arg("user_id", strconv.Itoa(o.UserID))
 }
 
+func (this *Protocol) BuildGetChatReq(o data.OChatMember) (*reqtify.Request) {
+	return this.client.New("getChat").
+			   Arg("chat_id", GetStringId(o.ChatID))
+}
+
 func (this *Protocol) BuildAnswerInlineQueryReq(o data.OInlineQueryAnswer) (*reqtify.Request) {
 	// next_offset should get stuck at -1 forever if pagination breaks somehow, to prevent infinite loops.
 
@@ -225,6 +230,17 @@ func (this *Protocol) BuildAnswerCallbackQueryReq(o data.OCallback) (*reqtify.Re
 			   ArgDefault("url", o.URL, "")
 }
 
+func (this *Protocol) BuildSetChatPermissionsReq(o data.ORestrict) (*reqtify.Request) {
+	req := this.client.New("setChatPermissions").Method(reqtify.POST).
+			  Arg("chat_id", GetStringId(o.ChatID))
+
+	b, e := json.Marshal(o.ToTChatPermissions())
+	if e != nil { panic(e.Error()) }
+	req.Arg("permissions", string(b))
+
+	return req
+}
+
 // Async calls
 
 func (this *Protocol) AnswerInlineQueryAsync(o data.OInlineQueryAnswer, rm data.ResponseHandler) {
@@ -259,6 +275,10 @@ func (this *Protocol) GetStickerSetAsync(o data.OStickerSet, rm data.ResponseHan
 	go DoAsyncCall(this.BuildGetStickerSetReq(o), rm)
 }
 
+func (this *Protocol) GetChatAsync(o data.OChatMember, rm data.ResponseHandler) () {
+	go DoAsyncCall(this.BuildGetChatReq(o), rm)
+}
+
 func (this *Protocol) GetChatMemberAsync(o data.OChatMember, rm data.ResponseHandler) () {
 	go DoAsyncCall(this.BuildGetChatMemberReq(o), rm)
 }
@@ -277,6 +297,10 @@ func (this *Protocol) DownloadFileAsync(o data.OFile, rm data.ResponseHandler) (
 
 func (this *Protocol) AnswerCallbackQueryAsync(o data.OCallback, rm data.ResponseHandler) () {
 	go DoAsyncCall(this.BuildAnswerCallbackQueryReq(o), rm)
+}
+
+func (this *Protocol) SetChatPermissionsAsync(o data.ORestrict, rm data.ResponseHandler) () {
+	go DoAsyncCall(this.BuildSetChatPermissionsReq(o), rm)
 }
 
 // Synchronous calls
@@ -326,6 +350,12 @@ func (this *Protocol) GetStickerSet(o data.OStickerSet) (*data.TStickerSet, erro
 	return &m, OutputToObject(j, e, &m)
 }
 
+func (this *Protocol) GetChat(o data.OChatMember) (*data.TChat, error) {
+	var m data.TChat
+	j, e := DoCall(this.BuildGetChatReq(o))
+	return &m, OutputToObject(j, e, &m)
+}
+
 func (this *Protocol) GetChatMember(o data.OChatMember) (*data.TChatMember, error) {
 	var m data.TChatMember
 	j, e := DoCall(this.BuildGetChatMemberReq(o))
@@ -349,6 +379,11 @@ func (this *Protocol) DownloadFile(o data.OFile) (io.ReadCloser, error) {
 
 func (this *Protocol) AnswerCallbackQuery(o data.OCallback) (error) {
 	_, err := DoCall(this.BuildAnswerCallbackQueryReq(o))
+	return err
+}
+
+func (this *Protocol) SetChatPermissions(o data.ORestrict) (error) {
+	_, err := DoCall(this.BuildSetChatPermissionsReq(o))
 	return err
 }
 
