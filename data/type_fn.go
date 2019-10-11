@@ -199,3 +199,30 @@ func GetLargestPhoto(this *[]TPhotoSize) (*TPhotoSize) {
 
 	return largest
 }
+
+func (this *ORestrict) ToTChatPermissions() (TChatPermissions) {
+	return TChatPermissions{
+		Can_send_messages: this.CanSendMessages,
+		Can_send_media: this.CanSendMedia,
+		Can_send_polls: this.CanSendPolls,
+		Can_send_other: this.CanSendInline,
+		Can_preview_links: this.CanSendWebPreviews,
+		Can_change_info: this.CanChangeInfo,
+		Can_invite_users: this.CanInviteUsers,
+		Can_pin_messages: this.CanPinMessages,
+	}
+}
+
+func (this *ORestrict) FromTChatPermissions(permissions TChatPermissions, chat_id int64) {
+	*this = ORestrict{
+		ChatID: chat_id,
+		CanSendMessages: permissions.Can_send_messages,
+		CanSendMedia: permissions.Can_send_media,
+		CanSendPolls: permissions.Can_send_polls,
+		CanSendInline: permissions.Can_send_other,
+		CanSendWebPreviews: permissions.Can_preview_links,
+		CanChangeInfo: permissions.Can_change_info,
+		CanInviteUsers: permissions.Can_invite_users,
+		CanPinMessages: permissions.Can_pin_messages,
+	}
+}
