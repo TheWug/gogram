@@ -12,12 +12,19 @@ type TUser struct {
 }
 
 type TChat struct {
-	Id          int64  `json:"id"`
-	Type        string `json:"type"`
-	Title      *string `json:"title"`
-	Username   *string `json:"username"`
-	First_name *string `json:"first_name"`
-	Last_name  *string `json:"last_name"`
+	Id                   int64            `json:"id"`
+	Type                 string           `json:"type"`
+	Title               *string           `json:"title"`
+	Username            *string           `json:"username"`
+	First_name          *string           `json:"first_name"`
+	Last_name           *string           `json:"last_name"`
+	Photo               *TChatPhoto       `json:"photo"`
+	Description         *string           `json:"description"`
+	Invite_link         *string           `json:"invite_link"`
+	Pinned_message      *TMessage         `json:"pinned_message"`
+	Permissions         *TChatPermissions `json:"permissions"`
+	Sticker_set_name    *string           `json:"sticker_set_name"`
+	Can_set_sticker_set *bool             `json:"can_set_sticker_set"`
 }
 
 const Private string = "private"
