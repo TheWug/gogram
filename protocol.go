@@ -8,7 +8,6 @@ import (
 	"errors"
 	"strconv"
 	"log"
-	"fmt"
 	"time"
 	"bytes"
 
@@ -27,7 +26,9 @@ type Protocol struct {
 	apiKey string
 	me data.TUser
 	current_async_id int
-	mostRecentlyReceived int
+
+	nextUpdateOffset int
+	nextUpdateOffsetless bool
 }
 
 func NewProtocol() (Protocol) {
@@ -40,6 +41,7 @@ func NewProtocol() (Protocol) {
 			Transport: http.DefaultTransport,
 			Timeout: 90 * time.Second,
 		}, nil, userAgent),
+		nextUpdateOffsetless: true,
 	}
 	return p
 }
@@ -93,6 +95,12 @@ func (this *Protocol) Test() (error) {
 }
 
 // URL building functions
+
+func (this *Protocol) BuildGetUpdatesReq() (*reqtify.Request) {
+	return this.client.New("getUpdates").
+			   ArgDefault("offset", this.getNextUpdateOffset(), "").
+			   Arg("timeout", "3600")
+}
 
 func (this *Protocol) BuildGetChatMemberReq(o data.OChatMember) (*reqtify.Request) {
 	return this.client.New("getChatMember").
@@ -392,49 +400,30 @@ func (this *Protocol) SetChatPermissions(o data.ORestrict) (error) {
 // Updates
 
 func (this *Protocol) GetUpdates() ([]data.TUpdate, error) {
-	r, e := this.client.New("getUpdates").
-			    Arg("offset", strconv.Itoa(this.mostRecentlyReceived)).
-			    Arg("timeout", "3600").
-			    Do()
-
-	if r != nil {
-		defer r.Body.Close()
-		if r.StatusCode != 200 {
-			return nil, errors.New(fmt.Sprintf("API %s", r.Status))
-		}
-	}
-	if e != nil {
-		return nil, e
-	}
-
-	b, e := ioutil.ReadAll(r.Body)
-	if e != nil {
-		return nil, e
-	}
-
-	var out data.TGenericResponse
-	e = json.Unmarshal(b, &out)
-
-	if e != nil {
-		return nil, e
-	}
-
-	e = HandleSoftError(&out)
-	if e != nil {
-		return nil, e
-	}
-
 	var updates []data.TUpdate
-	e = json.Unmarshal(*out.Result, &updates)
+	j, e := DoCall(this.BuildGetUpdatesReq())
+	return updates, OutputToObject(j, e, &updates)
+}
 
-	if e != nil {
-		return nil, e
+func (this *Protocol) markUpdateProcessed(update *data.TUpdate) {
+	if update == nil {
+		panic("Tried to confirm a nil update!")
 	}
 
-	// track the next update to request
-	if len(updates) != 0 {
-		this.mostRecentlyReceived = updates[len(updates) - 1].Update_id + 1
+	if this.nextUpdateOffset < update.Update_id + 1 || this.nextUpdateOffsetless {
+		this.nextUpdateOffset = update.Update_id + 1
+		this.nextUpdateOffsetless = false
+	}
+}
+
+func (this *Protocol) unmarkProcessedUpdate() {
+	this.nextUpdateOffsetless = true
+}
+
+func (this *Protocol) getNextUpdateOffset() (string) {
+	if this.nextUpdateOffsetless {
+		return ""
 	}
 
-	return updates, nil
+	return strconv.Itoa(this.nextUpdateOffset)
 }

@@ -21,7 +21,8 @@ type TelegramBot struct {
 
 	state_machine *MessageStateMachine
 
-	update_channel chan []data.TUpdate
+	update_channel chan *data.TUpdate
+	update_confirm_channel chan bool
 	maintenance_ticker *time.Ticker
 	settings InitSettings
 
@@ -51,7 +52,7 @@ func (this *TelegramBot) AddMaintenanceCallback(cb Maintainer) {
 	this.maintenance_callbacks = append(this.maintenance_callbacks, cb)
 }
 
-func (this *TelegramBot) asyncUpdateLoop(output chan []data.TUpdate) () {
+func (this *TelegramBot) asyncUpdateLoop() () {
 	for {
 		updates, e := this.Remote.GetUpdates()
 		if e != nil {
@@ -60,7 +61,15 @@ func (this *TelegramBot) asyncUpdateLoop(output chan []data.TUpdate) () {
 			continue
 		}
 
-		output <- updates
+		for _, update := range updates {
+			this.update_channel <- &update
+			<- this.update_confirm_channel
+			this.Remote.markUpdateProcessed(&update)
+		}
+
+		if len(updates) == 0 {
+			this.Remote.unmarkProcessedUpdate()
+		}
 	}
 }
 
@@ -68,6 +77,9 @@ func (this *TelegramBot) Init(filename string, s InitSettings) (error) {
 	this.Log = log.New(os.Stdout, "", log.LstdFlags)
 	this.ErrorLog = this.Log
 	this.Remote = NewProtocol()
+
+	this.update_channel = make(chan *data.TUpdate)
+	this.update_confirm_channel = make(chan bool)
 
 	bytes, e := ioutil.ReadFile(filename)
 	if e != nil { return e }
@@ -81,38 +93,36 @@ func (this *TelegramBot) Init(filename string, s InitSettings) (error) {
 }
 
 func (this *TelegramBot) MainLoop() {
-	this.update_channel = make(chan []data.TUpdate, 3)
-	go this.asyncUpdateLoop(this.update_channel)
+	go this.asyncUpdateLoop()
 
 	this.maintenance_ticker = time.NewTicker(time.Second)
 
 	var seconds int64 = 0
 	for {
 		select {
-		case updates := <- this.update_channel:
-			for _, u := range updates {
-				if u.Message != nil && this.message_callback != nil {
-					this.message_callback.ProcessMessage(NewMessageCtx(u.Message, false, this))
-				}
-				if u.Edited_message != nil && this.message_callback != nil {
-					this.message_callback.ProcessMessage(NewMessageCtx(u.Edited_message, true, this))
-				}
-				if u.Channel_post != nil && this.message_callback != nil {
-					this.message_callback.ProcessMessage(NewMessageCtx(u.Channel_post, false, this))
-				}
-				if u.Edited_channel_post != nil && this.message_callback != nil {
-					this.message_callback.ProcessMessage(NewMessageCtx(u.Edited_channel_post, true, this))
-				}
-				if u.Inline_query != nil && this.inline_callback != nil {
-					this.inline_callback.ProcessInlineQuery(&InlineCtx{Bot: this, Query: u.Inline_query})
-				}
-				if u.Chosen_inline_result != nil && this.inline_callback != nil {
-					this.inline_callback.ProcessInlineQueryResult(&InlineResultCtx{Bot: this, Result: u.Chosen_inline_result})
-				}
-				if u.Callback_query != nil && this.callback_callback != nil {
-					this.callback_callback.ProcessCallback(&CallbackCtx{Bot: this, Cb: u.Callback_query})
-				}
+		case u := <- this.update_channel:
+			if u.Message != nil && this.message_callback != nil {
+				this.message_callback.ProcessMessage(NewMessageCtx(u.Message, false, this))
 			}
+			if u.Edited_message != nil && this.message_callback != nil {
+				this.message_callback.ProcessMessage(NewMessageCtx(u.Edited_message, true, this))
+			}
+			if u.Channel_post != nil && this.message_callback != nil {
+				this.message_callback.ProcessMessage(NewMessageCtx(u.Channel_post, false, this))
+			}
+			if u.Edited_channel_post != nil && this.message_callback != nil {
+				this.message_callback.ProcessMessage(NewMessageCtx(u.Edited_channel_post, true, this))
+			}
+			if u.Inline_query != nil && this.inline_callback != nil {
+				this.inline_callback.ProcessInlineQuery(&InlineCtx{Bot: this, Query: u.Inline_query})
+			}
+			if u.Chosen_inline_result != nil && this.inline_callback != nil {
+				this.inline_callback.ProcessInlineQueryResult(&InlineResultCtx{Bot: this, Result: u.Chosen_inline_result})
+			}
+			if u.Callback_query != nil && this.callback_callback != nil {
+				this.callback_callback.ProcessCallback(&CallbackCtx{Bot: this, Cb: u.Callback_query})
+			}
+			this.update_confirm_channel <- true
 		case <- this.maintenance_ticker.C:
 			for _, m := range this.maintenance_callbacks {
 				if (seconds % m.GetInterval() == 0) { m.DoMaintenance(this) }
