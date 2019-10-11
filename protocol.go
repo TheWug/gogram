@@ -203,14 +203,16 @@ func (this *Protocol) BuildGetStickerSetReq(o data.OStickerSet) (*reqtify.Reques
 }
 
 func (this *Protocol) BuildRestrictChatMemberReq(o data.ORestrict) (*reqtify.Request) {
-	return this.client.New("restrictChatMember").
-		Arg("chat_id", GetStringId(o.ChatID)).
-		Arg("user_id", strconv.Itoa(o.UserID)).
-		ArgDefault("until_date", strconv.FormatInt(o.Until, 10), "0").
-		Arg("can_send_messages", strconv.FormatBool(o.CanSendMessages)).
-		Arg("can_send_media_messages", strconv.FormatBool(o.CanSendMedia)).
-		Arg("can_send_other_messages", strconv.FormatBool(o.CanSendInline)).
-		Arg("can_send_web_page_previews", strconv.FormatBool(o.CanSendWebPreviews))
+	req := this.client.New("restrictChatMember").Method(reqtify.POST).
+			   Arg("chat_id", GetStringId(o.ChatID)).
+			   Arg("user_id", strconv.Itoa(o.UserID)).
+			   ArgDefault("until_date", strconv.FormatInt(o.Until, 10), "0")
+	
+	b, e := json.Marshal(o.ToTChatPermissions())
+	if e != nil { panic(e.Error()) }
+	req.Arg("permissions", string(b))
+
+	return req
 }
 
 func (this *Protocol) BuildGetFileReq(o data.OGetFile) (*reqtify.Request) {
