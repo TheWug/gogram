@@ -45,13 +45,17 @@ type OCallback struct {
 }
 
 type ORestrict struct {
-	ChatID             interface{} // types: int, int64, or string
-	UserID             int
-	Until              int64
-	CanSendMessages    bool
-	CanSendMedia       bool
-	CanSendInline      bool
-	CanSendWebPreviews bool
+	ChatID              interface{} // types: int, int64, or string
+	UserID              int
+	Until               int64
+	CanSendMessages    *bool
+	CanSendMedia       *bool
+	CanSendPolls       *bool
+	CanSendInline      *bool
+	CanSendWebPreviews *bool
+	CanChangeInfo      *bool
+	CanInviteUsers     *bool
+	CanPinMessages     *bool
 }
 
 type OGetFile struct {
