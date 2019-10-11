@@ -274,3 +274,8 @@ type TInputMessageTextContent struct {
 	Parse_mode   string `json:"parse_mode"`
 	No_preview   bool   `json:"disable_web_page_preview"`
 }
+
+type TChatPhoto struct {
+	Small_id string `json:"small_file_id"`
+	Large_id string `json:"big_file_id"`
+}
