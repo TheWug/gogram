@@ -267,6 +267,17 @@ type TInlineKeyboardButton struct {
 	Data string `json:"callback_data"`
 }
 
+type TChatPermissions struct {
+	Can_send_messages *bool `json:"can_send_messages,omitempty"`
+	Can_send_media    *bool `json:"can_send_media_messages,omitempty"`
+	Can_send_polls    *bool `json:"can_send_polls,omitempty"`
+	Can_send_other    *bool `json:"can_send_other_messages,omitempty"`
+	Can_preview_links *bool `json:"can_add_web_page_previews,omitempty"`
+	Can_change_info   *bool `json:"can_change_info,omitempty"`
+	Can_invite_users  *bool `json:"can_invite_users,omitempty"`
+	Can_pin_messages  *bool `json:"can_pin_messages,omitempty"`
+}
+
 func (this *TInlineKeyboard) AddButton(b TInlineKeyboardButton) {
 	if this.Buttons == nil { this.AddRow() }
 	this.Buttons[len(this.Buttons) - 1] = append(this.Buttons[len(this.Buttons) - 1], b)
