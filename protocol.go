@@ -21,13 +21,14 @@ import (
 
 
 type Protocol struct {
-	client reqtify.Reqtifier
+	client      reqtify.Reqtifier
 	file_client reqtify.Reqtifier
-	apiKey string
-	me data.TUser
+
+	apiKey           string
+	me               data.TUser
 	current_async_id int
 
-	nextUpdateOffset int
+	nextUpdateOffset     int
 	nextUpdateOffsetless bool
 
 	bot *TelegramBot
