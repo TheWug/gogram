@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"io"
+	"log"
 )
 
 var call_response_channel chan HandlerBox = make(chan HandlerBox, 10)
@@ -23,15 +24,20 @@ type HandlerBox struct {
 }
 
 // call this in a goroutine.
-func DoAsyncGetReader(request *reqtify.Request, handler data.ResponseHandler) {
-	doAsyncGetReader(request, handler, call_response_channel)
+func DoAsyncGetReader(logger *log.Logger, request *reqtify.Request, handler data.ResponseHandler) {
+	doAsyncGetReader(logger, request, handler, call_response_channel)
 }
 
-func doAsyncGetReader(request *reqtify.Request, handler data.ResponseHandler, output chan HandlerBox) {
+func doAsyncGetReader(logger *log.Logger, request *reqtify.Request, handler data.ResponseHandler, output chan HandlerBox) {
 	var hbox HandlerBox
 	hbox.Handler = handler
 
 	r, e := request.Do()
+
+	if logger != nil {
+		logger.Printf("[telegram] API call: %s (%s)\n", request.Path, r.Status)
+	}
+
 	if e != nil {
 		hbox.Error = e
 		if (output != nil) { output <- hbox }
@@ -47,13 +53,13 @@ func doAsyncGetReader(request *reqtify.Request, handler data.ResponseHandler, ou
 }
 
 // call this in a goroutine.
-func DoAsyncFetch(request *reqtify.Request, handler data.ResponseHandler) {
-	doAsyncFetch(request, handler, call_response_channel)
+func DoAsyncFetch(logger *log.Logger, request *reqtify.Request, handler data.ResponseHandler) {
+	doAsyncFetch(logger, request, handler, call_response_channel)
 }
 
-func doAsyncFetch(request *reqtify.Request, handler data.ResponseHandler, output chan HandlerBox) {
+func doAsyncFetch(logger *log.Logger, request *reqtify.Request, handler data.ResponseHandler, output chan HandlerBox) {
 	temp := make(chan HandlerBox, 1)
-	doAsyncGetReader(request, handler, temp)
+	doAsyncGetReader(logger, request, handler, temp)
 	close(temp)
 	hbox := <- temp
 
@@ -78,13 +84,13 @@ func doAsyncFetch(request *reqtify.Request, handler data.ResponseHandler, output
 }
 
 // call this in a goroutine.
-func DoAsyncCall(request *reqtify.Request, handler data.ResponseHandler) {
-	doAsyncCall(request, handler, call_response_channel)
+func DoAsyncCall(logger *log.Logger, request *reqtify.Request, handler data.ResponseHandler) {
+	doAsyncCall(logger, request, handler, call_response_channel)
 }
 
-func doAsyncCall(request *reqtify.Request, handler data.ResponseHandler, output chan HandlerBox) {
+func doAsyncCall(logger *log.Logger, request *reqtify.Request, handler data.ResponseHandler, output chan HandlerBox) {
 	temp := make(chan HandlerBox, 1)
-	doAsyncFetch(request, handler, temp)
+	doAsyncFetch(logger, request, handler, temp)
 	close(temp)
 	hbox := <- temp
 
@@ -118,30 +124,30 @@ func doAsyncCall(request *reqtify.Request, handler data.ResponseHandler, output 
 	return
 }
 
-func DoGetReader(request *reqtify.Request) (io.ReadCloser, error) {
+func DoGetReader(logger *log.Logger, request *reqtify.Request) (io.ReadCloser, error) {
 	ch := make(chan HandlerBox, 1)
 
-	doAsyncGetReader(request, nil, ch)
+	doAsyncGetReader(logger, request, nil, ch)
 	close(ch)
 	output := <- ch
 
 	return output.Reader, output.Error
 }
 
-func DoFetch(request *reqtify.Request) ([]byte, error) {
+func DoFetch(logger *log.Logger, request *reqtify.Request) ([]byte, error) {
 	ch := make(chan HandlerBox, 1)
 
-	doAsyncFetch(request, nil, ch)
+	doAsyncFetch(logger, request, nil, ch)
 	close(ch)
 	output := <- ch
 
 	return output.Bytes, output.Error
 }
 
-func DoCall(request *reqtify.Request) (*json.RawMessage, error) {
+func DoCall(logger *log.Logger, request *reqtify.Request) (*json.RawMessage, error) {
 	ch := make(chan HandlerBox, 1)
 
-	doAsyncCall(request, nil, ch)
+	doAsyncCall(logger, request, nil, ch)
 	close(ch)
 	output := <- ch
 

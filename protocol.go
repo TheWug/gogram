@@ -258,146 +258,146 @@ func (this *Protocol) BuildSetChatPermissionsReq(o data.ORestrict) (*reqtify.Req
 // Async calls
 
 func (this *Protocol) AnswerInlineQueryAsync(o data.OInlineQueryAnswer, rm data.ResponseHandler) {
-	go DoAsyncCall(this.BuildAnswerInlineQueryReq(o), rm)
+	go DoAsyncCall(this.bot.Log, this.BuildAnswerInlineQueryReq(o), rm)
 }
 
 func (this *Protocol) SendMessageAsync(o data.OMessage, sm data.ResponseHandler) () {
-	go DoAsyncCall(this.BuildSendMessageReq(o), sm)
+	go DoAsyncCall(this.bot.Log, this.BuildSendMessageReq(o), sm)
 }
 
 func (this *Protocol) EditMessageTextAsync(o data.OMessage, sm data.ResponseHandler) () {
-	go DoAsyncCall(this.BuildEditMessageReq(o), sm)
+	go DoAsyncCall(this.bot.Log, this.BuildEditMessageReq(o), sm)
 }
 
 func (this *Protocol) DeleteMessageAsync(o data.OMessage, sm data.ResponseHandler) () {
-	go DoAsyncCall(this.BuildDeleteMessageReq(o), sm)
+	go DoAsyncCall(this.bot.Log, this.BuildDeleteMessageReq(o), sm)
 }
 
 func (this *Protocol) SendStickerAsync(o data.OMessage, sm data.ResponseHandler) () {
-	go DoAsyncCall(this.BuildSendStickerReq(o), sm)
+	go DoAsyncCall(this.bot.Log, this.BuildSendStickerReq(o), sm)
 }
 
 func (this *Protocol) ForwardMessageAsync(o data.OMessage, sm data.ResponseHandler) () {
-	go DoAsyncCall(this.BuildForwardMessageReq(o), sm)
+	go DoAsyncCall(this.bot.Log, this.BuildForwardMessageReq(o), sm)
 }
 
 func (this *Protocol) KickMemberAsync(o data.OChatMember, si data.ResponseHandler) () {
-	go DoAsyncCall(this.BuildKickMemberReq(o), si)
+	go DoAsyncCall(this.bot.Log, this.BuildKickMemberReq(o), si)
 }
 
 func (this *Protocol) GetStickerSetAsync(o data.OStickerSet, rm data.ResponseHandler) () {
-	go DoAsyncCall(this.BuildGetStickerSetReq(o), rm)
+	go DoAsyncCall(this.bot.Log, this.BuildGetStickerSetReq(o), rm)
 }
 
 func (this *Protocol) GetChatAsync(o data.OChatMember, rm data.ResponseHandler) () {
-	go DoAsyncCall(this.BuildGetChatReq(o), rm)
+	go DoAsyncCall(this.bot.Log, this.BuildGetChatReq(o), rm)
 }
 
 func (this *Protocol) GetChatMemberAsync(o data.OChatMember, rm data.ResponseHandler) () {
-	go DoAsyncCall(this.BuildGetChatMemberReq(o), rm)
+	go DoAsyncCall(this.bot.Log, this.BuildGetChatMemberReq(o), rm)
 }
 
 func (this *Protocol) RestrictChatMemberAsync(o data.ORestrict, rm data.ResponseHandler) () {
-	go DoAsyncCall(this.BuildRestrictChatMemberReq(o), rm)
+	go DoAsyncCall(this.bot.Log, this.BuildRestrictChatMemberReq(o), rm)
 }
 
 func (this *Protocol) GetFileAsync(o data.OGetFile, rm data.ResponseHandler) () {
-	go DoAsyncCall(this.BuildGetFileReq(o), rm)
+	go DoAsyncCall(this.bot.Log, this.BuildGetFileReq(o), rm)
 }
 
 func (this *Protocol) DownloadFileAsync(o data.OFile, rm data.ResponseHandler) () {
-	go DoAsyncFetch(this.BuildDownloadFileReq(o), rm)
+	go DoAsyncFetch(this.bot.Log, this.BuildDownloadFileReq(o), rm)
 }
 
 func (this *Protocol) AnswerCallbackQueryAsync(o data.OCallback, rm data.ResponseHandler) () {
-	go DoAsyncCall(this.BuildAnswerCallbackQueryReq(o), rm)
+	go DoAsyncCall(this.bot.Log, this.BuildAnswerCallbackQueryReq(o), rm)
 }
 
 func (this *Protocol) SetChatPermissionsAsync(o data.ORestrict, rm data.ResponseHandler) () {
-	go DoAsyncCall(this.BuildSetChatPermissionsReq(o), rm)
+	go DoAsyncCall(this.bot.Log, this.BuildSetChatPermissionsReq(o), rm)
 }
 
 // Synchronous calls
 
 func (this *Protocol) AnswerInlineQuery(o data.OInlineQueryAnswer) (error) {
-	_, err := DoCall(this.BuildAnswerInlineQueryReq(o))
+	_, err := DoCall(this.bot.Log, this.BuildAnswerInlineQueryReq(o))
 	return err
 }
 
 func (this *Protocol) SendMessage(o data.OMessage) (*data.TMessage, error) {
 	var m data.TMessage
-	j, e := DoCall(this.BuildSendMessageReq(o))
+	j, e := DoCall(this.bot.Log, this.BuildSendMessageReq(o))
 	return &m, OutputToObject(j, e, &m)
 }
 
 func (this *Protocol) EditMessageText(o data.OMessage) (*data.TMessage, error) {
 	var m data.TMessage
-	j, e := DoCall(this.BuildEditMessageReq(o))
+	j, e := DoCall(this.bot.Log, this.BuildEditMessageReq(o))
 	return &m, OutputToObject(j, e, &m)
 }
 
 func (this *Protocol) DeleteMessage(o data.OMessage) (error) {
-	_, err := DoCall(this.BuildDeleteMessageReq(o))
+	_, err := DoCall(this.bot.Log, this.BuildDeleteMessageReq(o))
 	return err
 }
 
 func (this *Protocol) SendSticker(o data.OMessage) (*data.TMessage, error) {
 	var m data.TMessage
-	j, e := DoCall(this.BuildSendStickerReq(o))
+	j, e := DoCall(this.bot.Log, this.BuildSendStickerReq(o))
 	return &m, OutputToObject(j, e, &m)
 }
 
 func (this *Protocol) ForwardMessage(o data.OMessage) (*data.TMessage, error) {
 	var m data.TMessage
-	j, e := DoCall(this.BuildForwardMessageReq(o))
+	j, e := DoCall(this.bot.Log, this.BuildForwardMessageReq(o))
 	return &m, OutputToObject(j, e, &m)
 }
 
 func (this *Protocol) KickMember(o data.OChatMember) (error) {
-	_, err := DoCall(this.BuildKickMemberReq(o))
+	_, err := DoCall(this.bot.Log, this.BuildKickMemberReq(o))
 	return err
 }
 
 func (this *Protocol) GetStickerSet(o data.OStickerSet) (*data.TStickerSet, error) {
 	var m data.TStickerSet
-	j, e := DoCall(this.BuildGetStickerSetReq(o))
+	j, e := DoCall(this.bot.Log, this.BuildGetStickerSetReq(o))
 	return &m, OutputToObject(j, e, &m)
 }
 
 func (this *Protocol) GetChat(o data.OChatMember) (*data.TChat, error) {
 	var m data.TChat
-	j, e := DoCall(this.BuildGetChatReq(o))
+	j, e := DoCall(this.bot.Log, this.BuildGetChatReq(o))
 	return &m, OutputToObject(j, e, &m)
 }
 
 func (this *Protocol) GetChatMember(o data.OChatMember) (*data.TChatMember, error) {
 	var m data.TChatMember
-	j, e := DoCall(this.BuildGetChatMemberReq(o))
+	j, e := DoCall(this.bot.Log, this.BuildGetChatMemberReq(o))
 	return &m, OutputToObject(j, e, &m)
 }
 
 func (this *Protocol) RestrictChatMember(o data.ORestrict, rm data.ResponseHandler) (error) {
-	_, err := DoCall(this.BuildRestrictChatMemberReq(o))
+	_, err := DoCall(this.bot.Log, this.BuildRestrictChatMemberReq(o))
 	return err
 }
 
 func (this *Protocol) GetFile(o data.OGetFile) (*data.TFile, error) {
 	var m data.TFile
-	j, e := DoCall(this.BuildGetFileReq(o))
+	j, e := DoCall(this.bot.Log, this.BuildGetFileReq(o))
 	return &m, OutputToObject(j, e, &m)
 }
 
 func (this *Protocol) DownloadFile(o data.OFile) (io.ReadCloser, error) {
-	return DoGetReader(this.BuildDownloadFileReq(o))
+	return DoGetReader(this.bot.Log, this.BuildDownloadFileReq(o))
 }
 
 func (this *Protocol) AnswerCallbackQuery(o data.OCallback) (error) {
-	_, err := DoCall(this.BuildAnswerCallbackQueryReq(o))
+	_, err := DoCall(this.bot.Log, this.BuildAnswerCallbackQueryReq(o))
 	return err
 }
 
 func (this *Protocol) SetChatPermissions(o data.ORestrict) (error) {
-	_, err := DoCall(this.BuildSetChatPermissionsReq(o))
+	_, err := DoCall(this.bot.Log, this.BuildSetChatPermissionsReq(o))
 	return err
 }
 
@@ -405,8 +405,13 @@ func (this *Protocol) SetChatPermissions(o data.ORestrict) (error) {
 
 func (this *Protocol) GetUpdates() ([]data.TUpdate, error) {
 	var updates []data.TUpdate
-	j, e := DoCall(this.BuildGetUpdatesReq())
-	return updates, OutputToObject(j, e, &updates)
+	r := this.BuildGetUpdatesReq()
+	j, e := DoCall(nil, r)
+	err := OutputToObject(j, e, &updates)
+	if len(updates) > 0 {
+		this.bot.Log.Printf("[telegram] API Call: %s (%d updates)\n", r.Path, len(updates))
+	}
+	return updates, err
 }
 
 func (this *Protocol) markUpdateProcessed(update *data.TUpdate) {
