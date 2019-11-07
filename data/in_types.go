@@ -289,8 +289,8 @@ func (this *TInlineKeyboard) AddRow() {
 
 type TInputMessageTextContent struct {
 	Message_text string `json:"message_text"`
-	Parse_mode   string `json:"parse_mode"`
-	No_preview   bool   `json:"disable_web_page_preview"`
+	Parse_mode  *string `json:"parse_mode,omitempty"`
+	No_preview  *bool   `json:"disable_web_page_preview,omitempty"`
 }
 
 type TChatPhoto struct {
