@@ -245,6 +245,18 @@ type TInlineQueryResultPhoto struct {
 	Input_message_content *TInputMessageTextContent `json:"input_message_content,omitempty"`
 }
 
+type TInlineQueryResultCachedPhoto struct {
+	Type                   string                   `json:"type"`
+	Id                     string                   `json:"id"`
+	Photo_file_id          string                   `json:"photo_file_id"`
+	Title                 *string                   `json:"title,omitempty"`
+	Description           *string                   `json:"description,omitempty"`
+	Caption               *string                   `json:"caption,omitempty"`
+	Parse_mode            *string                   `json:"parse_mode,omitempty"`
+	Reply_markup          *string                   `json:"reply_markup,omitempty"`
+	Input_message_content *TInputMessageTextContent `json:"input_message_content,omitempty"`
+}
+
 type TInlineQueryResultGif struct {
 	Type                   string                   `json:"type"`
 	Id                     string                   `json:"id"`
