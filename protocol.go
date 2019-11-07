@@ -29,9 +29,11 @@ type Protocol struct {
 
 	nextUpdateOffset int
 	nextUpdateOffsetless bool
+
+	bot *TelegramBot
 }
 
-func NewProtocol() (Protocol) {
+func NewProtocol(bound *TelegramBot) (Protocol) {
 	p := Protocol{
 		client: reqtify.New("", nil, &http.Client{
 			Transport: http.DefaultTransport,
@@ -42,6 +44,7 @@ func NewProtocol() (Protocol) {
 			Timeout: 90 * time.Second,
 		}, nil, userAgent),
 		nextUpdateOffsetless: true,
+		bot: bound,
 	}
 	return p
 }

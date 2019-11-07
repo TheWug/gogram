@@ -76,7 +76,7 @@ func (this *TelegramBot) asyncUpdateLoop() () {
 func (this *TelegramBot) Init(filename string, s InitSettings) (error) {
 	this.Log = log.New(os.Stdout, "", log.LstdFlags)
 	this.ErrorLog = this.Log
-	this.Remote = NewProtocol()
+	this.Remote = NewProtocol(this)
 
 	this.update_channel = make(chan *data.TUpdate)
 	this.update_confirm_channel = make(chan bool)
