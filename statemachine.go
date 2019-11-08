@@ -30,6 +30,14 @@ func (this *MessageStateMachine) AddCommand(cmd string, state State) {
 	this.Handlers[strings.ToLower(cmd)] = state
 }
 
+func (this *MessageStateMachine) DelCommand(cmd string) {
+	delete(this.Handlers, strings.ToLower(cmd))
+}
+
+func (this *MessageStateMachine) GetCommand(cmd string) State {
+	return this.Handlers[strings.ToLower(cmd)]
+}
+
 func (this *MessageStateMachine) SetState(sender data.Sender, state State) {
 	if state != nil {
 		this.UserStates[sender] = state
