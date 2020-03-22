@@ -187,6 +187,14 @@ func (this *TMessage) Sender() (Sender) {
 	}
 }
 
+func (this Sender) String() (string) {
+	if this.User != UserID(0) {
+		return fmt.Sprintf("User[%d]", this.User)
+	} else {
+		return fmt.Sprintf("Channel[%d]", this.Channel)
+	}
+}
+
 func GetLargestPhoto(this *[]TPhotoSize) (*TPhotoSize) {
 	var largest *TPhotoSize = nil
 	var largest_size int64 = 0
