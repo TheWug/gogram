@@ -179,6 +179,16 @@ func (this *TMessage) MessageContents() (string) {
 	return "Unknown"
 }
 
+func (this *TMessage) PlainText() (string) {
+	if this.Text != nil {
+		return *this.Text
+	} else if this.Caption != nil {
+		return *this.Caption
+	} else {
+		return ""
+	}
+}
+
 func (this *TMessage) Sender() (Sender) {
 	if this.From != nil {
 		return Sender{User: UserID(this.From.Id)}
