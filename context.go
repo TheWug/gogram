@@ -121,6 +121,7 @@ func (this *MessageCtx) GetState() (State) {
 	return state
 }
 
+// Send a message to the same chat that a message came from but without directly replying to it.
 func (this *MessageCtx) Respond(m data.OMessage) (*MessageCtx, error) {
 	m.ChatID = this.Msg.Chat.Id
 	msg, err := this.Bot.Remote.SendMessage(m)
@@ -131,6 +132,7 @@ func (this *MessageCtx) Respond(m data.OMessage) (*MessageCtx, error) {
 	}, err
 }
 
+// Reply to the specified message.
 func (this *MessageCtx) Reply(m data.OMessage) (*MessageCtx, error) {
 	m.ChatID = this.Msg.Chat.Id
 	m.ReplyTo = &this.Msg.Message_id
@@ -142,6 +144,7 @@ func (this *MessageCtx) Reply(m data.OMessage) (*MessageCtx, error) {
 	}, err
 }
 
+// Reply to the specified message if it's a PM, otherwise PM the sender.
 func (this *MessageCtx) ReplyOrPM(m data.OMessage) (*MessageCtx, error) {
 	if this.Msg.Chat.Type == data.Channel { return nil, errors.New("Can't privately reply to a channel message!") }
 
@@ -157,6 +160,7 @@ func (this *MessageCtx) ReplyOrPM(m data.OMessage) (*MessageCtx, error) {
 	}, err
 }
 
+// pm the message sender.
 func (this *MessageCtx) PM(m data.OMessage) (*MessageCtx, error) {
 	if this.Msg.Chat.Type == data.Channel { return nil, errors.New("Can't privately reply to a channel message!") }
 
@@ -169,6 +173,7 @@ func (this *MessageCtx) PM(m data.OMessage) (*MessageCtx, error) {
 	}, err
 }
 
+// forward this message to another chat
 func (this *MessageCtx) Forward(m data.OMessage) (*MessageCtx, error) {
 	m.ChatID = this.Msg.Chat.Id
 	m.MessageID = this.Msg.Message_id
@@ -180,6 +185,7 @@ func (this *MessageCtx) Forward(m data.OMessage) (*MessageCtx, error) {
 	}, err
 }
 
+// edit this message.
 func (this *MessageCtx) EditText(m data.OMessage) (*MessageCtx, error) {
 	m.ChatID = this.Msg.Chat.Id
 	m.MessageID = this.Msg.Message_id
@@ -191,10 +197,12 @@ func (this *MessageCtx) EditText(m data.OMessage) (*MessageCtx, error) {
 	}, err
 }
 
+// delete this message
 func (this *MessageCtx) Delete() (error) {
 	return this.Bot.Remote.DeleteMessage(data.OMessage{ChatID: this.Msg.Chat.Id, MessageID: this.Msg.Message_id})
 }
 
+// kick the sender of this message from the group they sent it to
 func (this *MessageCtx) KickSender() (error) {
 	if this.Msg.Chat.Type == data.Group || this.Msg.Chat.Type == data.Supergroup {
 		return this.Bot.Remote.KickMember(data.OChatMember{ChatID: this.Msg.Chat.Id, UserID: this.Msg.From.Id})
@@ -203,6 +211,7 @@ func (this *MessageCtx) KickSender() (error) {
 	}
 }
 
+// fetch info about the sender of this message
 func (this *MessageCtx) Member() (*ChatMemberCtx, error) {
 	if this.Msg.Chat.Type == data.Group || this.Msg.Chat.Type == data.Supergroup {
 		member, err := this.Bot.Remote.GetChatMember(data.OChatMember{ChatID: this.Msg.Chat.Id, UserID: this.Msg.From.Id})
