@@ -74,6 +74,14 @@ type TAudio struct {
 	Thumb         *TPhotoSize `json:"thumb"`
 }
 
+type TVoice struct {
+	File_id        string     `json:"file_id"`
+	Unique_id      string     `json:"unique_file_id"`
+	Duration       int        `json:"duration"`
+	Mime_type     *string     `json:"mime_type"`
+	File_size     *int        `json:"file_size"`
+}
+
 type TVideo struct {
 	File_id        string     `json:"file_id"`
 	Unique_id      string     `json:"unique_file_id"`
@@ -127,7 +135,7 @@ type TMessage struct {
 	Photo                   *[]TPhotoSize       `json:"photo"`
 	Sticker                 *TSticker           `json:"sticker"`
 	Video                   *TVideo             `json:"video"`
-	Voice                   *TGenericFile       `json:"voice"`
+	Voice                   *TVoice             `json:"voice"`
 	Video_note              *TGenericFile       `json:"video_note"`
 	Contact                 *TContact           `json:"contact"`
 	Location                *TLocation          `json:"location"`
