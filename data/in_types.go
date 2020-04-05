@@ -386,6 +386,10 @@ type TPollAnswer struct {
 	Selected []int    `json:"option_ids"`
 }
 
+type TPassportData struct {
+	// stub. implement more of this later.
+}
+
 type TWebhookInfo struct {
 	URL                 string `json:"url"`
 	Custom_certificate  string `json:"has_custom_certificate"`
