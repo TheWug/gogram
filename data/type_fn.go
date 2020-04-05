@@ -106,7 +106,7 @@ func (this *TMessage) TypeString() (string) {
 	} else if this.Contact != nil { intermediate = "CONTACT"
 	} else if this.Location != nil { intermediate = "LOCATION"
 	} else if this.Venue != nil { intermediate = "VENUE"
-	} else if this.New_chat_member != nil { intermediate = "ADDUSER"
+	} else if this.New_chat_members != nil { intermediate = "ADDUSER"
 	} else if this.Left_chat_member != nil { intermediate = "DELUSER"
 	} else if this.New_chat_title != nil { intermediate = "SETTITLE"
 	} else if this.New_chat_photo != nil { intermediate = "SETPHOTO"
@@ -149,6 +149,14 @@ func (this *TMessage) PrintableString(is_edit bool) (string) {
 	return fmt.Sprintf("%s %s %s %s %s %s %s", message_ts, message_type, message_info, sender_info, receiver_info, fwdrpl_info, message_contents)
 }
 
+func userStrings(users []TUser) string {
+	var names []string
+	for _, u := range users {
+		names = append(names, u.PrintableString())
+	}
+	return strings.Join(names, " ")
+}
+
 // width: variable.
 func (this *TMessage) MessageContents() (string) {
 	var caption string = "(no caption)"
@@ -164,7 +172,7 @@ func (this *TMessage) MessageContents() (string) {
 	if this.Contact != nil { return this.Contact.Phone_number + " " + this.Contact.First_name }
 	if this.Location != nil { return fmt.Sprintf("(%f %f)", this.Location.Longitude, this.Location.Latitude) }
 	if this.Venue != nil { return fmt.Sprintf("(%f %f) %s: %s", this.Venue.Location.Longitude, this.Venue.Location.Latitude, this.Venue.Title, this.Venue.Description) }
-	if this.New_chat_member != nil { return fmt.Sprintf("[Chat member added] %s", this.New_chat_member.PrintableString()) }
+	if this.New_chat_members != nil { return fmt.Sprintf("[Chat member added] %s", userStrings(*this.New_chat_members)) }
 	if this.Left_chat_member != nil { return fmt.Sprintf("[Chat member removed] %s", this.Left_chat_member.PrintableString()) }
 	if this.New_chat_title != nil { return fmt.Sprintf("[New chat title] %s", *this.New_chat_title) }
 	if this.New_chat_photo != nil { return fmt.Sprintf("[Chat photo set] %s", GetLargestPhoto(this.New_chat_photo).File_id) }
