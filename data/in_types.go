@@ -63,6 +63,17 @@ type TSticker struct {
 	File_size     *int           `json:"file_size"`
 }
 
+type TAudio struct {
+	File_id        string     `json:"file_id"`
+	Unique_id      string     `json:"unique_file_id"`
+	Duration       int        `json:"duration"`
+	Performer     *string     `json:"performer"`
+	Title         *string     `json:"title"`
+	Mime_type     *string     `json:"mime_type"`
+	File_size     *int        `json:"file_size"`
+	Thumb         *TPhotoSize `json:"thumb"`
+}
+
 type TStickerSet struct {
 	Name             string   `json:"name"`
 	Title            string   `json:"title"`
@@ -98,7 +109,7 @@ type TMessage struct {
 	Entities              *[]TMessageEntity     `json:"entities"`
 	Caption                 *string             `json:"caption"`
 	Caption_entities      *[]TMessageEntity     `json:"caption_entities"`
-	Audio                   *TGenericFile       `json:"audio"`
+	Audio                   *TAudio             `json:"audio"`
 	Document                *TDocument          `json:"document"`
 	Animation               *TAnimation         `json:"animation"`
 	Game                    *TGame              `json:"game"`
