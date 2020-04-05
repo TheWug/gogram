@@ -299,6 +299,13 @@ type TShippingAddress struct {
 	Zip_code     string `json:"post_code"`
 }
 
+type TShippingQuery struct {
+	Id               string           `json:"id"`
+	From             TUser            `json:"from"`
+	Invoice_payload  string           `json:"invoice_payload"`
+	Shipping_address TShippingAddress `json:"shipping_address"`
+}
+
 func (this *TInlineKeyboard) AddButton(b TInlineKeyboardButton) {
 	if this.Buttons == nil { this.AddRow() }
 	this.Buttons[len(this.Buttons) - 1] = append(this.Buttons[len(this.Buttons) - 1], b)
