@@ -253,8 +253,9 @@ type TGame struct {
 type TContact struct {
 	Phone_number string `json:"phone_number"`
 	First_name   string `json:"first_name"`
-	Last_name    string `json:"last_name"`
-	User_id      int    `json:"user_id"`
+	Last_name   *string `json:"last_name,omitempty"`
+	User_id     *int    `json:"user_id,omitempty"`
+	Vcard       *string `json:"vcard,omitempty"`
 }
 
 type TLocation struct {
