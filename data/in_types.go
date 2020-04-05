@@ -313,6 +313,16 @@ type TOrderInfo struct {
 	Shipping_address *TShippingAddress `json:"shipping_address,omitempty"`
 }
 
+type TPreCheckoutQuery struct {
+	Id                  string     `json:"id"`
+	From                TUser      `json:"from"`
+	Currency            string     `json:"currency"`
+	Total_amount        int64      `json:"total_amount"`
+	Invoice_payload     string     `json:"invoice_payload"`
+	Shipping_option_id *string     `json:"shipping_option_id"`
+	Order_info         *TOrderInfo `json:"order_info"`
+}
+
 func (this *TInlineKeyboard) AddButton(b TInlineKeyboardButton) {
 	if this.Buttons == nil { this.AddRow() }
 	this.Buttons[len(this.Buttons) - 1] = append(this.Buttons[len(this.Buttons) - 1], b)
