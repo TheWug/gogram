@@ -340,6 +340,12 @@ type TPoll struct {
 	Correct_answer int         `json:"correct_option_id"`
 }
 
+type TPollAnswer struct {
+	Poll_id    string `json:"poll_id"`
+	User       TUser  `json:"user"`
+	Selected []int    `json:"option_ids"`
+}
+
 func (this *TInlineKeyboard) AddButton(b TInlineKeyboardButton) {
 	if this.Buttons == nil { this.AddRow() }
 	this.Buttons[len(this.Buttons) - 1] = append(this.Buttons[len(this.Buttons) - 1], b)
