@@ -290,6 +290,15 @@ type TChatPermissions struct {
 	Can_pin_messages  *bool `json:"can_pin_messages,omitempty"`
 }
 
+type TShippingAddress struct {
+	Country_code string `json:"country_code"`
+	State        string `json:"state"`
+	City         string `json:"city"`
+	Street_line1 string `json:"street_line1"`
+	Street_line2 string `json:"street_line2"`
+	Zip_code     string `json:"post_code"`
+}
+
 func (this *TInlineKeyboard) AddButton(b TInlineKeyboardButton) {
 	if this.Buttons == nil { this.AddRow() }
 	this.Buttons[len(this.Buttons) - 1] = append(this.Buttons[len(this.Buttons) - 1], b)
