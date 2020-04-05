@@ -353,6 +353,16 @@ type TPreCheckoutQuery struct {
 	Order_info         *TOrderInfo `json:"order_info"`
 }
 
+type TSuccessfulPayment struct {
+	Currency string `json:"currency"`
+	Total int64 `json:"total_amount"`
+	Invoice_payload string `json:"invoice_payload"`
+	Shipping_option_id *string `json:"shipping_option_id"`
+	Order_info *TOrderInfo `json:"order_info"`
+	Tx_id_telegram string `json:"telegram_payment_charge_id"`
+	Tx_id_provider string `json:"provider_payment_charge_id"`
+}
+
 type TPollOption struct {
 	Text  string `json:"text"`
 	Votes int64  `json:"voter_count"`
