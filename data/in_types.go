@@ -5,10 +5,15 @@ import (
 )
 
 type TUser struct {
-	Id          int    `json:"id"`
-	First_name  string `json:"first_name"`
-	Last_name  *string `json:"last_name"`
-	Username   *string `json:"username"`
+	Id                int    `json:"id"`
+	Bot               bool   `json:"is_bot"`
+	First_name        string `json:"first_name"`
+	Last_name        *string `json:"last_name"`
+	Username         *string `json:"username"`
+	Language_code    *string `json:"language_code"`
+	Joins_groups     *bool   `json:"can_join_groups"`
+	Privacy_disabled *bool   `json:"can_read_all_group_messages"`
+	Inline_capable   *bool   `json:"supports_inline_queries"`
 }
 
 type TChat struct {
