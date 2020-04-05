@@ -247,7 +247,12 @@ type TAnimation struct {
 }
 
 type TGame struct {
-	Title string `json:"title"`
+	Title            string         `json:"title"`
+	Description      string         `json:"description"`
+	Photo          []TPhotoSize     `json:"photo"`
+	Text            *string         `json:"text"`
+	Text_entities *[]TMessageEntity `json:"text_entities"`
+	Animation       *TAnimation     `json:"animation"`
 }
 
 type TContact struct {
