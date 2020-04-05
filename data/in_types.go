@@ -450,6 +450,9 @@ type TPoll struct {
 	Correct_answer int         `json:"correct_option_id"`
 }
 
+const NormalPoll string = "regular"
+const QuizPoll string = "quiz"
+
 type TPollAnswer struct {
 	Poll_id    string `json:"poll_id"`
 	User       TUser  `json:"user"`
