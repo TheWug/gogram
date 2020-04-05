@@ -346,6 +346,16 @@ type TPollAnswer struct {
 	Selected []int    `json:"option_ids"`
 }
 
+type TWebhookInfo struct {
+	URL                 string `json:"url"`
+	Custom_certificate  string `json:"has_custom_certificate"`
+	Pending_updates     int    `json:"pending_update_count"`
+	Last_error_date    *int    `json:"last_error_date,omitempty"`
+	Last_error_message *string `json:"last_error_message,omitempty"`
+	Max_connections    *int    `json:"max_connections"`
+	Allowed_updates   []string `json:"allowed_updates"`
+}
+
 func (this *TInlineKeyboard) AddButton(b TInlineKeyboardButton) {
 	if this.Buttons == nil { this.AddRow() }
 	this.Buttons[len(this.Buttons) - 1] = append(this.Buttons[len(this.Buttons) - 1], b)
