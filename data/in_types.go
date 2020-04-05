@@ -306,6 +306,13 @@ type TShippingQuery struct {
 	Shipping_address TShippingAddress `json:"shipping_address"`
 }
 
+type TOrderInfo struct {
+	Name             *string           `json:"name,omitempty"`
+	Phone_number     *string           `json:"phone_number,omitempty"`
+	Email            *string           `json:"email,omitempty"`
+	Shipping_address *TShippingAddress `json:"shipping_address,omitempty"`
+}
+
 func (this *TInlineKeyboard) AddButton(b TInlineKeyboardButton) {
 	if this.Buttons == nil { this.AddRow() }
 	this.Buttons[len(this.Buttons) - 1] = append(this.Buttons[len(this.Buttons) - 1], b)
