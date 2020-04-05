@@ -28,6 +28,7 @@ type TChat struct {
 	Invite_link         *string           `json:"invite_link"`
 	Pinned_message      *TMessage         `json:"pinned_message"`
 	Permissions         *TChatPermissions `json:"permissions"`
+	Slow_mode_delay     *int              `json:"slow_mode_delay"`
 	Sticker_set_name    *string           `json:"sticker_set_name"`
 	Can_set_sticker_set *bool             `json:"can_set_sticker_set"`
 }
