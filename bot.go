@@ -7,9 +7,11 @@ import (
 	"time"
 	"os"
 	"strings"
+	"syscall"
 
 	"io/ioutil"
 	"encoding/json"
+	"os/signal"
 )
 
 
@@ -24,6 +26,11 @@ type TelegramBot struct {
 	update_channel chan *data.TUpdate
 	update_confirm_channel chan bool
 	maintenance_ticker *time.Ticker
+
+	signal_channel chan os.Signal
+	update_loop_shutdown chan bool
+	signal_encountered bool
+
 	settings InitSettings
 
 	Log *log.Logger
@@ -54,6 +61,10 @@ func (this *TelegramBot) AddMaintenanceCallback(cb Maintainer) {
 
 func (this *TelegramBot) asyncUpdateLoop() () {
 	for {
+		if this.signal_encountered {
+			this.update_loop_shutdown <- true
+			return
+		}
 		updates, e := this.Remote.GetUpdates()
 		if e != nil {
 			this.ErrorLog.Printf("Error (async update loop): %s\n", e.Error())
@@ -80,6 +91,11 @@ func (this *TelegramBot) Init(filename string, s InitSettings) (error) {
 
 	this.update_channel = make(chan *data.TUpdate)
 	this.update_confirm_channel = make(chan bool)
+
+	this.signal_channel = make(chan os.Signal)
+	signal.Notify(this.signal_channel, syscall.SIGINT, syscall.SIGTERM)
+
+	this.update_loop_shutdown = make(chan bool)
 
 	bytes, e := ioutil.ReadFile(filename)
 	if e != nil { return e }
@@ -135,6 +151,12 @@ func (this *TelegramBot) MainLoop() {
 			if hbox.Handler != nil {
 				hbox.Handler.Callback(hbox.Output, hbox.Success, hbox.Error, hbox.Http_code)
 			}
+		case sig := <- this.signal_channel:
+			signal.Stop(this.signal_channel)
+			this.Log.Printf("Received signal %s, shutting down.", sig.String())
+			this.signal_encountered = true
+		case <- this.update_loop_shutdown:
+			return
 		}
 	}
 }
