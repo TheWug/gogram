@@ -264,9 +264,11 @@ type TLocation struct {
 }
 
 type TVenue struct {
-	Location    TLocation `json:"location"`
-	Title       string    `json:"title"`
-	Description string    `json:"description"`
+	Location         TLocation `json:"location"`
+	Title            string    `json:"title"`
+	Description      string    `json:"description"`
+	Foursquare_id   *string    `json:"foursquare_id"`
+	Foursquare_type *string    `json:"foursquare_type"`
 }
 
 type TDice struct {
