@@ -198,6 +198,10 @@ type TVenue struct {
 	Description string    `json:"description"`
 }
 
+type TDice struct {
+	Value int `json:"value"`
+}
+
 type TInlineQuery struct {
 	Id     string `json:"id"`
 	From   TUser  `json:"from"`
