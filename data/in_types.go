@@ -71,11 +71,12 @@ type TStickerSet struct {
 }
 
 type TMessageEntity struct {
-	Type   string `json:"type"`
-	Offset int    `json:"offset"`
-	Length int    `json:"length"`
-	Url    string `json:"url"`
-	User   TUser  `json:"user"`
+	Type      string `json:"type"`
+	Offset    int    `json:"offset"`
+	Length    int    `json:"length"`
+	Url      *string `json:"url"`
+	User     *TUser  `json:"user"`
+	Language *string `json:"language"`
 }
 
 type TMessage struct {
