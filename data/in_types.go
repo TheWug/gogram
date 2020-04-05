@@ -118,6 +118,22 @@ type TMessageEntity struct {
 	Language *string `json:"language"`
 }
 
+const Mention string = "mention"
+const TextMention string = "text_mention"
+const Hashtag string = "hashtag"
+const Cashtag string = "cashtag"
+const Command string = "bot_command"
+const URL string = "url"
+const Email string = "email"
+const Phone string = "phone_number"
+const Bold string = "bold"
+const Italic string = "italic"
+const Underline string = "underline"
+const Strike string = "strikethrough"
+const Code string = "code"
+const Pre string = "pre"
+const TextLink string = "text_link"
+
 type TMessage struct {
 	Message_id               int                `json:"message_id"`
 	From                    *TUser              `json:"from"`
