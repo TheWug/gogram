@@ -408,6 +408,13 @@ type TForceReply struct {
 	Selective  *bool `json:"selective,omitempty"`
 }
 
+type TLoginURL struct {
+	Url             string `json:"url"`
+	Forward_text   *string `json:"forward_text"`
+	Bot_username   *string `json:"bot_username"`
+	Msg_permission *bool   `json:"request_write_access"`
+}
+
 type TChatPermissions struct {
 	Can_send_messages *bool `json:"can_send_messages,omitempty"`
 	Can_send_media    *bool `json:"can_send_media_messages,omitempty"`
