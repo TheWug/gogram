@@ -255,6 +255,12 @@ type TGame struct {
 	Animation       *TAnimation     `json:"animation"`
 }
 
+type TGameHighScore struct {
+	Place int   `json:"position"`
+	User  TUser `json:"user"`
+	Score int64 `json:"score"`
+}
+
 type TContact struct {
 	Phone_number string `json:"phone_number"`
 	First_name   string `json:"first_name"`
