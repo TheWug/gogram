@@ -323,6 +323,11 @@ type TPreCheckoutQuery struct {
 	Order_info         *TOrderInfo `json:"order_info"`
 }
 
+type TPollOption struct {
+	Text  string `json:"text"`
+	Votes int64  `json:"voter_count"`
+}
+
 func (this *TInlineKeyboard) AddButton(b TInlineKeyboardButton) {
 	if this.Buttons == nil { this.AddRow() }
 	this.Buttons[len(this.Buttons) - 1] = append(this.Buttons[len(this.Buttons) - 1], b)
