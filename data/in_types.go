@@ -56,6 +56,7 @@ type TSticker struct {
 	File_id        string        `json:"file_id"`
 	Width          int           `json:"width"`
 	Height         int           `json:"height"`
+	Animated       bool          `json:"is_animated"`
 	Thumb         *TPhotoSize    `json:"thumb"`
 	Emoji         *string        `json:"emoji"`
 	Set_name      *string        `json:"set_name"`
@@ -103,10 +104,12 @@ type TVideoNote struct {
 }
 
 type TStickerSet struct {
-	Name             string   `json:"name"`
-	Title            string   `json:"title"`
-	Contains_masks   bool     `json:"contains_masks"`
-	Stickers      *[]TSticker `json:"stickers"`
+	Name             string     `json:"name"`
+	Title            string     `json:"title"`
+	Animated         bool       `json:"is_animated"`
+	Contains_masks   bool       `json:"contains_masks"`
+	Stickers      *[]TSticker   `json:"stickers"`
+	Thumb            TPhotoSize `json:"thumb"`
 }
 
 type TMessageEntity struct {
