@@ -328,6 +328,18 @@ type TPollOption struct {
 	Votes int64  `json:"voter_count"`
 }
 
+type TPoll struct {
+	Id             string      `json:"id"`
+	Question       string      `json:"question"`
+	Options      []TPollOption `json:"options"`
+	Total_votes    int64       `json:"total_voter_count"`
+	Closed         bool        `json:"is_closed"`
+	Anonymous      bool        `json:"is_anonymous"`
+	Type           string      `json:"type"`
+	Multi_answer   bool        `json:"allows_multiple_answers"`
+	Correct_answer int         `json:"correct_option_id"`
+}
+
 func (this *TInlineKeyboard) AddButton(b TInlineKeyboardButton) {
 	if this.Buttons == nil { this.AddRow() }
 	this.Buttons[len(this.Buttons) - 1] = append(this.Buttons[len(this.Buttons) - 1], b)
