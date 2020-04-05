@@ -335,6 +335,14 @@ type TOrderInfo struct {
 	Shipping_address *TShippingAddress `json:"shipping_address,omitempty"`
 }
 
+type TInvoice struct {
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Cookie      string `json:"start_parameter"`
+	Currency    string `json:"currency"`
+	Total       int64  `json:"total_amount"`
+}
+
 type TPreCheckoutQuery struct {
 	Id                  string     `json:"id"`
 	From                TUser      `json:"from"`
