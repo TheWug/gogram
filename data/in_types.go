@@ -370,8 +370,42 @@ type TInlineKeyboard struct {
 }
 
 type TInlineKeyboardButton struct {
-	Text string `json:"text"`
-	Data string `json:"callback_data"`
+	Text                string        `json:"text"`
+	Url                *string        `json:"url,omitempty"`
+	Login_url          *TLoginURL     `json:"login_url,omitempty"`
+	Data               *string        `json:"callback_data,omitempty"`
+	Switch_inline      *string        `json:"switch_inline_query,omitempty"`
+	Switch_inline_here *string        `json:"switch_inline_query_current_chat,omitempty"`
+	Callback_game      *TCallbackGame `json:"callback_game,omitempty"`
+	Pay                *bool          `json:"pay,omitempty"`
+}
+
+type TReplyKeyboard struct {
+	Buttons [][]TKeyboardButton `json:"keyboard"`
+	Resizable  *bool `json:"resize_keyboard,omitempty"`
+	One_time   *bool `json:"one_time_keyboard,omitempty"`
+	Selective  *bool `json:"selective,omitempty"`
+}
+
+type TKeyboardButton struct {
+	Text              string                  `json:"text"`
+	Request_contact  *bool                    `json:"request_contact,omitempty"`
+	Request_location *bool                    `json:"request_location,omitempty"`
+	Request_poll     *TKeyboardButtonPollType `json:"request_poll,omitempty"`
+}
+
+type TKeyboardButtonPollType struct {
+	Type string `json:"type"`
+}
+
+type TReplyKeyboardRemove struct {
+	Remove_keyboard bool `json:"remove_keyboard"`
+	Selective      *bool `json:"selective,omitempty"`
+}
+
+type TForceReply struct {
+	Force_reply bool `json:"force_reply"`
+	Selective  *bool `json:"selective,omitempty"`
 }
 
 type TChatPermissions struct {
