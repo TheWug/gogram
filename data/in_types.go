@@ -93,6 +93,15 @@ type TVideo struct {
 	File_size     *int        `json:"file_size"`
 }
 
+type TVideoNote struct {
+	File_id        string     `json:"file_id"`
+	Unique_id      string     `json:"unique_file_id"`
+	Diameter       int        `json:"length"`
+	Duration       int        `json:"duration"`
+	Mime_type     *string     `json:"mime_type"`
+	File_size     *int        `json:"file_size"`
+}
+
 type TStickerSet struct {
 	Name             string   `json:"name"`
 	Title            string   `json:"title"`
@@ -136,7 +145,7 @@ type TMessage struct {
 	Sticker                 *TSticker           `json:"sticker"`
 	Video                   *TVideo             `json:"video"`
 	Voice                   *TVoice             `json:"voice"`
-	Video_note              *TGenericFile       `json:"video_note"`
+	Video_note              *TVideoNote         `json:"video_note"`
 	Contact                 *TContact           `json:"contact"`
 	Location                *TLocation          `json:"location"`
 	Venue                   *TVenue             `json:"venue"`
