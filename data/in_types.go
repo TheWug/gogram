@@ -519,6 +519,6 @@ type TInputMessageTextContent struct {
 type TChatPhoto struct {
 	SmallId       FileID `json:"small_file_id"`
 	SmallUniqueId FileID `json:"small_file_unique_id"`
-	LargeId       FileID `json:"big_file_id"`
-	LargeUniqueId FileID `json:"big_file_unique_id"`
+	BigId         FileID `json:"big_file_id"`
+	BigUniqueId   FileID `json:"big_file_unique_id"`
 }
