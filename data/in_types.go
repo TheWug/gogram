@@ -33,8 +33,13 @@ type TChat struct {
 	CanSetStickerSet *bool             `json:"can_set_sticker_set"`
 }
 
+type TGenericFile struct {
+	Id       FileID `json:"file_id"`        // used for resending and downloading files
+	UniqueId FileID `json:"file_unique_id"` // can be used to compare files between bots, but can't be used to send or download messages
+}
+
 type TPhotoSize struct {
-	Id       FileID `json:"file_id"`
+	TGenericFile
 	Width    int    `json:"width"`
 	Height   int    `json:"height"`
 	FileSize int    `json:"file_size"`
@@ -48,7 +53,7 @@ type TMaskPosition struct {
 }
 
 type TSticker struct {
-	Id            FileID        `json:"file_id"`
+	TGenericFile
 	Width         int           `json:"width"`
 	Height        int           `json:"height"`
 	Animated      bool          `json:"is_animated"`
@@ -60,8 +65,7 @@ type TSticker struct {
 }
 
 type TAudio struct {
-	Id         FileID     `json:"file_id"`
-	UniqueId   FileID     `json:"unique_file_id"`
+	TGenericFile
 	Duration   int        `json:"duration"`
 	Performer *string     `json:"performer"`
 	Title     *string     `json:"title"`
@@ -71,7 +75,7 @@ type TAudio struct {
 }
 
 type TVoice struct {
-	Id        FileID `json:"file_id"`
+	TGenericFile
 	UniqueId  string `json:"unique_file_id"`
 	Duration  int    `json:"duration"`
 	MimeType *string `json:"mime_type"`
@@ -79,8 +83,7 @@ type TVoice struct {
 }
 
 type TVideo struct {
-	Id        FileID     `json:"file_id"`
-	UniqueId  FileID     `json:"unique_file_id"`
+	TGenericFile
 	Width     int        `json:"width"`
 	Height    int        `json:"height"`
 	Duration  int        `json:"duration"`
@@ -90,8 +93,7 @@ type TVideo struct {
 }
 
 type TVideoNote struct {
-	Id        FileID `json:"file_id"`
-	UniqueId  FileID `json:"unique_file_id"`
+	TGenericFile
 	Diameter  int    `json:"length"`
 	Duration  int    `json:"duration"`
 	MimeType *string `json:"mime_type"`
@@ -190,19 +192,14 @@ type TChatMember struct {
 	CanSendWebPreviews *bool         `json:"can_send_web_page_previews"` // can they attach webpage previews to their messages
 }
 
-type TGenericFile struct {
-	Id       FileID `json:"file_id"`
-	UniqueId FileID `json:"file_unique_id"` // can be used to compare files between bots, but can't be used to send or download messages
-}
-
 type TFile struct {
-	Id        FileID `json:"file_id"`
+	TGenericFile
 	FileSize *int    `json:"file_size"`
 	FilePath *string `json:"file_path"`
 }
 
 type TDocument struct {
-	Id        FileID     `json:"file_id"`
+	TGenericFile
 	Thumb    *TPhotoSize `json:"thumb"`
 	FileName *string     `json:"file_name"`
 	MimeType *string     `json:"mime_type"`
@@ -210,8 +207,7 @@ type TDocument struct {
 }
 
 type TAnimation struct {
-	Id        FileID     `json:"file_id"`
-	UniqueId  FileID     `json:"file_unique_id"`
+	TGenericFile
 	Width     int        `json:"width"`
 	Height    int        `json:"height"`
 	Duration  int        `json:"duration"`
@@ -521,6 +517,8 @@ type TInputMessageTextContent struct {
 }
 
 type TChatPhoto struct {
-	SmallId FileID `json:"small_file_id"`
-	LargeId FileID `json:"big_file_id"`
+	SmallId       FileID `json:"small_file_id"`
+	SmallUniqueId FileID `json:"small_file_unique_id"`
+	LargeId       FileID `json:"big_file_id"`
+	LargeUniqueId FileID `json:"big_file_unique_id"`
 }
