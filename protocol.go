@@ -279,7 +279,7 @@ func (this *Protocol) BuildRestrictChatMemberReq(o data.ORestrict) (*reqtify.Req
 }
 
 func (this *Protocol) BuildGetFileReq(o data.OGetFile) (*reqtify.Request) {
-	return this.client.New("getFile").Arg("file_id", o.FileID)
+	return this.client.New("getFile").Arg("file_id", o.Id.String())
 }
 
 func (this *Protocol) BuildDownloadFileReq(o data.OFile) (*reqtify.Request) {

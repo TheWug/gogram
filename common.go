@@ -1,7 +1,9 @@
 package gogram
 
 import (
-	"strconv"
+	"github.com/thewug/gogram/data"
+
+	"fmt"
 )
 
 // common state for the entire telegram package.
@@ -12,12 +14,14 @@ var apiFileEndpoint string = "https://api.telegram.org/file/bot"
 
 func GetStringId(chat_id interface{}) (string) {
 	switch t := chat_id.(type) {
-	case int:
-		return strconv.FormatInt(int64(t), 10)
-	case int64:
-		return strconv.FormatInt(t, 10)
+	case data.UserID:
+		return t.String()
+	case data.ChatID:
+		return t.String()
 	case string:
 		return t
+	default:
+		panic(fmt.Sprintf("Bad type for chat_id: %T (must be ChatID, UserID, or string)", chat_id))
 	}
 
 	return ""

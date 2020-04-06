@@ -16,8 +16,8 @@ type SourceData struct {
 type SendData struct {
 	TargetData
 	Text                 string           // for ordinary messages, the text. For media messages, the caption.
-	ParseMode           *MessageParseMode // the parse mode of the text/caption for this message, or nil for default behavior
-	DisableNotification *MessageNotify    // the notification behavior for this message, or nil for default behavior
+	ParseMode            MessageParseMode // the parse mode of the text/caption for this message, or blank for default behavior
+	DisableNotification  MessageNotify    // the notification behavior for this message, or blank for default behavior
 	ReplyToId           *MsgID            // the message to reply to, or nil not to reply to another message
 	ReplyMarkup          interface{}      // reply markup, or nil for no markup (InlineKeyboard, ReplyKeyboard, ReplyKeyboardRemove, ForceReply)
 }
@@ -204,7 +204,7 @@ type ORestrict struct {
 }
 
 type OGetFile struct {
-	FileID string
+	Id FileID
 }
 
 type OFile struct {

@@ -199,9 +199,9 @@ func (this *TMessage) PlainText() (string) {
 
 func (this *TMessage) Sender() (Sender) {
 	if this.From != nil {
-		return Sender{User: UserID(this.From.Id)}
+		return Sender{User: this.From.Id}
 	} else {
-		return Sender{Channel: ChatID(this.Chat.Id)}
+		return Sender{Channel: this.Chat.Id}
 	}
 }
 
