@@ -5,271 +5,243 @@ import (
 )
 
 type TUser struct {
-	Id                int    `json:"id"`
-	Bot               bool   `json:"is_bot"`
-	First_name        string `json:"first_name"`
-	Last_name        *string `json:"last_name"`
-	Username         *string `json:"username"`
-	Language_code    *string `json:"language_code"`
-	Joins_groups     *bool   `json:"can_join_groups"`
-	Privacy_disabled *bool   `json:"can_read_all_group_messages"`
-	Inline_capable   *bool   `json:"supports_inline_queries"`
+	Id                       UserID `json:"id"`
+	IsBot                    bool   `json:"is_bot"`
+	FirstName                string `json:"first_name"`
+	LastName                *string `json:"last_name"`
+	Username                *string `json:"username"`
+	LanguageCode            *string `json:"language_code"`
+	CanJoinGroups           *bool   `json:"can_join_groups"`
+	CanReadAllGroupMessages *bool   `json:"can_read_all_group_messages"`
+	SupportsInlineQueries   *bool   `json:"supports_inline_queries"`
 }
 
 type TChat struct {
-	Id                   int64            `json:"id"`
-	Type                 string           `json:"type"`
-	Title               *string           `json:"title"`
-	Username            *string           `json:"username"`
-	First_name          *string           `json:"first_name"`
-	Last_name           *string           `json:"last_name"`
-	Photo               *TChatPhoto       `json:"photo"`
-	Description         *string           `json:"description"`
-	Invite_link         *string           `json:"invite_link"`
-	Pinned_message      *TMessage         `json:"pinned_message"`
-	Permissions         *TChatPermissions `json:"permissions"`
-	Slow_mode_delay     *int              `json:"slow_mode_delay"`
-	Sticker_set_name    *string           `json:"sticker_set_name"`
-	Can_set_sticker_set *bool             `json:"can_set_sticker_set"`
+	Id                ChatID           `json:"id"`
+	Type              ChatType         `json:"type"`
+	Title            *string           `json:"title"`
+	Username         *string           `json:"username"`
+	FirstName        *string           `json:"first_name"`
+	LastName         *string           `json:"last_name"`
+	Photo            *TChatPhoto       `json:"photo"`
+	Description      *string           `json:"description"`
+	InviteLink       *string           `json:"invite_link"`
+	PinnedMessage    *TMessage         `json:"pinned_message"`
+	Permissions      *TChatPermissions `json:"permissions"`
+	SlowModeDelay    *int              `json:"slow_mode_delay"`
+	StickerSetName   *string           `json:"sticker_set_name"`
+	CanSetStickerSet *bool             `json:"can_set_sticker_set"`
 }
 
-const Private string = "private"
-const Group string = "group"
-const Supergroup string = "supergroup"
-const Channel string = "channel"
-
 type TPhotoSize struct {
-	File_id   string `json:"file_id"`
-	Width     int    `json:"width"`
-	Height    int    `json:"height"`
-	File_size int    `json:"file_size"`
+	Id       FileID `json:"file_id"`
+	Width    int    `json:"width"`
+	Height   int    `json:"height"`
+	FileSize int    `json:"file_size"`
 }
 
 type TMaskPosition struct {
-	Point	string  `json:"point"`
-	X_shift float64 `json:"x_shift"`
-	Y_shift float64 `json:"y_shift"`
-	Scale   float64 `json:"scale"`
+	Point	MaskPoint `json:"point"`
+	X_Shift float64   `json:"x_shift"`
+	Y_Shift float64   `json:"y_shift"`
+	Scale   float64   `json:"scale"`
 }
 
 type TSticker struct {
-	File_id        string        `json:"file_id"`
-	Width          int           `json:"width"`
-	Height         int           `json:"height"`
-	Animated       bool          `json:"is_animated"`
-	Thumb         *TPhotoSize    `json:"thumb"`
-	Emoji         *string        `json:"emoji"`
-	Set_name      *string        `json:"set_name"`
-	Mask_position *TMaskPosition `json:"mask_position"`
-	File_size     *int           `json:"file_size"`
+	Id            FileID        `json:"file_id"`
+	Width         int           `json:"width"`
+	Height        int           `json:"height"`
+	Animated      bool          `json:"is_animated"`
+	Thumb        *TPhotoSize    `json:"thumb"`
+	Emoji        *string        `json:"emoji"`
+	SetName      *string        `json:"set_name"`
+	MaskPosition *TMaskPosition `json:"mask_position"`
+	FileSize     *int           `json:"file_size"`
 }
 
 type TAudio struct {
-	File_id        string     `json:"file_id"`
-	Unique_id      string     `json:"unique_file_id"`
-	Duration       int        `json:"duration"`
-	Performer     *string     `json:"performer"`
-	Title         *string     `json:"title"`
-	Mime_type     *string     `json:"mime_type"`
-	File_size     *int        `json:"file_size"`
-	Thumb         *TPhotoSize `json:"thumb"`
+	Id         FileID     `json:"file_id"`
+	UniqueId   FileID     `json:"unique_file_id"`
+	Duration   int        `json:"duration"`
+	Performer *string     `json:"performer"`
+	Title     *string     `json:"title"`
+	MimeType  *string     `json:"mime_type"`
+	FileSize  *int        `json:"file_size"`
+	Thumb     *TPhotoSize `json:"thumb"`
 }
 
 type TVoice struct {
-	File_id        string     `json:"file_id"`
-	Unique_id      string     `json:"unique_file_id"`
-	Duration       int        `json:"duration"`
-	Mime_type     *string     `json:"mime_type"`
-	File_size     *int        `json:"file_size"`
+	Id        FileID `json:"file_id"`
+	UniqueId  string `json:"unique_file_id"`
+	Duration  int    `json:"duration"`
+	MimeType *string `json:"mime_type"`
+	FileSize *int    `json:"file_size"`
 }
 
 type TVideo struct {
-	File_id        string     `json:"file_id"`
-	Unique_id      string     `json:"unique_file_id"`
-	Width          int        `json:"width"`
-	Height         int        `json:"height"`
-	Duration       int        `json:"duration"`
-	Thumb         *TPhotoSize `json:"thumb"`
-	Mime_type     *string     `json:"mime_type"`
-	File_size     *int        `json:"file_size"`
+	Id        FileID     `json:"file_id"`
+	UniqueId  FileID     `json:"unique_file_id"`
+	Width     int        `json:"width"`
+	Height    int        `json:"height"`
+	Duration  int        `json:"duration"`
+	Thumb    *TPhotoSize `json:"thumb"`
+	MimeType *string     `json:"mime_type"`
+	FileSize *int        `json:"file_size"`
 }
 
 type TVideoNote struct {
-	File_id        string     `json:"file_id"`
-	Unique_id      string     `json:"unique_file_id"`
-	Diameter       int        `json:"length"`
-	Duration       int        `json:"duration"`
-	Mime_type     *string     `json:"mime_type"`
-	File_size     *int        `json:"file_size"`
+	Id        FileID `json:"file_id"`
+	UniqueId  FileID `json:"unique_file_id"`
+	Diameter  int    `json:"length"`
+	Duration  int    `json:"duration"`
+	MimeType *string `json:"mime_type"`
+	FileSize *int    `json:"file_size"`
 }
 
 type TStickerSet struct {
-	Name             string     `json:"name"`
-	Title            string     `json:"title"`
-	Animated         bool       `json:"is_animated"`
-	Contains_masks   bool       `json:"contains_masks"`
-	Stickers      *[]TSticker   `json:"stickers"`
-	Thumb            TPhotoSize `json:"thumb"`
+	Name          string     `json:"name"`
+	Title         string     `json:"title"`
+	Animated      bool       `json:"is_animated"`
+	ContainsMasks bool       `json:"contains_masks"`
+	Stickers   *[]TSticker   `json:"stickers"`
+	Thumb         TPhotoSize `json:"thumb"`
 }
 
 type TMessageEntity struct {
-	Type      string `json:"type"`
-	Offset    int    `json:"offset"`
-	Length    int    `json:"length"`
-	Url      *string `json:"url"`
-	User     *TUser  `json:"user"`
-	Language *string `json:"language"`
+	Type      EntityType `json:"type"`
+	Offset    int        `json:"offset"`
+	Length    int        `json:"length"`
+	Url      *string     `json:"url"`
+	User     *TUser      `json:"user"`
+	Language *string     `json:"language"`
 }
-
-const Mention string = "mention"
-const TextMention string = "text_mention"
-const Hashtag string = "hashtag"
-const Cashtag string = "cashtag"
-const Command string = "bot_command"
-const URL string = "url"
-const Email string = "email"
-const Phone string = "phone_number"
-const Bold string = "bold"
-const Italic string = "italic"
-const Underline string = "underline"
-const Strike string = "strikethrough"
-const Code string = "code"
-const Pre string = "pre"
-const TextLink string = "text_link"
 
 type TMessage struct {
-	Message_id               int                `json:"message_id"`
-	From                    *TUser              `json:"from"`
-	Date                     int64              `json:"date"`
-	Chat                     TChat              `json:"chat"`
-	Forward_from            *TUser              `json:"forward_from"`
-	Forward_from_chat       *TChat              `json:"forward_from_chat"`
-	Forward_from_message_id *int                `json:"forward_from_message_id"`
-	Forward_signature       *string             `json:"forward_signature"`
-	Forward_sender          *string             `json:"forward_sender_name"`
-	Forward_date            *int64              `json:"forward_date"`
-	Reply_to_message        *TMessage           `json:"reply_to_message"`
-	Edit_date               *int                `json:"edit_date"`
-	Media_group_id          *string             `json:"media_group_id"`
-	Author_signature        *string             `json:"author_signature"`
-	Text                    *string             `json:"text"`
-	Entities              *[]TMessageEntity     `json:"entities"`
-	Caption                 *string             `json:"caption"`
-	Caption_entities      *[]TMessageEntity     `json:"caption_entities"`
-	Audio                   *TAudio             `json:"audio"`
-	Document                *TDocument          `json:"document"`
-	Animation               *TAnimation         `json:"animation"`
-	Game                    *TGame              `json:"game"`
-	Photo                   *[]TPhotoSize       `json:"photo"`
-	Sticker                 *TSticker           `json:"sticker"`
-	Video                   *TVideo             `json:"video"`
-	Voice                   *TVoice             `json:"voice"`
-	Video_note              *TVideoNote         `json:"video_note"`
-	Contact                 *TContact           `json:"contact"`
-	Location                *TLocation          `json:"location"`
-	Venue                   *TVenue             `json:"venue"`
-	Poll                    *TPoll              `json:"poll"`
-	Dice                    *TDice              `json:"dice"`
-	New_chat_members      *[]TUser              `json:"new_chat_member"`
-	Left_chat_member        *TUser              `json:"left_chat_member"`
-	New_chat_title          *string             `json:"new_chat_title"`
-	New_chat_photo        *[]TPhotoSize         `json:"new_chat_photo"`
-	Delete_chat_photo       *bool               `json:"delete_chat_photo"`
-	Group_chat_created      *bool               `json:"group_chat_created"`
-	Supergroup_chat_created *bool               `json:"supergroup_chat_created"`
-	Channel_chat_created    *bool               `json:"channel_chat_created"`
-	Migrate_to_chat_id      *int64              `json:"migrate_to_chat_id"`
-	Migrate_from_chat_id    *int64              `json:"migrate_from_chat_id"`
-	Pinned_message          *TMessage           `json:"pinned_message"`
-	Invoice                 *TInvoice           `json:"invoice"`
-	Successful_payment      *TSuccessfulPayment `json:"successful_payment"`
-	Connected_website       *string             `json:"connected_website"`
-	Passport_data           *TPassportData      `json:"passport_data"`
-	Reply_markup            *TInlineKeyboard    `json:"reply_markup"`
+	Id                     MsgID              `json:"message_id"`
+	From                  *TUser              `json:"from"`
+	Date                   int64              `json:"date"`
+	Chat                   TChat              `json:"chat"`
+	ForwardFrom           *TUser              `json:"forward_from"`
+	ForwardFromChat       *TChat              `json:"forward_from_chat"`
+	ForwardFromMessageId  *int                `json:"forward_from_message_id"`
+	ForwardSignature      *string             `json:"forward_signature"`
+	ForwardSender         *string             `json:"forward_sender_name"`
+	ForwardDate           *int64              `json:"forward_date"`
+	ReplyToMessage        *TMessage           `json:"reply_to_message"`
+	EditDate              *int                `json:"edit_date"`
+	MediaGroupId          *string             `json:"media_group_id"`
+	AuthorSignature       *string             `json:"author_signature"`
+	Text                  *string             `json:"text"`
+	Entities            *[]TMessageEntity     `json:"entities"`
+	Caption               *string             `json:"caption"`
+	CaptionEntities     *[]TMessageEntity     `json:"caption_entities"`
+	Audio                 *TAudio             `json:"audio"`
+	Document              *TDocument          `json:"document"`
+	Animation             *TAnimation         `json:"animation"`
+	Game                  *TGame              `json:"game"`
+	Photo                 *[]TPhotoSize       `json:"photo"`
+	Sticker               *TSticker           `json:"sticker"`
+	Video                 *TVideo             `json:"video"`
+	Voice                 *TVoice             `json:"voice"`
+	Video_note            *TVideoNote         `json:"video_note"`
+	Contact               *TContact           `json:"contact"`
+	Location              *TLocation          `json:"location"`
+	Venue                 *TVenue             `json:"venue"`
+	Poll                  *TPoll              `json:"poll"`
+	Dice                  *TDice              `json:"dice"`
+	NewChatMembers      *[]TUser              `json:"new_chat_member"`
+	LeftChatMember        *TUser              `json:"left_chat_member"`
+	NewChatTitle          *string             `json:"new_chat_title"`
+	NewChatPhoto        *[]TPhotoSize         `json:"new_chat_photo"`
+	DeleteChatPhoto       *bool               `json:"delete_chat_photo"`
+	GroupChatCreated      *bool               `json:"group_chat_created"`
+	SupergroupChatCreated *bool               `json:"supergroup_chat_created"`
+	ChannelChatCreated    *bool               `json:"channel_chat_created"`
+	MigrateToChatId       *int64              `json:"migrate_to_chat_id"`
+	MigrateFromChatId     *int64              `json:"migrate_from_chat_id"`
+	PinnedMessage         *TMessage           `json:"pinned_message"`
+	Invoice               *TInvoice           `json:"invoice"`
+	SuccessfulPayment     *TSuccessfulPayment `json:"successful_payment"`
+	ConnectedWebsite      *string             `json:"connected_website"`
+	PassportData          *TPassportData      `json:"passport_data"`
+	ReplyMarkup           *TInlineKeyboard    `json:"reply_markup"`
 }
 
-const Creator string = "creator"
-const Admin string = "administrator"
-const Member string = "member"
-const Restricted string = "restricted"
-const Left string = "left"
-const Kicked string = "kicked"
-const Banned string = Kicked
-
 type TChatMember struct {
-	User                   TUser  `json:"user"`
-	Status                 string `json:"status"`
+	User                TUser        `json:"user"`
+	Status              MemberStatus `json:"status"`
 	// present only for restricted or kicked users
-	Until_date            *int64  `json:"until_date"`
+	UntilDate          *int64        `json:"until_date"`
 	// present only for administrators
-	Can_be_edited         *bool   `json:"can_be_edited"`
-	Can_change_info       *bool   `json:"can_change_info"`
-	Can_post_messages     *bool   `json:"can_post_messages"`
-	Can_edit_messages     *bool   `json:"can_edit_messages"`
-	Can_delete_messages   *bool   `json:"can_delete_messages"`
-	Can_invite_users      *bool   `json:"can_invite_users"`
-	Can_restrict_members  *bool   `json:"can_restrict_members"`
-	Can_pin_messages      *bool   `json:"can_pin_messages"`
-	Can_promote_members   *bool   `json:"can_promote_members"`
+	CanBeEdited        *bool         `json:"can_be_edited"`
+	CanChangeInfo      *bool         `json:"can_change_info"`
+	CanPostMessages    *bool         `json:"can_post_messages"`
+	CanEditMessages    *bool         `json:"can_edit_messages"`
+	CanDeleteMessages  *bool         `json:"can_delete_messages"`
+	CanInviteUsers     *bool         `json:"can_invite_users"`
+	CanRestrictMembers *bool         `json:"can_restrict_members"`
+	CanPinMessages     *bool         `json:"can_pin_messages"`
+	CanPromoteMembers  *bool         `json:"can_promote_members"`
 	// present only for restricted users
-	Is_member             *bool   `json:"is_member"`
-	Can_send_anything     *bool   `json:"can_send_messages"`
-	Can_send_media        *bool   `json:"can_send_media_messages"`
-	Can_send_inline       *bool   `json:"can_send_other_messages"`
-	Can_send_web_previews *bool   `json:"can_send_web_page_previews"`
+	IsMember           *bool         `json:"is_member"`
+	CanSendMessages    *bool         `json:"can_send_messages"`          // can they send anything at all
+	CanSendMedia       *bool         `json:"can_send_media_messages"`    // can they send uploadable media
+	CanSendInline      *bool         `json:"can_send_other_messages"`    // can they send stickers, gifs, or use inline bots
+	CanSendWebPreviews *bool         `json:"can_send_web_page_previews"` // can they attach webpage previews to their messages
 }
 
 type TGenericFile struct {
-	File_id string `json:"file_id"`
+	Id       FileID `json:"file_id"`
+	UniqueId FileID `json:"file_unique_id"` // can be used to compare files between bots, but can't be used to send or download messages
 }
 
 type TFile struct {
-	File_id    string `json:"file_id"`
-	File_size *int    `json:"file_size"`
-	File_path *string `json:"file_path"`
+	Id        FileID `json:"file_id"`
+	FileSize *int    `json:"file_size"`
+	FilePath *string `json:"file_path"`
 }
 
 type TDocument struct {
-	File_id    string     `json:"file_id"`
-	Thumb     *TPhotoSize `json:"thumb"`
-	File_name *string     `json:"file_name"`
-	Mime_type *string     `json:"mime_type"`
-	File_size *int        `json:"file_size"`
+	Id        FileID     `json:"file_id"`
+	Thumb    *TPhotoSize `json:"thumb"`
+	FileName *string     `json:"file_name"`
+	MimeType *string     `json:"mime_type"`
+	FileSize *int        `json:"file_size"`
 }
 
 type TAnimation struct {
-	File_id    string     `json:"file_id"`
-	Unique_id  string     `json:"file_unique_id"`
-	Width      int        `json:"width"`
-	Height     int        `json:"height"`
-	Duration   int        `json:"duration"`
-	Thumb     *TPhotoSize `json:"thumb"`
-	File_name *string     `json:"file_name"`
-	Mime_type *string     `json:"mime_type"`
-	File_size *int        `json:"file_size"`
+	Id        FileID     `json:"file_id"`
+	UniqueId  FileID     `json:"file_unique_id"`
+	Width     int        `json:"width"`
+	Height    int        `json:"height"`
+	Duration  int        `json:"duration"`
+	Thumb    *TPhotoSize `json:"thumb"`
+	FileName *string     `json:"file_name"`
+	MimeType *string     `json:"mime_type"`
+	FileSize *int        `json:"file_size"`
 }
 
 type TGame struct {
-	Title            string         `json:"title"`
-	Description      string         `json:"description"`
-	Photo          []TPhotoSize     `json:"photo"`
-	Text            *string         `json:"text"`
-	Text_entities *[]TMessageEntity `json:"text_entities"`
-	Animation       *TAnimation     `json:"animation"`
+	Title           string         `json:"title"`
+	Description     string         `json:"description"`
+	Photo         []TPhotoSize     `json:"photo"`
+	Text           *string         `json:"text"`
+	TextEntities *[]TMessageEntity `json:"text_entities"`
+	Animation      *TAnimation     `json:"animation"`
 }
 
 type TGameHighScore struct {
-	Place int   `json:"position"`
-	User  TUser `json:"user"`
-	Score int64 `json:"score"`
+	Position int   `json:"position"`
+	User     TUser `json:"user"`
+	Score    int64 `json:"score"`
 }
 
 type TContact struct {
-	Phone_number string `json:"phone_number"`
-	First_name   string `json:"first_name"`
-	Last_name   *string `json:"last_name,omitempty"`
-	User_id     *int    `json:"user_id,omitempty"`
-	Vcard       *string `json:"vcard,omitempty"`
+	PhoneNumber string `json:"phone_number"`
+	FirstName   string `json:"first_name"`
+	LastName   *string `json:"last_name,omitempty"`
+	UserID     *int    `json:"user_id,omitempty"`
+	Vcard      *string `json:"vcard,omitempty"`
 }
 
 type TLocation struct {
@@ -278,11 +250,11 @@ type TLocation struct {
 }
 
 type TVenue struct {
-	Location         TLocation `json:"location"`
-	Title            string    `json:"title"`
-	Description      string    `json:"description"`
-	Foursquare_id   *string    `json:"foursquare_id"`
-	Foursquare_type *string    `json:"foursquare_type"`
+	Location        TLocation `json:"location"`
+	Title           string    `json:"title"`
+	Description     string    `json:"description"`
+	FoursquareId   *string    `json:"foursquare_id"`
+	FoursquareType *string    `json:"foursquare_type"`
 }
 
 type TDice struct {
@@ -290,93 +262,94 @@ type TDice struct {
 }
 
 type TInlineQuery struct {
-	Id     string `json:"id"`
-	From   TUser  `json:"from"`
-	Query  string `json:"query"`
-	Offset string `json:"offset"`
+	Id     InlineID `json:"id"`
+	From   TUser    `json:"from"`
+	Query  string   `json:"query"`
+	Offset string   `json:"offset"`
 }
 
 type TChosenInlineResult struct {
-	Result_id          string    `json:"result_id"`
-	From               TUser     `json:"from"`
-	Location          *TLocation `json:"location,omitempty"`
-	Inline_message_id *string    `json:"inline_message_id,omitempty"`
-	Query              string    `json:"query"`
+	ResultId         string    `json:"result_id"`
+	From             TUser     `json:"from"`
+	Location        *TLocation `json:"location,omitempty"`
+	InlineMessageId *InlineID  `json:"inline_message_id,omitempty"`
+	Query            string    `json:"query"`
 }
 
 type TCallbackQuery struct {
-	Id                 string   `json:"id"`
-	From               TUser    `json:"from"`
-	Message           *TMessage `json:"message"`
-	Inline_message_id *string   `json:"inline_message_id"`
-	Chat_instance      string   `json:"chat_instance"`
-	Data              *string   `json:"data"`
-	Game_short_name   *string   `json:"game_short_name"`
+	Id               CallbackID `json:"id"`
+	From             TUser      `json:"from"`
+	Message         *TMessage   `json:"message"`
+	InlineMessageId *string     `json:"inline_message_id"`
+	ChatInstance     string     `json:"chat_instance"`
+	Data            *string     `json:"data"`
+	GameShortName   *string     `json:"game_short_name"`
 }
 
 type TUpdate struct {
-	Update_id             int                 `json:"update_id"`
-	Message              *TMessage            `json:"message,omitempty"`
-	Edited_message       *TMessage            `json:"edited_message,omitempty"`
-	Channel_post         *TMessage            `json:"channel_post,omitempty"`
-	Edited_channel_post  *TMessage            `json:"edited_channel_post,omitempty"`
-	Inline_query         *TInlineQuery        `json:"inline_query,omitempty"`
-	Chosen_inline_result *TChosenInlineResult `json:"chosen_inline_result,omitempty"`
-	Callback_query       *TCallbackQuery      `json:"callback_query,omitempty"`
+	Id                  UpdateID            `json:"update_id"`
+	Message            *TMessage            `json:"message,omitempty"`
+	EditedMessage      *TMessage            `json:"edited_message,omitempty"`
+	ChannelPost        *TMessage            `json:"channel_post,omitempty"`
+	EditedChannelPost  *TMessage            `json:"edited_channel_post,omitempty"`
+	InlineQuery        *TInlineQuery        `json:"inline_query,omitempty"`
+	ChosenInlineResult *TChosenInlineResult `json:"chosen_inline_result,omitempty"`
+	CallbackQuery      *TCallbackQuery      `json:"callback_query,omitempty"`
 }
 
 type TGenericResponse struct {
-	Ok          bool             `json:"ok"`
-	Error_code  *int             `json:"error_code,omitempty"`
+	Ok           bool            `json:"ok"`
+	ErrorCode   *int             `json:"error_code,omitempty"`
 	Description *string          `json:"description,omitempty"`
 	Result      *json.RawMessage `json:"result,omitempty"`
 }
 
 type TInlineQueryResultCachedSticker struct {
-	Type                   string `json:"type"`
-	Id                     string `json:"id"`
-	Sticker_file_id        string `json:"sticker_file_id"`
-	Reply_markup          *string `json:"reply_markup,omitempty"`
-	Input_message_content *string `json:"input_message_content,omitempty"`
+	Type                 string `json:"type"`
+	Id                   string `json:"id"`
+	StickerId            FileID `json:"sticker_file_id"`
+	ReplyMarkup         *string `json:"reply_markup,omitempty"`
+	InputMessageContent *string `json:"input_message_content,omitempty"`
 }
 
 type TInlineQueryResultPhoto struct {
-	Type                   string                   `json:"type"`
-	Id                     string                   `json:"id"`
-	Photo_url              string                   `json:"photo_url"`
-	Thumb_url              string                   `json:"thumb_url"`
-	Photo_width           *int                      `json:"photo_width,omitempty"`
-	Photo_height          *int                      `json:"photo_height,omitempty"`
-	Title                 *string                   `json:"title,omitempty"`
-	Description           *string                   `json:"description,omitempty"`
-	Caption               *string                   `json:"caption,omitempty"`
-	Reply_markup          *string                   `json:"reply_markup,omitempty"`
-	Input_message_content *TInputMessageTextContent `json:"input_message_content,omitempty"`
+	Type                 string                   `json:"type"`
+	Id                   string                   `json:"id"`
+	PhotoUrl             string                   `json:"photo_url"`
+	ThumbUrl             string                   `json:"thumb_url"`
+	PhotoWidth          *int                      `json:"photo_width,omitempty"`
+	PhotoHeight         *int                      `json:"photo_height,omitempty"`
+	Title               *string                   `json:"title,omitempty"`
+	Description         *string                   `json:"description,omitempty"`
+	Caption             *string                   `json:"caption,omitempty"`
+	ReplyMarkup         *string                   `json:"reply_markup,omitempty"`
+	InputMessageContent *TInputMessageTextContent `json:"input_message_content,omitempty"`
 }
 
 type TInlineQueryResultCachedPhoto struct {
-	Type                   string                   `json:"type"`
-	Id                     string                   `json:"id"`
-	Photo_file_id          string                   `json:"photo_file_id"`
-	Title                 *string                   `json:"title,omitempty"`
-	Description           *string                   `json:"description,omitempty"`
-	Caption               *string                   `json:"caption,omitempty"`
-	Parse_mode            *string                   `json:"parse_mode,omitempty"`
-	Reply_markup          *string                   `json:"reply_markup,omitempty"`
-	Input_message_content *TInputMessageTextContent `json:"input_message_content,omitempty"`
+	Type                 string                   `json:"type"`
+	Id                   string                   `json:"id"`
+	PhotoId              FileID                   `json:"photo_file_id"`
+	Title               *string                   `json:"title,omitempty"`
+	Description         *string                   `json:"description,omitempty"`
+	Caption             *string                   `json:"caption,omitempty"`
+	ParseMode           *string                   `json:"parse_mode,omitempty"`
+	ReplyMarkup         *string                   `json:"reply_markup,omitempty"`
+	InputMessageContent *TInputMessageTextContent `json:"input_message_content,omitempty"`
 }
 
 type TInlineQueryResultGif struct {
-	Type                   string                   `json:"type"`
-	Id                     string                   `json:"id"`
-	Gif_url                string                   `json:"gif_url"`
-	Gif_width             *int                      `json:"gif_width,omitempty"`
-	Gif_height            *int                      `json:"gif_height,omitempty"`
-	Thumb_url              string                   `json:"thumb_url"`
-	Title                 *string                   `json:"title,omitempty"`
-	Caption               *string                   `json:"caption,omitempty"`
-	Reply_markup          *string                   `json:"reply_markup,omitempty"`
-	Input_message_content *TInputMessageTextContent `json:"input_message_content,omitempty"`
+	Type                 string                   `json:"type"`
+	Id                   string                   `json:"id"`
+	GifUrl               string                   `json:"gif_url"`
+	GifWidth            *int                      `json:"gif_width,omitempty"`
+	GifHeight           *int                      `json:"gif_height,omitempty"`
+	ThumbUrl            string                   `json:"thumb_url"`
+	Title               *string                   `json:"title,omitempty"`
+	Caption             *string                   `json:"caption,omitempty"`
+	ParseMode           *string                   `json:"parse_mode,omitempty"`
+	ReplyMarkup         *string                   `json:"reply_markup,omitempty"`
+	InputMessageContent *TInputMessageTextContent `json:"input_message_content,omitempty"`
 }
 
 type TInlineKeyboard struct {
@@ -384,49 +357,49 @@ type TInlineKeyboard struct {
 }
 
 type TInlineKeyboardButton struct {
-	Text                string        `json:"text"`
-	Url                *string        `json:"url,omitempty"`
-	Login_url          *TLoginURL     `json:"login_url,omitempty"`
-	Data               *string        `json:"callback_data,omitempty"`
-	Switch_inline      *string        `json:"switch_inline_query,omitempty"`
-	Switch_inline_here *string        `json:"switch_inline_query_current_chat,omitempty"`
-	Callback_game      *TCallbackGame `json:"callback_game,omitempty"`
-	Pay                *bool          `json:"pay,omitempty"`
+	Text              string        `json:"text"`
+	Url              *string        `json:"url,omitempty"`
+	LoginUrl         *TLoginURL     `json:"login_url,omitempty"`
+	Data             *string        `json:"callback_data,omitempty"`
+	SwitchInline     *string        `json:"switch_inline_query,omitempty"`
+	SwitchInlineHere *string        `json:"switch_inline_query_current_chat,omitempty"`
+	CallbackGame     *TCallbackGame `json:"callback_game,omitempty"`
+	Pay              *bool          `json:"pay,omitempty"`
 }
 
 type TReplyKeyboard struct {
 	Buttons [][]TKeyboardButton `json:"keyboard"`
-	Resizable  *bool `json:"resize_keyboard,omitempty"`
-	One_time   *bool `json:"one_time_keyboard,omitempty"`
-	Selective  *bool `json:"selective,omitempty"`
+	Resizable  *bool            `json:"resize_keyboard,omitempty"`
+	OneTime    *bool            `json:"one_time_keyboard,omitempty"`
+	Selective  *bool            `json:"selective,omitempty"`
 }
 
 type TKeyboardButton struct {
-	Text              string                  `json:"text"`
-	Request_contact  *bool                    `json:"request_contact,omitempty"`
-	Request_location *bool                    `json:"request_location,omitempty"`
-	Request_poll     *TKeyboardButtonPollType `json:"request_poll,omitempty"`
+	Text             string                  `json:"text"`
+	RequestContact  *bool                    `json:"request_contact,omitempty"`
+	RequestLocation *bool                    `json:"request_location,omitempty"`
+	RequestPoll     *TKeyboardButtonPollType `json:"request_poll,omitempty"`
 }
 
 type TKeyboardButtonPollType struct {
-	Type string `json:"type"`
+	Type PollType `json:"type"`
 }
 
 type TReplyKeyboardRemove struct {
-	Remove_keyboard bool `json:"remove_keyboard"`
-	Selective      *bool `json:"selective,omitempty"`
+	RemoveKeyboard bool `json:"remove_keyboard"`
+	Selective     *bool `json:"selective,omitempty"`
 }
 
 type TForceReply struct {
-	Force_reply bool `json:"force_reply"`
-	Selective  *bool `json:"selective,omitempty"`
+	ForceReply bool `json:"force_reply"`
+	Selective *bool `json:"selective,omitempty"`
 }
 
 type TLoginURL struct {
-	Url             string `json:"url"`
-	Forward_text   *string `json:"forward_text"`
-	Bot_username   *string `json:"bot_username"`
-	Msg_permission *bool   `json:"request_write_access"`
+	Url            string `json:"url"`
+	ForwardText   *string `json:"forward_text"`
+	BotUsername   *string `json:"bot_username"`
+	MsgPermission *bool   `json:"request_write_access"`
 }
 
 type TCallbackGame struct {
@@ -434,37 +407,37 @@ type TCallbackGame struct {
 }
 
 type TChatPermissions struct {
-	Can_send_messages *bool `json:"can_send_messages,omitempty"`
-	Can_send_media    *bool `json:"can_send_media_messages,omitempty"`
-	Can_send_polls    *bool `json:"can_send_polls,omitempty"`
-	Can_send_other    *bool `json:"can_send_other_messages,omitempty"`
-	Can_preview_links *bool `json:"can_add_web_page_previews,omitempty"`
-	Can_change_info   *bool `json:"can_change_info,omitempty"`
-	Can_invite_users  *bool `json:"can_invite_users,omitempty"`
-	Can_pin_messages  *bool `json:"can_pin_messages,omitempty"`
+	CanSendMessages *bool `json:"can_send_messages,omitempty"`
+	CanSendMedia    *bool `json:"can_send_media_messages,omitempty"`
+	CanSendPolls    *bool `json:"can_send_polls,omitempty"`
+	CanSendOther    *bool `json:"can_send_other_messages,omitempty"`
+	CanPreviewLinks *bool `json:"can_add_web_page_previews,omitempty"`
+	CanChangeInfo   *bool `json:"can_change_info,omitempty"`
+	CanInviteUsers  *bool `json:"can_invite_users,omitempty"`
+	CanPinMessages  *bool `json:"can_pin_messages,omitempty"`
 }
 
 type TShippingAddress struct {
-	Country_code string `json:"country_code"`
-	State        string `json:"state"`
-	City         string `json:"city"`
-	Street_line1 string `json:"street_line1"`
-	Street_line2 string `json:"street_line2"`
-	Zip_code     string `json:"post_code"`
+	CountryCode string `json:"country_code"`
+	State       string `json:"state"`
+	City        string `json:"city"`
+	StreetLine1 string `json:"street_line1"`
+	StreetLine2 string `json:"street_line2"`
+	ZipCode     string `json:"post_code"`
 }
 
 type TShippingQuery struct {
-	Id               string           `json:"id"`
-	From             TUser            `json:"from"`
-	Invoice_payload  string           `json:"invoice_payload"`
-	Shipping_address TShippingAddress `json:"shipping_address"`
+	Id              ShippingID       `json:"id"`
+	From            TUser            `json:"from"`
+	InvoicePayload  string           `json:"invoice_payload"`
+	ShippingAddress TShippingAddress `json:"shipping_address"`
 }
 
 type TOrderInfo struct {
-	Name             *string           `json:"name,omitempty"`
-	Phone_number     *string           `json:"phone_number,omitempty"`
-	Email            *string           `json:"email,omitempty"`
-	Shipping_address *TShippingAddress `json:"shipping_address,omitempty"`
+	Name            *string           `json:"name,omitempty"`
+	PhoneNumber     *string           `json:"phone_number,omitempty"`
+	Email           *string           `json:"email,omitempty"`
+	ShippingAddress *TShippingAddress `json:"shipping_address,omitempty"`
 }
 
 type TInvoice struct {
@@ -476,47 +449,44 @@ type TInvoice struct {
 }
 
 type TPreCheckoutQuery struct {
-	Id                  string     `json:"id"`
-	From                TUser      `json:"from"`
-	Currency            string     `json:"currency"`
-	Total_amount        int64      `json:"total_amount"`
-	Invoice_payload     string     `json:"invoice_payload"`
-	Shipping_option_id *string     `json:"shipping_option_id"`
-	Order_info         *TOrderInfo `json:"order_info"`
+	Id                CheckoutID `json:"id"`
+	From              TUser      `json:"from"`
+	Currency          string     `json:"currency"`
+	TotalAmount       int64      `json:"total_amount"`
+	InvoicePayload    string     `json:"invoice_payload"`
+	ShippingOptionId *string     `json:"shipping_option_id"`
+	OrderInfo        *TOrderInfo `json:"order_info"`
 }
 
 type TSuccessfulPayment struct {
-	Currency string `json:"currency"`
-	Total int64 `json:"total_amount"`
-	Invoice_payload string `json:"invoice_payload"`
-	Shipping_option_id *string `json:"shipping_option_id"`
-	Order_info *TOrderInfo `json:"order_info"`
-	Tx_id_telegram string `json:"telegram_payment_charge_id"`
-	Tx_id_provider string `json:"provider_payment_charge_id"`
+	Currency          string       `json:"currency"`
+	Total             int64        `json:"total_amount"`
+	InvoicePayload    string       `json:"invoice_payload"`
+	ShippingOptionId *string       `json:"shipping_option_id"`
+	OrderInfo        *TOrderInfo   `json:"order_info"`
+	TxIdTelegram      TxIDTelegram `json:"telegram_payment_charge_id"`
+	TxIdProvider      TxIDVendor   `json:"provider_payment_charge_id"`
 }
 
 type TPollOption struct {
 	Text  string `json:"text"`
-	Votes int64  `json:"voter_count"`
+	VoterCount int64  `json:"voter_count"`
 }
 
 type TPoll struct {
-	Id             string      `json:"id"`
-	Question       string      `json:"question"`
-	Options      []TPollOption `json:"options"`
-	Total_votes    int64       `json:"total_voter_count"`
-	Closed         bool        `json:"is_closed"`
-	Anonymous      bool        `json:"is_anonymous"`
-	Type           string      `json:"type"`
-	Multi_answer   bool        `json:"allows_multiple_answers"`
-	Correct_answer int         `json:"correct_option_id"`
+	Id                    PollID      `json:"id"`
+	Question              string      `json:"question"`
+	Options             []TPollOption `json:"options"`
+	TotalVoterCount       int64       `json:"total_voter_count"`
+	IsClosed              bool        `json:"is_closed"`
+	IsAnonymous           bool        `json:"is_anonymous"`
+	Type                  string      `json:"type"`
+	AllowsMultipleAnswers bool        `json:"allows_multiple_answers"`
+	CorrectOptionId      *int         `json:"correct_option_id"`
 }
 
-const NormalPoll string = "regular"
-const QuizPoll string = "quiz"
-
 type TPollAnswer struct {
-	Poll_id    string `json:"poll_id"`
+	Id         PollID `json:"poll_id"`
 	User       TUser  `json:"user"`
 	Selected []int    `json:"option_ids"`
 }
@@ -526,13 +496,13 @@ type TPassportData struct {
 }
 
 type TWebhookInfo struct {
-	URL                 string `json:"url"`
-	Custom_certificate  string `json:"has_custom_certificate"`
-	Pending_updates     int    `json:"pending_update_count"`
-	Last_error_date    *int    `json:"last_error_date,omitempty"`
-	Last_error_message *string `json:"last_error_message,omitempty"`
-	Max_connections    *int    `json:"max_connections"`
-	Allowed_updates   []string `json:"allowed_updates"`
+	URL                  string `json:"url"`
+	HasCustomCertificate string `json:"has_custom_certificate"`
+	PendingUpdateCount   int    `json:"pending_update_count"`
+	LastErrorDate       *int    `json:"last_error_date,omitempty"`
+	LastErrorMessage    *string `json:"last_error_message,omitempty"`
+	MaxConnections      *int    `json:"max_connections"`
+	AllowedUpdates     []string `json:"allowed_updates"`
 }
 
 func (this *TInlineKeyboard) AddButton(b TInlineKeyboardButton) {
@@ -545,12 +515,12 @@ func (this *TInlineKeyboard) AddRow() {
 }
 
 type TInputMessageTextContent struct {
-	Message_text string `json:"message_text"`
-	Parse_mode  *string `json:"parse_mode,omitempty"`
-	No_preview  *bool   `json:"disable_web_page_preview,omitempty"`
+	MessageText string `json:"message_text"`
+	ParseMode  *string `json:"parse_mode,omitempty"`
+	NoPreview  *bool   `json:"disable_web_page_preview,omitempty"`
 }
 
 type TChatPhoto struct {
-	Small_id string `json:"small_file_id"`
-	Large_id string `json:"big_file_id"`
+	SmallId FileID `json:"small_file_id"`
+	LargeId FileID `json:"big_file_id"`
 }

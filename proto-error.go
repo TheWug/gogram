@@ -24,7 +24,7 @@ func NewError(code int, description string) (*ProtocolError) {
 
 func HandleSoftError(resp *data.TGenericResponse) (error) {
 	if resp.Ok != true {
-		return NewError(*resp.Error_code, *resp.Description)
+		return NewError(*resp.ErrorCode, *resp.Description)
 	}
 	return nil
 }

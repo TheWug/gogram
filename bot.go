@@ -120,23 +120,23 @@ func (this *TelegramBot) MainLoop() {
 			if u.Message != nil && this.message_callback != nil {
 				this.message_callback.ProcessMessage(NewMessageCtx(u.Message, false, this))
 			}
-			if u.Edited_message != nil && this.message_callback != nil {
-				this.message_callback.ProcessMessage(NewMessageCtx(u.Edited_message, true, this))
+			if u.EditedMessage != nil && this.message_callback != nil {
+				this.message_callback.ProcessMessage(NewMessageCtx(u.EditedMessage, true, this))
 			}
-			if u.Channel_post != nil && this.message_callback != nil {
-				this.message_callback.ProcessMessage(NewMessageCtx(u.Channel_post, false, this))
+			if u.ChannelPost != nil && this.message_callback != nil {
+				this.message_callback.ProcessMessage(NewMessageCtx(u.ChannelPost, false, this))
 			}
-			if u.Edited_channel_post != nil && this.message_callback != nil {
-				this.message_callback.ProcessMessage(NewMessageCtx(u.Edited_channel_post, true, this))
+			if u.EditedChannelPost != nil && this.message_callback != nil {
+				this.message_callback.ProcessMessage(NewMessageCtx(u.EditedChannelPost, true, this))
 			}
-			if u.Inline_query != nil && this.inline_callback != nil {
-				this.inline_callback.ProcessInlineQuery(&InlineCtx{Bot: this, Query: u.Inline_query})
+			if u.InlineQuery != nil && this.inline_callback != nil {
+				this.inline_callback.ProcessInlineQuery(&InlineCtx{Bot: this, Query: u.InlineQuery})
 			}
-			if u.Chosen_inline_result != nil && this.inline_callback != nil {
-				this.inline_callback.ProcessInlineQueryResult(&InlineResultCtx{Bot: this, Result: u.Chosen_inline_result})
+			if u.ChosenInlineResult != nil && this.inline_callback != nil {
+				this.inline_callback.ProcessInlineQueryResult(&InlineResultCtx{Bot: this, Result: u.ChosenInlineResult})
 			}
-			if u.Callback_query != nil && this.callback_callback != nil {
-				this.callback_callback.ProcessCallback(&CallbackCtx{Bot: this, Cb: u.Callback_query})
+			if u.CallbackQuery != nil && this.callback_callback != nil {
+				this.callback_callback.ProcessCallback(&CallbackCtx{Bot: this, Cb: u.CallbackQuery})
 			}
 			this.update_confirm_channel <- true
 		case <- this.maintenance_ticker.C:

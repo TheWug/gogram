@@ -123,7 +123,7 @@ func (this *MessageCtx) GetState() (State) {
 
 // Send a message to the same chat that a message came from but without directly replying to it.
 func (this *MessageCtx) Respond(m data.OMessage) (*MessageCtx, error) {
-	m.ChatID = this.Msg.Chat.Id
+	m.ChatId = this.Msg.Chat.Id
 	msg, err := this.Bot.Remote.SendMessage(m)
 	return &MessageCtx {
 		Msg: msg,
@@ -134,8 +134,8 @@ func (this *MessageCtx) Respond(m data.OMessage) (*MessageCtx, error) {
 
 // Reply to the specified message.
 func (this *MessageCtx) Reply(m data.OMessage) (*MessageCtx, error) {
-	m.ChatID = this.Msg.Chat.Id
-	m.ReplyTo = &this.Msg.Message_id
+	m.ChatId = this.Msg.Chat.Id
+	m.ReplyToId = &this.Msg.Id
 	msg, err := this.Bot.Remote.SendMessage(m)
 	return &MessageCtx {
 		Msg: msg,
@@ -148,9 +148,9 @@ func (this *MessageCtx) Reply(m data.OMessage) (*MessageCtx, error) {
 func (this *MessageCtx) ReplyOrPM(m data.OMessage) (*MessageCtx, error) {
 	if this.Msg.Chat.Type == data.Channel { return nil, errors.New("Can't privately reply to a channel message!") }
 
-	m.ChatID = this.Msg.From.Id
+	m.ChatId = this.Msg.From.Id
 	if this.Msg.Chat.Type == data.Private {
-		m.ReplyTo = &this.Msg.Message_id
+		m.ReplyToId = &this.Msg.Id
 	}
 	msg, err := this.Bot.Remote.SendMessage(m)
 	return &MessageCtx {
@@ -164,7 +164,7 @@ func (this *MessageCtx) ReplyOrPM(m data.OMessage) (*MessageCtx, error) {
 func (this *MessageCtx) PM(m data.OMessage) (*MessageCtx, error) {
 	if this.Msg.Chat.Type == data.Channel { return nil, errors.New("Can't privately reply to a channel message!") }
 
-	m.ChatID = this.Msg.From.Id
+	m.ChatId = this.Msg.From.Id
 	msg, err := this.Bot.Remote.SendMessage(m)
 	return &MessageCtx {
 		Msg: msg,
@@ -174,10 +174,10 @@ func (this *MessageCtx) PM(m data.OMessage) (*MessageCtx, error) {
 }
 
 // forward this message to another chat
-func (this *MessageCtx) Forward(m data.OMessage) (*MessageCtx, error) {
-	m.ChatID = this.Msg.Chat.Id
-	m.MessageID = this.Msg.Message_id
-	msg, err := this.Bot.Remote.ForwardMessage(m)
+func (this *MessageCtx) Forward(f data.OForward) (*MessageCtx, error) {
+	f.SourceChatId = this.Msg.Chat.Id
+	f.SourceMessageId = this.Msg.Id
+	msg, err := this.Bot.Remote.ForwardMessage(f)
 	return &MessageCtx {
 		Msg: msg,
 		Bot: this.Bot,
@@ -186,10 +186,10 @@ func (this *MessageCtx) Forward(m data.OMessage) (*MessageCtx, error) {
 }
 
 // edit this message.
-func (this *MessageCtx) EditText(m data.OMessage) (*MessageCtx, error) {
-	m.ChatID = this.Msg.Chat.Id
-	m.MessageID = this.Msg.Message_id
-	msg, err := this.Bot.Remote.EditMessageText(m)
+func (this *MessageCtx) EditText(e data.OMessageEdit) (*MessageCtx, error) {
+	e.SourceChatId = this.Msg.Chat.Id
+	e.SourceMessageId = this.Msg.Id
+	msg, err := this.Bot.Remote.EditMessageText(e)
 	return &MessageCtx {
 		Msg: msg,
 		Bot: this.Bot,
@@ -199,13 +199,13 @@ func (this *MessageCtx) EditText(m data.OMessage) (*MessageCtx, error) {
 
 // delete this message
 func (this *MessageCtx) Delete() (error) {
-	return this.Bot.Remote.DeleteMessage(data.OMessage{ChatID: this.Msg.Chat.Id, MessageID: this.Msg.Message_id})
+	return this.Bot.Remote.DeleteMessage(data.ODelete{SourceChatId: this.Msg.Chat.Id, SourceMessageId: this.Msg.Id})
 }
 
 // kick the sender of this message from the group they sent it to
 func (this *MessageCtx) KickSender() (error) {
 	if this.Msg.Chat.Type == data.Group || this.Msg.Chat.Type == data.Supergroup {
-		return this.Bot.Remote.KickMember(data.OChatMember{ChatID: this.Msg.Chat.Id, UserID: this.Msg.From.Id})
+		return this.Bot.Remote.KickMember(data.OChatMember{TargetData: data.TargetData{ChatId: this.Msg.Chat.Id}, UserId: this.Msg.From.Id})
 	} else {
 		return errors.New("Tried to kick message sender from channel or PM")
 	}
@@ -214,7 +214,7 @@ func (this *MessageCtx) KickSender() (error) {
 // fetch info about the sender of this message
 func (this *MessageCtx) Member() (*ChatMemberCtx, error) {
 	if this.Msg.Chat.Type == data.Group || this.Msg.Chat.Type == data.Supergroup {
-		member, err := this.Bot.Remote.GetChatMember(data.OChatMember{ChatID: this.Msg.Chat.Id, UserID: this.Msg.From.Id})
+		member, err := this.Bot.Remote.GetChatMember(data.OChatMember{TargetData: data.TargetData{ChatId: this.Msg.Chat.Id}, UserId: this.Msg.From.Id})
 		return &ChatMemberCtx{
 			Member: member,
 			Bot: this.Bot,
@@ -225,21 +225,21 @@ func (this *MessageCtx) Member() (*ChatMemberCtx, error) {
 }
 
 func (this *MessageCtx) RespondAsync(m data.OMessage, handler data.ResponseHandler) {
-	m.ChatID = this.Msg.Chat.Id
+	m.ChatId = this.Msg.Chat.Id
 	this.Bot.Remote.SendMessageAsync(m, handler)
 }
 
 func (this *MessageCtx) ReplyAsync(m data.OMessage, handler data.ResponseHandler) {
-	m.ChatID = this.Msg.Chat.Id
-	m.ReplyTo = &this.Msg.Message_id
+	m.ChatId = this.Msg.Chat.Id
+	m.ReplyToId = &this.Msg.Id
 	this.Bot.Remote.SendMessageAsync(m, handler)
 }
 
 func (this *MessageCtx) ReplyOrPMAsync(m data.OMessage, handler data.ResponseHandler) {
 	if this.Msg.Chat.Type != data.Channel {
-		m.ChatID = this.Msg.From.Id
+		m.ChatId = this.Msg.From.Id
 		if this.Msg.Chat.Type == data.Private {
-			m.ReplyTo = &this.Msg.Message_id
+			m.ReplyToId = &this.Msg.Id
 		}
 		this.Bot.Remote.SendMessageAsync(m, handler)
 	} else if handler != nil {
@@ -249,32 +249,32 @@ func (this *MessageCtx) ReplyOrPMAsync(m data.OMessage, handler data.ResponseHan
 
 func (this *MessageCtx) PMAsync(m data.OMessage, handler data.ResponseHandler) {
 	if this.Msg.Chat.Type != data.Channel {
-		m.ChatID = this.Msg.From.Id
+		m.ChatId = this.Msg.From.Id
 		this.Bot.Remote.SendMessageAsync(m, handler)
 	} else if handler != nil {
 		handler.Callback(nil, false, errors.New("Can't PM to a channel message sender!"), 0)
 	}
 }
 
-func (this *MessageCtx) ForwardAsync(m data.OMessage, handler data.ResponseHandler) {
-	m.ChatID = this.Msg.Chat.Id
-	m.MessageID = this.Msg.Message_id
+func (this *MessageCtx) ForwardAsync(m data.OForward, handler data.ResponseHandler) {
+	m.ChatId = this.Msg.Chat.Id
+	m.SourceMessageId = this.Msg.Id
 	this.Bot.Remote.ForwardMessageAsync(m, handler)
 }
 
-func (this *MessageCtx) EditTextAsync(m data.OMessage, handler data.ResponseHandler) {
-	m.ChatID = this.Msg.Chat.Id
-	m.MessageID = this.Msg.Message_id
+func (this *MessageCtx) EditTextAsync(m data.OMessageEdit, handler data.ResponseHandler) {
+	m.ChatId = this.Msg.Chat.Id
+	m.SourceMessageId = this.Msg.Id
 	this.Bot.Remote.EditMessageTextAsync(m, handler)
 }
 
 func (this *MessageCtx) DeleteAsync(handler data.ResponseHandler) {
-	this.Bot.Remote.DeleteMessageAsync(data.OMessage{ChatID: this.Msg.Chat.Id, MessageID: this.Msg.Message_id}, handler)
+	this.Bot.Remote.DeleteMessageAsync(data.ODelete{SourceChatId: this.Msg.Chat.Id, SourceMessageId: this.Msg.Id}, handler)
 }
 
 func (this *MessageCtx) KickSenderAsync(handler data.ResponseHandler) {
 	if this.Msg.Chat.Type == data.Group || this.Msg.Chat.Type == data.Supergroup {
-		this.Bot.Remote.KickMemberAsync(data.OChatMember{ChatID: this.Msg.Chat.Id, UserID: this.Msg.From.Id}, handler)
+		this.Bot.Remote.KickMemberAsync(data.OChatMember{TargetData: data.TargetData{ChatId: this.Msg.Chat.Id}, UserId: this.Msg.From.Id}, handler)
 	} else if handler != nil {
 		handler.Callback(nil, false, errors.New("Tried to kick message sender from channel or PM"), 0)
 	}
@@ -282,18 +282,18 @@ func (this *MessageCtx) KickSenderAsync(handler data.ResponseHandler) {
 
 func (this *MessageCtx) MemberAsync(handler data.ResponseHandler) {
 	if this.Msg.Chat.Type == data.Group || this.Msg.Chat.Type == data.Supergroup {
-		this.Bot.Remote.GetChatMemberAsync(data.OChatMember{ChatID: this.Msg.Chat.Id, UserID: this.Msg.From.Id}, handler)
+		this.Bot.Remote.GetChatMemberAsync(data.OChatMember{TargetData: data.TargetData{ChatId: this.Msg.Chat.Id}, UserId: this.Msg.From.Id}, handler)
 	} else if handler != nil {
 		handler.Callback(nil, false, errors.New("Tried to fetch chat info for sender from channel or PM"), 0)
 	}
 }
 
 func (this *InlineCtx) Answer(o data.OInlineQueryAnswer) (error) {
-	o.QueryID = this.Query.Id
+	o.Id = this.Query.Id
 	return this.Bot.Remote.AnswerInlineQuery(o)
 }
 
 func (this *InlineCtx) AnswerAsync(o data.OInlineQueryAnswer, handler data.ResponseHandler) {
-	o.QueryID = this.Query.Id
+	o.Id = this.Query.Id
 	this.Bot.Remote.AnswerInlineQueryAsync(o, handler)
 }

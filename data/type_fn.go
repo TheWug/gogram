@@ -17,16 +17,16 @@ func (this TUser) PrintableString() (string) {
 	var name      string = ""
 
 	if this.Username != nil { username = "@" + *this.Username }
-	if this.Last_name != nil { name = this.First_name + " " + *this.Last_name }
-	if this.Last_name == nil { name = this.First_name }
+	if this.LastName != nil { name = this.FirstName + " " + *this.LastName }
+	if this.LastName == nil { name = this.FirstName }
 	name = strings.Trim(strings.Replace(name, " ", "-", -1), " \r\n\t")
 
 	return fmt.Sprintf("%-56s", fmt.Sprintf("%s %s %s", this.IdString(), username, name))
 }
 
 func (this TUser) NameString() (string) {
-	if this.Last_name != nil { return this.First_name + " " + *this.Last_name }
-	return this.First_name
+	if this.LastName != nil { return this.FirstName + " " + *this.LastName }
+	return this.FirstName
 }
 
 func (this TUser) UsernameString() (string) {
@@ -52,8 +52,8 @@ func (this TChat) PrintableString() (string) {
 	var msgtype = ' '
 
 	if this.Title != nil { title = *this.Title }
-	if this.First_name != nil { title = *this.First_name }
-	if this.Last_name != nil { title = title + " " + *this.Last_name }
+	if this.FirstName != nil { title = *this.FirstName }
+	if this.LastName != nil { title = title + " " + *this.LastName }
 	title = strings.Trim(strings.Replace(title, " ", "-", -1), " \r\n\t")
 
 	if this.Username != nil { username = "@" + *this.Username }
@@ -68,7 +68,7 @@ func (this TChat) PrintableString() (string) {
 
 // width 10
 func (this *TMessage) IdString() (string) {
-	return fmt.Sprintf("M%-9d", this.Message_id)
+	return fmt.Sprintf("M%-9d", this.Id)
 }
 
 // width 11
@@ -77,17 +77,17 @@ func (this *TMessage) IdStringWithEdit(is_edit bool) (string) {
 
 	if is_edit { edited = 'E' }
 
-	return fmt.Sprintf("%cM%-9d", edited, this.Message_id)
+	return fmt.Sprintf("%cM%-9d", edited, this.Id)
 }
 
 // width 79
 func (this *TMessage) RplFwdString() (string) {
 	var intermediate string = "NML -          -          - -"
-	if this.Forward_from != nil { intermediate = fmt.Sprintf("FWD -          %s", this.Forward_from.PrintableString()) }
-	if this.Forward_from_chat != nil { intermediate = fmt.Sprintf("FWD -          %s", this.Forward_from_chat.PrintableString()) }
+	if this.ForwardFrom != nil { intermediate = fmt.Sprintf("FWD -          %s", this.ForwardFrom.PrintableString()) }
+	if this.ForwardFromChat != nil { intermediate = fmt.Sprintf("FWD -          %s", this.ForwardFromChat.PrintableString()) }
 
-	if this.Reply_to_message != nil && this.Reply_to_message.From != nil { intermediate = fmt.Sprintf("RPL %s %s", this.Reply_to_message.IdString(), this.Reply_to_message.From.PrintableString()) }
-	if this.Reply_to_message != nil && this.Reply_to_message.From == nil { intermediate = fmt.Sprintf("RPL %s %s", this.Reply_to_message.IdString(), this.Reply_to_message.Chat.PrintableString()) } // longest, width 79
+	if this.ReplyToMessage != nil && this.ReplyToMessage.From != nil { intermediate = fmt.Sprintf("RPL %s %s", this.ReplyToMessage.IdString(), this.ReplyToMessage.From.PrintableString()) }
+	if this.ReplyToMessage != nil && this.ReplyToMessage.From == nil { intermediate = fmt.Sprintf("RPL %s %s", this.ReplyToMessage.IdString(), this.ReplyToMessage.Chat.PrintableString()) } // longest, width 79
 
 	return fmt.Sprintf("%-79s", intermediate)
 }
@@ -106,25 +106,25 @@ func (this *TMessage) TypeString() (string) {
 	} else if this.Contact != nil { intermediate = "CONTACT"
 	} else if this.Location != nil { intermediate = "LOCATION"
 	} else if this.Venue != nil { intermediate = "VENUE"
-	} else if this.New_chat_members != nil { intermediate = "ADDUSER"
-	} else if this.Left_chat_member != nil { intermediate = "DELUSER"
-	} else if this.New_chat_title != nil { intermediate = "SETTITLE"
-	} else if this.New_chat_photo != nil { intermediate = "SETPHOTO"
-	} else if this.Delete_chat_photo != nil { intermediate = "DELPHOTO"
-	} else if this.Group_chat_created != nil { intermediate = "MKGROUP"
-	} else if this.Supergroup_chat_created != nil { intermediate = "MKSGROUP"
-	} else if this.Channel_chat_created != nil { intermediate = "MKCHANNL"
-	} else if this.Migrate_to_chat_id != nil { intermediate = "TOSGRP"
-	} else if this.Migrate_from_chat_id != nil { intermediate = "FROMSGRP"
-	} else if this.Pinned_message != nil { intermediate = "PINMSG" }
+	} else if this.NewChatMembers != nil { intermediate = "ADDUSER"
+	} else if this.LeftChatMember != nil { intermediate = "DELUSER"
+	} else if this.NewChatTitle != nil { intermediate = "SETTITLE"
+	} else if this.NewChatPhoto != nil { intermediate = "SETPHOTO"
+	} else if this.DeleteChatPhoto != nil { intermediate = "DELPHOTO"
+	} else if this.GroupChatCreated != nil { intermediate = "MKGROUP"
+	} else if this.SupergroupChatCreated != nil { intermediate = "MKSGROUP"
+	} else if this.ChannelChatCreated != nil { intermediate = "MKCHANNL"
+	} else if this.MigrateToChatId != nil { intermediate = "TOSGRP"
+	} else if this.MigrateFromChatId != nil { intermediate = "FROMSGRP"
+	} else if this.PinnedMessage != nil { intermediate = "PINMSG" }
 	return fmt.Sprintf("%-8s", intermediate)
 }
 
 // width: 41
 func (this *TMessage) TimestampString() (string) {
 	tf_string := "2006-01-02 15:04:05"
-	if this.Forward_date != nil {
-		return fmt.Sprintf("%s (%s)", time.Unix(this.Date, 0).UTC().Format(tf_string), time.Unix(*this.Forward_date, 0).UTC().Format(tf_string))
+	if this.ForwardDate != nil {
+		return fmt.Sprintf("%s (%s)", time.Unix(this.Date, 0).UTC().Format(tf_string), time.Unix(*this.ForwardDate, 0).UTC().Format(tf_string))
 	} else {
 		return fmt.Sprintf("%-41s", time.Unix(this.Date, 0).UTC().Format(tf_string))
 	}
@@ -162,27 +162,27 @@ func (this *TMessage) MessageContents() (string) {
 	var caption string = "(no caption)"
 	if this.Caption != nil { caption = fmt.Sprintf("<%s>", strings.Replace(*this.Caption, "\n", "", -1)) }
 
-	if this.Audio != nil { return this.Audio.File_id }
-	if this.Document != nil { return fmt.Sprintf("%s %s", this.Document.File_id, caption) }
+	if this.Audio != nil { return string(this.Audio.Id) }
+	if this.Document != nil { return fmt.Sprintf("%s %s", this.Document.Id, caption) }
 	if this.Game != nil { return this.Game.Title }
-	if this.Photo != nil { return fmt.Sprintf("%s %s", GetLargestPhoto(this.Photo).File_id, caption) }
-	if this.Sticker != nil { return this.Sticker.File_id }
-	if this.Video != nil { return fmt.Sprintf("%s %s", this.Video.File_id, caption) }
-	if this.Voice != nil { return this.Voice.File_id }
-	if this.Contact != nil { return this.Contact.Phone_number + " " + this.Contact.First_name }
+	if this.Photo != nil { return fmt.Sprintf("%s %s", GetLargestPhoto(this.Photo).Id, caption) }
+	if this.Sticker != nil { return string(this.Sticker.Id) }
+	if this.Video != nil { return fmt.Sprintf("%s %s", this.Video.Id, caption) }
+	if this.Voice != nil { return string(this.Voice.Id) }
+	if this.Contact != nil { return this.Contact.PhoneNumber + " " + this.Contact.FirstName }
 	if this.Location != nil { return fmt.Sprintf("(%f %f)", this.Location.Longitude, this.Location.Latitude) }
 	if this.Venue != nil { return fmt.Sprintf("(%f %f) %s: %s", this.Venue.Location.Longitude, this.Venue.Location.Latitude, this.Venue.Title, this.Venue.Description) }
-	if this.New_chat_members != nil { return fmt.Sprintf("[Chat member added] %s", userStrings(*this.New_chat_members)) }
-	if this.Left_chat_member != nil { return fmt.Sprintf("[Chat member removed] %s", this.Left_chat_member.PrintableString()) }
-	if this.New_chat_title != nil { return fmt.Sprintf("[New chat title] %s", *this.New_chat_title) }
-	if this.New_chat_photo != nil { return fmt.Sprintf("[Chat photo set] %s", GetLargestPhoto(this.New_chat_photo).File_id) }
-	if this.Delete_chat_photo != nil { return "[Chat photo deleted]" }
-	if this.Group_chat_created != nil { return "[Group created]" }
-	if this.Supergroup_chat_created != nil { return "[Supergroup created]" }
-	if this.Channel_chat_created != nil { return "[Channel created]" }
-	if this.Migrate_to_chat_id != nil { return fmt.Sprintf("[supergroup created from existing chat] %d", this.Migrate_to_chat_id) }
-	if this.Migrate_from_chat_id != nil { return fmt.Sprintf("[Group converted to supergroup] %d", this.Migrate_from_chat_id) }
-	if this.Pinned_message != nil { return fmt.Sprintf("[Message pinned] %s", this.Pinned_message.MessageContents()) }
+	if this.NewChatMembers != nil { return fmt.Sprintf("[Chat member added] %s", userStrings(*this.NewChatMembers)) }
+	if this.LeftChatMember != nil { return fmt.Sprintf("[Chat member removed] %s", this.LeftChatMember.PrintableString()) }
+	if this.NewChatTitle != nil { return fmt.Sprintf("[New chat title] %s", *this.NewChatTitle) }
+	if this.NewChatPhoto != nil { return fmt.Sprintf("[Chat photo set] %s", GetLargestPhoto(this.NewChatPhoto).Id) }
+	if this.DeleteChatPhoto != nil { return "[Chat photo deleted]" }
+	if this.GroupChatCreated != nil { return "[Group created]" }
+	if this.SupergroupChatCreated != nil { return "[Supergroup created]" }
+	if this.ChannelChatCreated != nil { return "[Channel created]" }
+	if this.MigrateToChatId != nil { return fmt.Sprintf("[supergroup created from existing chat] %d", this.MigrateToChatId) }
+	if this.MigrateFromChatId != nil { return fmt.Sprintf("[Group converted to supergroup] %d", this.MigrateFromChatId) }
+	if this.PinnedMessage != nil { return fmt.Sprintf("[Message pinned] %s", this.PinnedMessage.MessageContents()) }
 	if this.Text != nil { return strings.Replace(*this.Text, "\n", "", -1) }
 	return "Unknown"
 }
@@ -228,27 +228,27 @@ func GetLargestPhoto(this *[]TPhotoSize) (*TPhotoSize) {
 
 func (this *ORestrict) ToTChatPermissions() (TChatPermissions) {
 	return TChatPermissions{
-		Can_send_messages: this.CanSendMessages,
-		Can_send_media: this.CanSendMedia,
-		Can_send_polls: this.CanSendPolls,
-		Can_send_other: this.CanSendInline,
-		Can_preview_links: this.CanSendWebPreviews,
-		Can_change_info: this.CanChangeInfo,
-		Can_invite_users: this.CanInviteUsers,
-		Can_pin_messages: this.CanPinMessages,
+		CanSendMessages: this.CanSendMessages,
+		CanSendMedia: this.CanSendMedia,
+		CanSendPolls: this.CanSendPolls,
+		CanSendOther: this.CanSendInline,
+		CanPreviewLinks: this.CanSendWebPreviews,
+		CanChangeInfo: this.CanChangeInfo,
+		CanInviteUsers: this.CanInviteUsers,
+		CanPinMessages: this.CanPinMessages,
 	}
 }
 
 func (this *ORestrict) FromTChatPermissions(permissions TChatPermissions, chat_id int64) {
 	*this = ORestrict{
 		ChatID: chat_id,
-		CanSendMessages: permissions.Can_send_messages,
-		CanSendMedia: permissions.Can_send_media,
-		CanSendPolls: permissions.Can_send_polls,
-		CanSendInline: permissions.Can_send_other,
-		CanSendWebPreviews: permissions.Can_preview_links,
-		CanChangeInfo: permissions.Can_change_info,
-		CanInviteUsers: permissions.Can_invite_users,
-		CanPinMessages: permissions.Can_pin_messages,
+		CanSendMessages: permissions.CanSendMessages,
+		CanSendMedia: permissions.CanSendMedia,
+		CanSendPolls: permissions.CanSendPolls,
+		CanSendInline: permissions.CanSendOther,
+		CanSendWebPreviews: permissions.CanPreviewLinks,
+		CanChangeInfo: permissions.CanChangeInfo,
+		CanInviteUsers: permissions.CanInviteUsers,
+		CanPinMessages: permissions.CanPinMessages,
 	}
 }

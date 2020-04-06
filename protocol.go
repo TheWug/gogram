@@ -28,7 +28,7 @@ type Protocol struct {
 	me               data.TUser
 	current_async_id int
 
-	nextUpdateOffset     int
+	nextUpdateOffset     data.UpdateID
 	nextUpdateOffsetless bool
 
 	bot *TelegramBot
@@ -108,13 +108,13 @@ func (this *Protocol) BuildGetUpdatesReq() (*reqtify.Request) {
 
 func (this *Protocol) BuildGetChatMemberReq(o data.OChatMember) (*reqtify.Request) {
 	return this.client.New("getChatMember").
-			   Arg("chat_id", GetStringId(o.ChatID)).
-			   Arg("user_id", strconv.Itoa(o.UserID))
+			   Arg("chat_id", GetStringId(o.ChatId)).
+			   Arg("user_id", o.UserId.String())
 }
 
 func (this *Protocol) BuildGetChatReq(o data.OChatMember) (*reqtify.Request) {
 	return this.client.New("getChat").
-			   Arg("chat_id", GetStringId(o.ChatID))
+			   Arg("chat_id", GetStringId(o.ChatId))
 }
 
 func (this *Protocol) BuildAnswerInlineQueryReq(o data.OInlineQueryAnswer) (*reqtify.Request) {
@@ -124,7 +124,7 @@ func (this *Protocol) BuildAnswerInlineQueryReq(o data.OInlineQueryAnswer) (*req
 	if e != nil { return nil }
 
 	return this.client.New("answerInlineQuery").Method(reqtify.POST).
-			   Arg("inline_query_id", o.QueryID).
+			   Arg("inline_query_id", o.Id.String()).
 			   ArgDefault("cache_time", strconv.Itoa(o.CacheTime), "0").
 			   Arg("next_offset", o.NextOffset).
 			   Arg("results", string(b))
@@ -132,13 +132,13 @@ func (this *Protocol) BuildAnswerInlineQueryReq(o data.OInlineQueryAnswer) (*req
 
 func (this *Protocol) BuildSendMessageReq(o data.OMessage) (*reqtify.Request) {
 	req := this.client.New("sendMessage").Method(reqtify.POST).
-			   Arg("chat_id", GetStringId(o.ChatID)).
+			   Arg("chat_id", GetStringId(o.ChatId)).
 			   Arg("text", o.Text).
-			   ArgDefault("parse_mode", o.ParseMode, "").
-			   ArgDefault("disable_web_page_preview", strconv.FormatBool(!o.EnableWebPreview), "false").
-			   ArgDefault("disable_notification", strconv.FormatBool(o.DisableNotification), "false")
-	if o.ReplyTo != nil {
-		req.Arg("reply_to_message_id", strconv.Itoa(*o.ReplyTo))
+			   ArgDefault("parse_mode", o.ParseMode.String(), "").
+			   ArgDefault("disable_web_page_preview", strconv.FormatBool(o.DisableWebPagePreview), "false").
+			   ArgDefault("disable_notification", o.DisableNotification.String(), "false")
+	if o.ReplyToId != nil {
+		req.Arg("reply_to_message_id", o.ReplyToId.String())
 	}
 	if o.ReplyMarkup != nil {
 		b, e := json.Marshal(o.ReplyMarkup)
@@ -149,14 +149,14 @@ func (this *Protocol) BuildSendMessageReq(o data.OMessage) (*reqtify.Request) {
 	return req
 }
 
-func (this *Protocol) BuildEditMessageReq(o data.OMessage) (*reqtify.Request) {
+func (this *Protocol) BuildEditMessageReq(o data.OMessageEdit) (*reqtify.Request) {
 	req := this.client.New("editMessageText").Method(reqtify.POST).
-			   ArgDefault("chat_id", GetStringId(o.ChatID), "").
-			   ArgDefault("message_id", strconv.Itoa(o.MessageID), "0").
-			   ArgDefault("inline_id", o.InlineID, "").
+			   ArgDefault("chat_id", GetStringId(o.ChatId), "").
+			   ArgDefault("message_id", o.SourceMessageId.String(), "0").
+			   ArgDefault("inline_id", o.SourceInlineId.String(), "").
 			   Arg("text", o.Text).
-			   ArgDefault("parse_mode", o.ParseMode, "").
-			   ArgDefault("disable_web_page_preview", strconv.FormatBool(!o.EnableWebPreview), "false")
+			   ArgDefault("parse_mode", o.ParseMode.String(), "").
+			   ArgDefault("disable_web_page_preview", strconv.FormatBool(o.DisableWebPagePreview), "false")
 	if o.ReplyMarkup != nil {
 		b, e := json.Marshal(o.ReplyMarkup)
 		if e != nil { return nil }
@@ -165,49 +165,100 @@ func (this *Protocol) BuildEditMessageReq(o data.OMessage) (*reqtify.Request) {
 	return req
 }
 
-func (this *Protocol) BuildDeleteMessageReq(o data.OMessage) (*reqtify.Request) {
+func (this *Protocol) BuildDeleteMessageReq(o data.ODelete) (*reqtify.Request) {
 	return this.client.New("deleteMessage").
-			   Arg("chat_id", GetStringId(o.ChatID)).
-			   Arg("message_id", strconv.Itoa(o.MessageID))
+			   Arg("chat_id", GetStringId(o.SourceChatId)).
+			   Arg("message_id", o.SourceMessageId.String())
 }
 
-func (this *Protocol) BuildSendStickerReq(o data.OMessage) (*reqtify.Request) {
+// This resolves the allowed file attachment modes. 'object' can be any of the following:
+// FileID: passed directly to API, represents an internal (already uploaded) file.
+// string: passed directly to API, assumed to be a URL from which telegram will download the file.
+// io.Reader: marshalled into a form file, where it will be read to completion by the HTTP request. filename backup is used.
+// byte array: same as above. filename backup is used.
+// reqtify.FormFile: same as above, but uses included filename
+func applyFile(req *reqtify.Request, tag, filename, backup_filename string, object interface{}) {
+	if filename == "" { filename = backup_filename }
+	switch file := object.(type) {
+	case data.FileID:
+		req.Arg(tag, string(file))
+	case string:
+		req.Arg(tag, file)
+	case io.Reader:
+		req.Method(reqtify.POST).FileArg(tag, filename, file)
+	case []byte:
+		req.Method(reqtify.POST).FileArg(tag, filename, bytes.NewReader(file))
+	case reqtify.FormFile:
+		req.Method(reqtify.POST).FileArg(tag, file.Name, file.Data)
+	default:
+		panic("unsupported file attachment mode")
+	}
+}
+
+func (this *Protocol) BuildSendStickerReq(o data.OSticker) (*reqtify.Request) {
 	req := this.client.New("sendSticker").
-			   Arg("chat_id", GetStringId(o.ChatID)).
-			   ArgDefault("disable_notification", strconv.FormatBool(o.DisableNotification), "false")
-	if o.ReplyTo != nil {
-		req.Arg("reply_to_message_id", strconv.Itoa(*o.ReplyTo))
+			   Arg("chat_id", GetStringId(o.ChatId)).
+			   ArgDefault("disable_notification", o.DisableNotification.String(), "false")
+	if o.ReplyToId != nil {
+		req.Arg("reply_to_message_id", o.ReplyToId.String())
 	}
 	if o.ReplyMarkup != nil {
 		b, e := json.Marshal(o.ReplyMarkup)
 		if e != nil { return nil }
 		req.Arg("reply_markup", string(b))
 	}
-	switch t := o.Sticker.(type) {
-	case string:
-		req.Arg("sticker", t)
-	case io.Reader:
-		req.Method(reqtify.POST).FileArg("sticker", "sticker.webp", t)
-	case []byte:
-		req.Method(reqtify.POST).FileArg("sticker", "sticker.webp", bytes.NewReader(t))
-	case reqtify.FormFile:
-		req.Method(reqtify.POST).FileArg("sticker", t.Name, t.Data)
-	}
+	applyFile(req, "sticker", o.FileName, "sticker.webp", o.File)
 	return req
 }
 
-func (this *Protocol) BuildForwardMessageReq(o data.OMessage) (*reqtify.Request) {
+func (this *Protocol) BuildSendPhotoReq(o data.OPhoto) (*reqtify.Request) {
+	req := this.client.New("sendPhoto").
+			   Arg("chat_id", GetStringId(o.ChatId)).
+			   ArgDefault("caption", o.Text, "").
+			   ArgDefault("parse_mode", o.ParseMode.String(), "").
+			   ArgDefault("disable_notification", o.DisableNotification.String(), "false")
+	if o.ReplyToId != nil {
+		req.Arg("reply_to_message_id", o.ReplyToId.String())
+	}
+	if o.ReplyMarkup != nil {
+		b, e := json.Marshal(o.ReplyMarkup)
+		if e != nil { return nil }
+		req.Arg("reply_markup", string(b))
+	}
+	applyFile(req, "photo", o.FileName, "photo.jpg", o.File)
+	return req
+}
+
+func (this *Protocol) BuildSendAudioReq(o data.OAudio) (*reqtify.Request) {
+	req := this.client.New("sendAudio").
+			   Arg("chat_id", GetStringId(o.ChatId)).
+			   ArgDefault("caption", o.Text, "").
+			   ArgDefault("parse_mode", o.ParseMode.String(), "").
+			   ArgDefault("disable_notification", o.DisableNotification.String(), "false")
+	if o.ReplyToId != nil {
+		req.Arg("reply_to_message_id", o.ReplyToId.String())
+	}
+	if o.ReplyMarkup != nil {
+		b, e := json.Marshal(o.ReplyMarkup)
+		if e != nil { return nil }
+		req.Arg("reply_markup", string(b))
+	}
+	applyFile(req, "photo", o.FileName, "photo.jpg", o.File)
+	return req
+}
+
+func (this *Protocol) BuildForwardMessageReq(o data.OForward) (*reqtify.Request) {
 	return this.client.New("forwardMessage").
-			   Arg("chat_id", GetStringId(o.TargetChatID)).
-			   Arg("from_chat_id", GetStringId(o.ChatID)).
-			   Arg("message_id", strconv.Itoa(o.MessageID)).
-			   ArgDefault("disable_notification", strconv.FormatBool(o.DisableNotification), "false")
+			   Arg("chat_id", GetStringId(o.ChatId)).
+			   Arg("from_chat_id", GetStringId(o.SourceChatId)).
+			   Arg("message_id", o.SourceMessageId.String()).
+			   ArgDefault("disable_notification", o.DisableNotification.String(), "false")
 }
 
 func (this *Protocol) BuildKickMemberReq(o data.OChatMember) (*reqtify.Request) {
 	return this.client.New("kickChatMember").
-			   Arg("chat_id", GetStringId(o.ChatID)).
-			   Arg("user_id", strconv.Itoa(o.UserID))
+			   Arg("chat_id", GetStringId(o.ChatId)).
+			   Arg("user_id", o.UserId.String())
 }
 
 func (this *Protocol) BuildGetStickerSetReq(o data.OStickerSet) (*reqtify.Request) {
@@ -237,7 +288,7 @@ func (this *Protocol) BuildDownloadFileReq(o data.OFile) (*reqtify.Request) {
 
 func (this *Protocol) BuildAnswerCallbackQueryReq(o data.OCallback) (*reqtify.Request) {
 	return this.client.New("answerCallbackQuery").Method(reqtify.POST).
-			   Arg("callback_query_id", o.QueryID).
+			   Arg("callback_query_id", o.Id.String()).
 			   ArgDefault("text", o.Notification, "").
 			   ArgDefault("show_alert", strconv.FormatBool(o.ShowAlert), "false").
 			   ArgDefault("cache_time", strconv.Itoa(o.CacheTime), "0").
@@ -257,28 +308,28 @@ func (this *Protocol) BuildSetChatPermissionsReq(o data.ORestrict) (*reqtify.Req
 
 // Async calls
 
-func (this *Protocol) AnswerInlineQueryAsync(o data.OInlineQueryAnswer, rm data.ResponseHandler) {
-	go DoAsyncCall(this.bot.Log, this.BuildAnswerInlineQueryReq(o), rm)
-}
-
 func (this *Protocol) SendMessageAsync(o data.OMessage, sm data.ResponseHandler) () {
 	go DoAsyncCall(this.bot.Log, this.BuildSendMessageReq(o), sm)
 }
 
-func (this *Protocol) EditMessageTextAsync(o data.OMessage, sm data.ResponseHandler) () {
-	go DoAsyncCall(this.bot.Log, this.BuildEditMessageReq(o), sm)
+func (this *Protocol) ForwardMessageAsync(o data.OForward, sm data.ResponseHandler) () {
+	go DoAsyncCall(this.bot.Log, this.BuildForwardMessageReq(o), sm)
 }
 
-func (this *Protocol) DeleteMessageAsync(o data.OMessage, sm data.ResponseHandler) () {
-	go DoAsyncCall(this.bot.Log, this.BuildDeleteMessageReq(o), sm)
-}
-
-func (this *Protocol) SendStickerAsync(o data.OMessage, sm data.ResponseHandler) () {
+func (this *Protocol) SendStickerAsync(o data.OSticker, sm data.ResponseHandler) () {
 	go DoAsyncCall(this.bot.Log, this.BuildSendStickerReq(o), sm)
 }
 
-func (this *Protocol) ForwardMessageAsync(o data.OMessage, sm data.ResponseHandler) () {
-	go DoAsyncCall(this.bot.Log, this.BuildForwardMessageReq(o), sm)
+func (this *Protocol) AnswerInlineQueryAsync(o data.OInlineQueryAnswer, rm data.ResponseHandler) {
+	go DoAsyncCall(this.bot.Log, this.BuildAnswerInlineQueryReq(o), rm)
+}
+
+func (this *Protocol) EditMessageTextAsync(o data.OMessageEdit, sm data.ResponseHandler) () {
+	go DoAsyncCall(this.bot.Log, this.BuildEditMessageReq(o), sm)
+}
+
+func (this *Protocol) DeleteMessageAsync(o data.ODelete, sm data.ResponseHandler) () {
+	go DoAsyncCall(this.bot.Log, this.BuildDeleteMessageReq(o), sm)
 }
 
 func (this *Protocol) KickMemberAsync(o data.OChatMember, si data.ResponseHandler) () {
@@ -319,38 +370,38 @@ func (this *Protocol) SetChatPermissionsAsync(o data.ORestrict, rm data.Response
 
 // Synchronous calls
 
-func (this *Protocol) AnswerInlineQuery(o data.OInlineQueryAnswer) (error) {
-	_, err := DoCall(this.bot.Log, this.BuildAnswerInlineQueryReq(o))
-	return err
-}
-
 func (this *Protocol) SendMessage(o data.OMessage) (*data.TMessage, error) {
 	var m data.TMessage
 	j, e := DoCall(this.bot.Log, this.BuildSendMessageReq(o))
 	return &m, OutputToObject(j, e, &m)
 }
 
-func (this *Protocol) EditMessageText(o data.OMessage) (*data.TMessage, error) {
+func (this *Protocol) ForwardMessage(o data.OForward) (*data.TMessage, error) {
 	var m data.TMessage
-	j, e := DoCall(this.bot.Log, this.BuildEditMessageReq(o))
+	j, e := DoCall(this.bot.Log, this.BuildForwardMessageReq(o))
 	return &m, OutputToObject(j, e, &m)
 }
 
-func (this *Protocol) DeleteMessage(o data.OMessage) (error) {
-	_, err := DoCall(this.bot.Log, this.BuildDeleteMessageReq(o))
-	return err
-}
-
-func (this *Protocol) SendSticker(o data.OMessage) (*data.TMessage, error) {
+func (this *Protocol) SendSticker(o data.OSticker) (*data.TMessage, error) {
 	var m data.TMessage
 	j, e := DoCall(this.bot.Log, this.BuildSendStickerReq(o))
 	return &m, OutputToObject(j, e, &m)
 }
 
-func (this *Protocol) ForwardMessage(o data.OMessage) (*data.TMessage, error) {
+func (this *Protocol) AnswerInlineQuery(o data.OInlineQueryAnswer) (error) {
+	_, err := DoCall(this.bot.Log, this.BuildAnswerInlineQueryReq(o))
+	return err
+}
+
+func (this *Protocol) EditMessageText(o data.OMessageEdit) (*data.TMessage, error) {
 	var m data.TMessage
-	j, e := DoCall(this.bot.Log, this.BuildForwardMessageReq(o))
+	j, e := DoCall(this.bot.Log, this.BuildEditMessageReq(o))
 	return &m, OutputToObject(j, e, &m)
+}
+
+func (this *Protocol) DeleteMessage(o data.ODelete) (error) {
+	_, err := DoCall(this.bot.Log, this.BuildDeleteMessageReq(o))
+	return err
 }
 
 func (this *Protocol) KickMember(o data.OChatMember) (error) {
@@ -419,8 +470,8 @@ func (this *Protocol) markUpdateProcessed(update *data.TUpdate) {
 		panic("Tried to confirm a nil update!")
 	}
 
-	if this.nextUpdateOffset < update.Update_id + 1 || this.nextUpdateOffsetless {
-		this.nextUpdateOffset = update.Update_id + 1
+	if this.nextUpdateOffset < update.Id + data.UpdateID(1) || this.nextUpdateOffsetless {
+		this.nextUpdateOffset = update.Id + data.UpdateID(1)
 		this.nextUpdateOffsetless = false
 	}
 }
@@ -434,5 +485,5 @@ func (this *Protocol) getNextUpdateOffset() (string) {
 		return ""
 	}
 
-	return strconv.Itoa(this.nextUpdateOffset)
+	return this.nextUpdateOffset.String()
 }
