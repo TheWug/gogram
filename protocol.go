@@ -459,9 +459,6 @@ func (this *Protocol) GetUpdates() ([]data.TUpdate, error) {
 	r := this.BuildGetUpdatesReq()
 	j, e := DoCall(nil, r)
 	err := OutputToObject(j, e, &updates)
-	if len(updates) > 0 {
-		this.bot.Log.Printf("[telegram] API Call: %s (%d updates)\n", r.Path, len(updates))
-	}
 	return updates, err
 }
 
