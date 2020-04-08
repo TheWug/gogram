@@ -151,7 +151,7 @@ type TMessage struct {
 	Venue                 *TVenue             `json:"venue"`
 	Poll                  *TPoll              `json:"poll"`
 	Dice                  *TDice              `json:"dice"`
-	NewChatMembers      *[]TUser              `json:"new_chat_member"`
+	NewChatMembers      *[]TUser              `json:"new_chat_members"`
 	LeftChatMember        *TUser              `json:"left_chat_member"`
 	NewChatTitle          *string             `json:"new_chat_title"`
 	NewChatPhoto        *[]TPhotoSize         `json:"new_chat_photo"`
