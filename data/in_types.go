@@ -340,7 +340,7 @@ type TInlineQueryResultGif struct {
 	GifUrl               string                   `json:"gif_url"`
 	GifWidth            *int                      `json:"gif_width,omitempty"`
 	GifHeight           *int                      `json:"gif_height,omitempty"`
-	ThumbUrl            string                   `json:"thumb_url"`
+	ThumbUrl             string                   `json:"thumb_url"`
 	Title               *string                   `json:"title,omitempty"`
 	Caption             *string                   `json:"caption,omitempty"`
 	ParseMode           *MessageParseMode         `json:"parse_mode,omitempty"`
