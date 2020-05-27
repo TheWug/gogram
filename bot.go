@@ -136,7 +136,7 @@ func (this *TelegramBot) MainLoop() {
 				this.inline_callback.ProcessInlineQueryResult(&InlineResultCtx{Bot: this, Result: u.ChosenInlineResult})
 			}
 			if u.CallbackQuery != nil && this.callback_callback != nil {
-				this.callback_callback.ProcessCallback(&CallbackCtx{Bot: this, Cb: u.CallbackQuery})
+				this.callback_callback.ProcessCallback(NewCallbackCtx(u.CallbackQuery, this))
 			}
 			this.update_confirm_channel <- true
 		case <- this.maintenance_ticker.C:
