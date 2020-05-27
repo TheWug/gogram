@@ -97,6 +97,7 @@ type CallbackCtx struct {
 }
 
 func NewMessageCtx(msg *data.TMessage, edited bool, bot *TelegramBot) (*MessageCtx) {
+	if msg == nil { return nil }
 	return &MessageCtx{
 		Msg: msg,
 		Edited: edited,
@@ -107,6 +108,7 @@ func NewMessageCtx(msg *data.TMessage, edited bool, bot *TelegramBot) (*MessageC
 }
 
 func NewCallbackCtx(cb *data.TCallbackQuery, bot *TelegramBot) (*CallbackCtx) {
+	if cb == nil { return nil }
 	return &CallbackCtx{
 		Cb: cb,
 		Cmd: ParseCommandFromStrPtr(cb.Data),
