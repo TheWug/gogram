@@ -73,7 +73,6 @@ func (this *MessageStateMachine) ProcessCallback(ctx *CallbackCtx) {
 	if state == nil { state = this.Default }
 
 	state.HandleCallback(ctx)
-	ctx.AnswerAsync(data.OCallback{}, nil)
 }
 
 func (this *MessageStateMachine) Handle(ctx *MessageCtx) {
