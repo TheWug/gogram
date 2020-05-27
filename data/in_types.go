@@ -301,11 +301,11 @@ type TGenericResponse struct {
 }
 
 type TInlineQueryResultCachedSticker struct {
-	Type                 string `json:"type"`
-	Id                   string `json:"id"`
-	StickerId            FileID `json:"sticker_file_id"`
-	ReplyMarkup         *string `json:"reply_markup,omitempty"`
-	InputMessageContent *string `json:"input_message_content,omitempty"`
+	Type                 string                   `json:"type"`
+	Id                   string                   `json:"id"`
+	StickerId            FileID                   `json:"sticker_file_id"`
+	ReplyMarkup         *TInlineKeyboard          `json:"reply_markup,omitempty"`
+	InputMessageContent *TInputMessageTextContent `json:"input_message_content,omitempty"`
 }
 
 type TInlineQueryResultPhoto struct {
@@ -318,7 +318,7 @@ type TInlineQueryResultPhoto struct {
 	Title               *string                   `json:"title,omitempty"`
 	Description         *string                   `json:"description,omitempty"`
 	Caption             *string                   `json:"caption,omitempty"`
-	ReplyMarkup         *string                   `json:"reply_markup,omitempty"`
+	ReplyMarkup         *TInlineKeyboard          `json:"reply_markup,omitempty"`
 	InputMessageContent *TInputMessageTextContent `json:"input_message_content,omitempty"`
 }
 
@@ -330,7 +330,7 @@ type TInlineQueryResultCachedPhoto struct {
 	Description         *string                   `json:"description,omitempty"`
 	Caption             *string                   `json:"caption,omitempty"`
 	ParseMode           *MessageParseMode         `json:"parse_mode,omitempty"`
-	ReplyMarkup         *string                   `json:"reply_markup,omitempty"`
+	ReplyMarkup         *TInlineKeyboard          `json:"reply_markup,omitempty"`
 	InputMessageContent *TInputMessageTextContent `json:"input_message_content,omitempty"`
 }
 
@@ -344,7 +344,7 @@ type TInlineQueryResultGif struct {
 	Title               *string                   `json:"title,omitempty"`
 	Caption             *string                   `json:"caption,omitempty"`
 	ParseMode           *MessageParseMode         `json:"parse_mode,omitempty"`
-	ReplyMarkup         *string                   `json:"reply_markup,omitempty"`
+	ReplyMarkup         *TInlineKeyboard          `json:"reply_markup,omitempty"`
 	InputMessageContent *TInputMessageTextContent `json:"input_message_content,omitempty"`
 }
 
