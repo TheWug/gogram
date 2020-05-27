@@ -79,8 +79,10 @@ type InlineResultCtx struct {
 }
 
 type CallbackCtx struct {
-	Cb  *data.TCallbackQuery
-	Bot *TelegramBot
+	Cb      *data.TCallbackQuery
+	Bot     *TelegramBot
+
+	answered bool
 }
 
 func NewMessageCtx(msg *data.TMessage, edited bool, bot *TelegramBot) (*MessageCtx) {
@@ -296,4 +298,24 @@ func (this *InlineCtx) Answer(o data.OInlineQueryAnswer) (error) {
 func (this *InlineCtx) AnswerAsync(o data.OInlineQueryAnswer, handler data.ResponseHandler) {
 	o.Id = this.Query.Id
 	this.Bot.Remote.AnswerInlineQueryAsync(o, handler)
+}
+
+func (this *CallbackCtx) Answer(o data.OCallback) (error) {
+	if !this.answered {
+		this.answered = true
+		o.Id = this.Cb.Id
+		return this.Bot.Remote.AnswerCallbackQuery(o)
+	} else {
+		return errors.New("callback query already answered")
+	}
+}
+
+func (this *CallbackCtx) AnswerAsync(o data.OCallback, handler data.ResponseHandler) {
+	if !this.answered {
+		this.answered = true
+		o.Id = this.Cb.Id
+		this.Bot.Remote.AnswerCallbackQueryAsync(o, handler)
+	} else if handler != nil {
+		handler.Callback(nil, false, errors.New("callback query already answered"), 0)
+	}
 }
