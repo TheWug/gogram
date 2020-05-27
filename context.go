@@ -29,6 +29,14 @@ func ParseCommand(m *data.TMessage) (CommandData) {
 	return ParseCommandFromString(line)
 }
 
+func ParseCommandFromStrPtr(line *string) (CommandData) {
+	var cmd CommandData
+	if line != nil {
+		cmd = ParseCommandFromString(*line)
+	}
+	return cmd
+}
+
 func ParseCommandFromString(line string) (CommandData) {
 	var c CommandData
 
@@ -80,7 +88,10 @@ type InlineResultCtx struct {
 
 type CallbackCtx struct {
 	Cb      *data.TCallbackQuery
+	Cmd      CommandData
 	Bot     *TelegramBot
+	Machine *MessageStateMachine
+	MsgCtx  *MessageCtx
 
 	answered bool
 }
@@ -92,6 +103,16 @@ func NewMessageCtx(msg *data.TMessage, edited bool, bot *TelegramBot) (*MessageC
 		Cmd: ParseCommand(msg),
 		Bot: bot,
 		Machine: bot.state_machine,
+	}
+}
+
+func NewCallbackCtx(cb *data.TCallbackQuery, bot *TelegramBot) (*CallbackCtx) {
+	return &CallbackCtx{
+		Cb: cb,
+		Cmd: ParseCommandFromStrPtr(cb.Data),
+		Bot: bot,
+		Machine: bot.state_machine,
+		MsgCtx: NewMessageCtx(cb.Message, false, bot),
 	}
 }
 
@@ -318,4 +339,140 @@ func (this *CallbackCtx) AnswerAsync(o data.OCallback, handler data.ResponseHand
 	} else if handler != nil {
 		handler.Callback(nil, false, errors.New("callback query already answered"), 0)
 	}
+}
+
+// Send a message to the same chat that a message came from but without directly replying to it. Fallback on PM if message isn't available.
+func (this *CallbackCtx) Respond(m data.OMessage) (*MessageCtx, error) {
+	if this.MsgCtx != nil && this.MsgCtx.Msg != nil {
+		m.ChatId = this.MsgCtx.Msg.Chat.Id
+	} else {
+		m.ChatId = this.Cb.From.Id
+	}
+	msg, err := this.Bot.Remote.SendMessage(m)
+	return &MessageCtx {
+		Msg: msg,
+		Bot: this.Bot,
+		Machine: this.Machine,
+	}, err
+}
+
+// Reply to the specified message. Fallback on PM if message isn't available.
+func (this *CallbackCtx) Reply(m data.OMessage) (*MessageCtx, error) {
+	if this.MsgCtx != nil && this.MsgCtx.Msg != nil {
+		m.ChatId = this.MsgCtx.Msg.Chat.Id
+		m.ReplyToId = &this.MsgCtx.Msg.Id
+	} else {
+		m.ChatId = this.Cb.From.Id
+	}
+	msg, err := this.Bot.Remote.SendMessage(m)
+	return &MessageCtx {
+		Msg: msg,
+		Bot: this.Bot,
+		Machine: this.Machine,
+	}, err
+}
+
+// Reply to the specified message if it's a PM, otherwise PM the sender. Fallback on PM if message isn't available.
+func (this *CallbackCtx) ReplyOrPM(m data.OMessage) (*MessageCtx, error) {
+	if this.MsgCtx != nil && this.MsgCtx.Msg != nil {
+		if this.MsgCtx.Msg.Chat.Type == data.Channel { return nil, errors.New("Can't privately reply to a channel message!") }
+
+		m.ChatId = this.MsgCtx.Msg.From.Id
+		if this.MsgCtx.Msg.Chat.Type == data.Private {
+			m.ReplyToId = &this.MsgCtx.Msg.Id
+		}
+	} else {
+		m.ChatId = this.Cb.From.Id
+	}
+	msg, err := this.Bot.Remote.SendMessage(m)
+	return &MessageCtx {
+		Msg: msg,
+		Bot: this.Bot,
+		Machine: this.Machine,
+	}, err
+}
+
+// pm the message sender.
+func (this *CallbackCtx) PM(m data.OMessage) (*MessageCtx, error) {
+	if this.MsgCtx != nil && this.MsgCtx.Msg != nil {
+		if this.MsgCtx.Msg.Chat.Type == data.Channel { return nil, errors.New("Can't privately reply to a channel message!") }
+
+		m.ChatId = this.MsgCtx.Msg.From.Id
+	} else {
+		m.ChatId = this.Cb.From.Id
+	}
+	msg, err := this.Bot.Remote.SendMessage(m)
+	return &MessageCtx {
+		Msg: msg,
+		Bot: this.Bot,
+		Machine: this.Machine,
+	}, err
+}
+
+func (this *CallbackCtx) RespondAsync(m data.OMessage, handler data.ResponseHandler) {
+	if this.MsgCtx != nil && this.MsgCtx.Msg != nil {
+		m.ChatId = this.MsgCtx.Msg.Chat.Id
+		m.ReplyToId = &this.MsgCtx.Msg.Id
+	} else {
+		m.ChatId = this.Cb.From.Id
+	}
+	this.Bot.Remote.SendMessageAsync(m, handler)
+}
+
+func (this *CallbackCtx) ReplyAsync(m data.OMessage, handler data.ResponseHandler) {
+	if this.MsgCtx != nil && this.MsgCtx.Msg != nil {
+		m.ChatId = this.MsgCtx.Msg.Chat.Id
+		m.ReplyToId = &this.MsgCtx.Msg.Id
+	} else {
+		m.ChatId = this.Cb.From.Id
+	}
+	this.Bot.Remote.SendMessageAsync(m, handler)
+}
+
+func (this *CallbackCtx) ReplyOrPMAsync(m data.OMessage, handler data.ResponseHandler) {
+	if this.MsgCtx != nil && this.MsgCtx.Msg != nil {
+		if this.MsgCtx.Msg.Chat.Type == data.Channel {
+			if handler != nil { handler.Callback(nil, false, errors.New("Can't privately reply to a channel message!"), 0) }
+			return
+		}
+
+		m.ChatId = this.MsgCtx.Msg.From.Id
+		if this.MsgCtx.Msg.Chat.Type == data.Private {
+			m.ReplyToId = &this.MsgCtx.Msg.Id
+		}
+	} else {
+		m.ChatId = this.Cb.From.Id
+	}
+
+	this.Bot.Remote.SendMessageAsync(m, handler)
+}
+
+func (this *CallbackCtx) PMAsync(m data.OMessage, handler data.ResponseHandler) {
+	if this.MsgCtx != nil && this.MsgCtx.Msg != nil {
+		if this.MsgCtx.Msg.Chat.Type == data.Channel {
+			handler.Callback(nil, false, errors.New("Can't PM to a channel message sender!"), 0)
+			return
+		}
+
+		m.ChatId = this.MsgCtx.Msg.From.Id
+	} else {
+		m.ChatId = this.Cb.From.Id
+	}
+
+	this.Bot.Remote.SendMessageAsync(m, handler)
+}
+
+func (this *CallbackCtx) SetState(newstate State) {
+	if this.Machine == nil {
+		panic("Tried to set state, but there was no state machine!")
+	}
+	this.Machine.SetState(this.Cb.Sender(), newstate)
+}
+
+func (this *CallbackCtx) GetState() (State) {
+	if this.Machine == nil {
+		panic("Tried to get state, but there was no state machine!")
+	}
+	state, _ := this.Machine.UserStates[this.Cb.Sender()]
+	return state
 }
