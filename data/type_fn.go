@@ -205,6 +205,10 @@ func (this *TMessage) Sender() (Sender) {
 	}
 }
 
+func (this *TCallbackQuery) Sender() (Sender) {
+	return Sender{User: this.From.Id}
+}
+
 func (this Sender) String() (string) {
 	if this.User != UserID(0) {
 		return fmt.Sprintf("User[%d]", this.User)
