@@ -14,6 +14,21 @@ type MessageStateMachine struct {
 
 type State interface {
 	Handle(*MessageCtx)
+	HandleCallback(*CallbackCtx)
+}
+
+type StateIgnoreCallbacks struct {
+}
+
+func (this *StateIgnoreCallbacks) HandleCallback(ctx *CallbackCtx) {
+	return // do nothing
+}
+
+type StateIgnoreMessages struct {
+}
+
+func (this *StateIgnoreMessages) HandleCallback(ctx *CallbackCtx) {
+	return // do nothing
 }
 
 func NewMessageStateMachine() (*MessageStateMachine) {
@@ -53,6 +68,14 @@ func (this *MessageStateMachine) ProcessMessage(ctx *MessageCtx) {
 	state.Handle(ctx)
 }
 
+func (this *MessageStateMachine) ProcessCallback(ctx *CallbackCtx) {
+	state, _ := this.UserStates[ctx.Cb.Sender()]
+	if state == nil { state = this.Default }
+
+	state.HandleCallback(ctx)
+	ctx.AnswerAsync(data.OCallback{}, nil)
+}
+
 func (this *MessageStateMachine) Handle(ctx *MessageCtx) {
 	if !ctx.Bot.IsMyCommand(&ctx.Cmd) || len(ctx.Cmd.Command) == 0 {
 		return
@@ -60,4 +83,13 @@ func (this *MessageStateMachine) Handle(ctx *MessageCtx) {
 
 	callback := this.Handlers[strings.ToLower(ctx.Cmd.Command)]
 	if callback != nil { callback.Handle(ctx) }
+}
+
+func (this *MessageStateMachine) HandleCallback(ctx *CallbackCtx) {
+	if !ctx.Bot.IsMyCommand(&ctx.Cmd) || len(ctx.Cmd.Command) == 0 {
+		return
+	}
+
+	callback := this.Handlers[strings.ToLower(ctx.Cmd.Command)]
+	if callback != nil { callback.HandleCallback(ctx) }
 }
