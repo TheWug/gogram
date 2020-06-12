@@ -34,8 +34,15 @@ func doAsyncGetReader(logger *log.Logger, request *reqtify.Request, handler data
 
 	r, e := request.Do()
 
+	status := "Request Failure"
+	if r != nil {
+		status = r.Status
+		hbox.Http_code = r.StatusCode
+		hbox.Reader = r.Body
+	}
+
 	if logger != nil {
-		logger.Printf("[telegram] API call: %s (%s)\n", request.Path, r.Status)
+		logger.Printf("[telegram] API call: %s (%s)\n", request.Path, status)
 	}
 
 	if e != nil {
@@ -43,9 +50,6 @@ func doAsyncGetReader(logger *log.Logger, request *reqtify.Request, handler data
 		if (output != nil) { output <- hbox }
 		return
 	}
-
-	hbox.Http_code = r.StatusCode
-	hbox.Reader = r.Body
 
 	hbox.Success = true
 	if (output != nil) { output <- hbox }
