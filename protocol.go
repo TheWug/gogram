@@ -165,6 +165,21 @@ func (this *Protocol) BuildEditMessageReq(o data.OMessageEdit) (*reqtify.Request
 	return req
 }
 
+func (this *Protocol) BuildEditCaptionReq(o data.OCaptionEdit) (*reqtify.Request) {
+	req := this.client.New("editMessageCaption").Method(reqtify.POST).
+			   ArgDefault("chat_id", GetStringId(o.ChatId), "").
+			   ArgDefault("message_id", o.SourceMessageId.String(), "0").
+			   ArgDefault("inline_id", o.SourceInlineId.String(), "").
+			   Arg("caption", o.Text).
+			   ArgDefault("parse_mode", o.ParseMode.String(), "")
+	if o.ReplyMarkup != nil {
+		b, e := json.Marshal(o.ReplyMarkup)
+		if e != nil { return nil }
+		req.Arg("reply_markup", string(b))
+	}
+	return req
+}
+
 func (this *Protocol) BuildDeleteMessageReq(o data.ODelete) (*reqtify.Request) {
 	return this.client.New("deleteMessage").
 			   Arg("chat_id", GetStringId(o.SourceChatId)).
@@ -226,6 +241,45 @@ func (this *Protocol) BuildSendPhotoReq(o data.OPhoto) (*reqtify.Request) {
 		req.Arg("reply_markup", string(b))
 	}
 	applyFile(req, "photo", o.FileName, "photo.jpg", o.File)
+	return req
+}
+
+func (this *Protocol) BuildSendAnimationReq(o data.OAnimation) (*reqtify.Request) {
+	req := this.client.New("sendAnimation").
+			   Arg("chat_id", GetStringId(o.ChatId)).
+			   ArgDefault("caption", o.Text, "").
+			   ArgDefault("parse_mode", o.ParseMode.String(), "").
+			   ArgDefault("disable_notification", o.DisableNotification.String(), "false").
+			   ArgDefault("height", o.Height, 0).
+			   ArgDefault("width", o.Width, 0).
+			   ArgDefault("duration", o.Duration, 0)
+	if o.ReplyToId != nil {
+		req.Arg("reply_to_message_id", o.ReplyToId.String())
+	}
+	if o.ReplyMarkup != nil {
+		b, e := json.Marshal(o.ReplyMarkup)
+		if e != nil { return nil }
+		req.Arg("reply_markup", string(b))
+	}
+	applyFile(req, "animation", o.FileName, "animation.mp4", o.File)
+	return req
+}
+
+func (this *Protocol) BuildSendDocumentReq(o data.ODocument) (*reqtify.Request) {
+	req := this.client.New("sendDocument").
+			   Arg("chat_id", GetStringId(o.ChatId)).
+			   ArgDefault("caption", o.Text, "").
+			   ArgDefault("parse_mode", o.ParseMode.String(), "").
+			   ArgDefault("disable_notification", o.DisableNotification.String(), "false")
+	if o.ReplyToId != nil {
+		req.Arg("reply_to_message_id", o.ReplyToId.String())
+	}
+	if o.ReplyMarkup != nil {
+		b, e := json.Marshal(o.ReplyMarkup)
+		if e != nil { return nil }
+		req.Arg("reply_markup", string(b))
+	}
+	applyFile(req, "document", o.FileName, "file", o.File)
 	return req
 }
 
@@ -320,12 +374,28 @@ func (this *Protocol) SendStickerAsync(o data.OSticker, sm data.ResponseHandler)
 	go DoAsyncCall(this.bot.Log, this.BuildSendStickerReq(o), sm)
 }
 
+func (this *Protocol) SendDocumentAsync(o data.ODocument, sm data.ResponseHandler) () {
+	go DoAsyncCall(this.bot.Log, this.BuildSendDocumentReq(o), sm)
+}
+
+func (this *Protocol) SendPhotoAsync(o data.OPhoto, sm data.ResponseHandler) () {
+	go DoAsyncCall(this.bot.Log, this.BuildSendPhotoReq(o), sm)
+}
+
+func (this *Protocol) SendAnimationAsync(o data.OAnimation, sm data.ResponseHandler) () {
+	go DoAsyncCall(this.bot.Log, this.BuildSendAnimationReq(o), sm)
+}
+
 func (this *Protocol) AnswerInlineQueryAsync(o data.OInlineQueryAnswer, rm data.ResponseHandler) {
 	go DoAsyncCall(this.bot.Log, this.BuildAnswerInlineQueryReq(o), rm)
 }
 
 func (this *Protocol) EditMessageTextAsync(o data.OMessageEdit, sm data.ResponseHandler) () {
 	go DoAsyncCall(this.bot.Log, this.BuildEditMessageReq(o), sm)
+}
+
+func (this *Protocol) EditMessageCaptionAsync(o data.OCaptionEdit, sm data.ResponseHandler) () {
+	go DoAsyncCall(this.bot.Log, this.BuildEditCaptionReq(o), sm)
 }
 
 func (this *Protocol) DeleteMessageAsync(o data.ODelete, sm data.ResponseHandler) () {
@@ -382,9 +452,27 @@ func (this *Protocol) ForwardMessage(o data.OForward) (*data.TMessage, error) {
 	return &m, OutputToObject(j, e, &m)
 }
 
+func (this *Protocol) SendDocument(o data.ODocument) (*data.TMessage, error) {
+	var m data.TMessage
+	j, e := DoCall(this.bot.Log, this.BuildSendDocumentReq(o))
+	return &m, OutputToObject(j, e, &m)
+}
+
 func (this *Protocol) SendSticker(o data.OSticker) (*data.TMessage, error) {
 	var m data.TMessage
 	j, e := DoCall(this.bot.Log, this.BuildSendStickerReq(o))
+	return &m, OutputToObject(j, e, &m)
+}
+
+func (this *Protocol) SendPhoto(o data.OPhoto) (*data.TMessage, error) {
+	var m data.TMessage
+	j, e := DoCall(this.bot.Log, this.BuildSendPhotoReq(o))
+	return &m, OutputToObject(j, e, &m)
+}
+
+func (this *Protocol) SendAnimation(o data.OAnimation) (*data.TMessage, error) {
+	var m data.TMessage
+	j, e := DoCall(this.bot.Log, this.BuildSendAnimationReq(o))
 	return &m, OutputToObject(j, e, &m)
 }
 
@@ -396,6 +484,12 @@ func (this *Protocol) AnswerInlineQuery(o data.OInlineQueryAnswer) (error) {
 func (this *Protocol) EditMessageText(o data.OMessageEdit) (*data.TMessage, error) {
 	var m data.TMessage
 	j, e := DoCall(this.bot.Log, this.BuildEditMessageReq(o))
+	return &m, OutputToObject(j, e, &m)
+}
+
+func (this *Protocol) EditMessageCaption(o data.OCaptionEdit) (*data.TMessage, error) {
+	var m data.TMessage
+	j, e := DoCall(this.bot.Log, this.BuildEditCaptionReq(o))
 	return &m, OutputToObject(j, e, &m)
 }
 
