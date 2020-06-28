@@ -46,6 +46,7 @@ type MessageParseMode string
 const ParseHTML      MessageParseMode = "HTML"
 const ParseMarkdown  MessageParseMode = "Markdown"
 const ParseMarkdown2 MessageParseMode = "Markdown2"
+const ParseDefault   MessageParseMode = ""
 func (this MessageParseMode) String() string { return string(this) }
 
 // enumerable values for Outgoing.DisableNotification

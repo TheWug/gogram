@@ -318,6 +318,7 @@ type TInlineQueryResultPhoto struct {
 	Title               *string                   `json:"title,omitempty"`
 	Description         *string                   `json:"description,omitempty"`
 	Caption             *string                   `json:"caption,omitempty"`
+	ParseMode            MessageParseMode         `json:"parse_mode,omitempty"`
 	ReplyMarkup         *TInlineKeyboard          `json:"reply_markup,omitempty"`
 	InputMessageContent *TInputMessageTextContent `json:"input_message_content,omitempty"`
 }
@@ -329,7 +330,7 @@ type TInlineQueryResultCachedPhoto struct {
 	Title               *string                   `json:"title,omitempty"`
 	Description         *string                   `json:"description,omitempty"`
 	Caption             *string                   `json:"caption,omitempty"`
-	ParseMode           *MessageParseMode         `json:"parse_mode,omitempty"`
+	ParseMode            MessageParseMode         `json:"parse_mode,omitempty"`
 	ReplyMarkup         *TInlineKeyboard          `json:"reply_markup,omitempty"`
 	InputMessageContent *TInputMessageTextContent `json:"input_message_content,omitempty"`
 }
@@ -343,7 +344,7 @@ type TInlineQueryResultGif struct {
 	ThumbUrl             string                   `json:"thumb_url"`
 	Title               *string                   `json:"title,omitempty"`
 	Caption             *string                   `json:"caption,omitempty"`
-	ParseMode           *MessageParseMode         `json:"parse_mode,omitempty"`
+	ParseMode            MessageParseMode         `json:"parse_mode,omitempty"`
 	ReplyMarkup         *TInlineKeyboard          `json:"reply_markup,omitempty"`
 	InputMessageContent *TInputMessageTextContent `json:"input_message_content,omitempty"`
 }
@@ -512,7 +513,7 @@ func (this *TInlineKeyboard) AddRow() {
 
 type TInputMessageTextContent struct {
 	MessageText string           `json:"message_text"`
-	ParseMode  *MessageParseMode `json:"parse_mode,omitempty"`
+	ParseMode   MessageParseMode `json:"parse_mode,omitempty"`
 	NoPreview  *bool             `json:"disable_web_page_preview,omitempty"`
 }
 
