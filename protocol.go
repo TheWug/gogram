@@ -120,14 +120,24 @@ func (this *Protocol) BuildGetChatReq(o data.OChatMember) (*reqtify.Request) {
 func (this *Protocol) BuildAnswerInlineQueryReq(o data.OInlineQueryAnswer) (*reqtify.Request) {
 	// next_offset should get stuck at -1 forever if pagination breaks somehow, to prevent infinite loops.
 
-	b, e := json.Marshal(o.Results)
+	// manually encode, instead of using Marshal. Size matters here, and without SetEscapeHTML(false),
+	// every < and > (of which there are tons in the inline HTML tags) expands into "\uxxxx", 6 times longer.
+	// experimentation has shown average space savings of 20% is possible by simply skipping this escaping,
+	// which also saves time, and is a compatibility workaround for browsers anyway, so totally unnecessary here.
+	var buf bytes.Buffer
+	encoder := json.NewEncoder(&buf)
+	encoder.SetEscapeHTML(false)
+	e := encoder.Encode(o.Results)
+	b := buf.Bytes()
+
 	if e != nil { return nil }
 
 	return this.client.New("answerInlineQuery").Method(reqtify.POST).
 			   Arg("inline_query_id", o.Id.String()).
 			   ArgDefault("cache_time", strconv.Itoa(o.CacheTime), "0").
 			   Arg("next_offset", o.NextOffset).
-			   Arg("results", string(b))
+			   Arg("results", string(b)).
+			   Multipart() // the alternative of multipart is URL encoded, which escapes a lot of stuff and thusly takes much more space
 }
 
 func (this *Protocol) BuildSendMessageReq(o data.OMessage) (*reqtify.Request) {
