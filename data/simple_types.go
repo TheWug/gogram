@@ -33,6 +33,9 @@ func (this CheckoutID)   String() string { return string(this) }
 func (this TxIDTelegram) String() string { return string(this) }
 func (this TxIDVendor)   String() string { return string(this) }
 
+// internal helper types
+type DialogID     string
+
 // enumerable values for TChat.Type
 type ChatType string
 const Private    ChatType = "private"
