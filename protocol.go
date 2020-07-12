@@ -190,6 +190,19 @@ func (this *Protocol) BuildEditCaptionReq(o data.OCaptionEdit) (*reqtify.Request
 	return req
 }
 
+func (this *Protocol) BuildEditReplyMarkupReq(o data.OMessageEdit) (*reqtify.Request) {
+	req := this.client.New("editMessageReplyMarkup").Method(reqtify.POST).
+			   ArgDefault("chat_id", GetStringId(o.ChatId), "").
+			   ArgDefault("message_id", o.SourceMessageId.String(), "0").
+			   ArgDefault("inline_id", o.SourceInlineId.String(), "")
+	if o.ReplyMarkup != nil {
+		b, e := json.Marshal(o.ReplyMarkup)
+		if e != nil { return nil }
+		req.Arg("reply_markup", string(b))
+	}
+	return req
+}
+
 func (this *Protocol) BuildDeleteMessageReq(o data.ODelete) (*reqtify.Request) {
 	return this.client.New("deleteMessage").
 			   Arg("chat_id", GetStringId(o.SourceChatId)).
@@ -408,6 +421,10 @@ func (this *Protocol) EditMessageCaptionAsync(o data.OCaptionEdit, sm data.Respo
 	go DoAsyncCall(this.bot.Log, this.BuildEditCaptionReq(o), sm)
 }
 
+func (this *Protocol) EditReplyMarkupAsync(o data.OMessageEdit, sm data.ResponseHandler) () {
+	go DoAsyncCall(this.bot.Log, this.BuildEditReplyMarkupReq(o), sm)
+}
+
 func (this *Protocol) DeleteMessageAsync(o data.ODelete, sm data.ResponseHandler) () {
 	go DoAsyncCall(this.bot.Log, this.BuildDeleteMessageReq(o), sm)
 }
@@ -500,6 +517,12 @@ func (this *Protocol) EditMessageText(o data.OMessageEdit) (*data.TMessage, erro
 func (this *Protocol) EditMessageCaption(o data.OCaptionEdit) (*data.TMessage, error) {
 	var m data.TMessage
 	j, e := DoCall(this.bot.Log, this.BuildEditCaptionReq(o))
+	return &m, OutputToObject(j, e, &m)
+}
+
+func (this *Protocol) EditReplyMarkup(o data.OMessageEdit) (*data.TMessage, error) {
+	var m data.TMessage
+	j, e := DoCall(this.bot.Log, this.BuildEditReplyMarkupReq(o))
 	return &m, OutputToObject(j, e, &m)
 }
 
