@@ -288,7 +288,7 @@ func (this *MessageCtx) ForwardAsync(m data.OForward, handler data.ResponseHandl
 }
 
 func (this *MessageCtx) EditTextAsync(m data.OMessageEdit, handler data.ResponseHandler) {
-	m.ChatId = this.Msg.Chat.Id
+	m.SourceChatId = this.Msg.Chat.Id
 	m.SourceMessageId = this.Msg.Id
 	this.Bot.Remote.EditMessageTextAsync(m, handler)
 }

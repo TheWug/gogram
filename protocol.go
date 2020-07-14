@@ -161,7 +161,7 @@ func (this *Protocol) BuildSendMessageReq(o data.OMessage) (*reqtify.Request) {
 
 func (this *Protocol) BuildEditMessageReq(o data.OMessageEdit) (*reqtify.Request) {
 	req := this.client.New("editMessageText").Method(reqtify.POST).
-			   ArgDefault("chat_id", GetStringId(o.ChatId), "").
+			   ArgDefault("chat_id", GetStringId(o.SourceChatId), "").
 			   ArgDefault("message_id", o.SourceMessageId.String(), "0").
 			   ArgDefault("inline_id", o.SourceInlineId.String(), "").
 			   Arg("text", o.Text).
@@ -177,7 +177,7 @@ func (this *Protocol) BuildEditMessageReq(o data.OMessageEdit) (*reqtify.Request
 
 func (this *Protocol) BuildEditCaptionReq(o data.OCaptionEdit) (*reqtify.Request) {
 	req := this.client.New("editMessageCaption").Method(reqtify.POST).
-			   ArgDefault("chat_id", GetStringId(o.ChatId), "").
+			   ArgDefault("chat_id", GetStringId(o.SourceChatId), "").
 			   ArgDefault("message_id", o.SourceMessageId.String(), "0").
 			   ArgDefault("inline_id", o.SourceInlineId.String(), "").
 			   Arg("caption", o.Text).
