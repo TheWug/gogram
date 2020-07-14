@@ -197,6 +197,12 @@ func (this *TMessage) PlainText() (string) {
 	}
 }
 
+func (this *TMessage) GetEntities() []TMessageEntity {
+	if this.Entities != nil { return *this.Entities }
+	if this.CaptionEntities != nil { return *this.CaptionEntities }
+	return nil
+}
+
 func (this *TMessage) Sender() (Sender) {
 	if this.From != nil {
 		return Sender{User: this.From.Id}
