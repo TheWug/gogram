@@ -19,26 +19,12 @@ type StateBase struct {
 	StateMachine *MessageStateMachine
 }
 
-type StateIgnoreCallbacks struct {
-}
-
-func (this *StateIgnoreCallbacks) HandleCallback(ctx *CallbackCtx) {
-	return // do nothing
-}
-
 func (this *StateBase) HandleCallback(ctx *CallbackCtx) {
 	return // default implementation does nothing
 }
 
-type StateIgnoreMessages struct {
-}
-
 func (this *StateBase) Handle(ctx *CallbackCtx) {
 	return // default implementation does nothing
-}
-
-func (this *StateIgnoreMessages) HandleCallback(ctx *CallbackCtx) {
-	return // do nothing
 }
 
 func (this *StateBase) SetState(sender data.Sender, state State) {
