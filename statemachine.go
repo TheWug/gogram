@@ -18,6 +18,12 @@ type StateBase struct {
 	StateMachine *MessageStateMachine
 }
 
+func MakeBase(machine *MessageStateMachine) StateBase {
+	var sb StateBase
+	sb.StateMachine = machine
+	return sb
+}
+
 func (this *StateBase) HandleCallback(ctx *CallbackCtx) {
 	return // default implementation does nothing
 }
