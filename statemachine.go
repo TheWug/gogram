@@ -69,9 +69,23 @@ func (this *MessageStateMachine) GetCommand(cmd string) State {
 	return this.Handlers[strings.ToLower(cmd)]
 }
 
-func (this *MessageStateMachine) SetState(sender data.Sender, state State) {
-	if state != nil {
-		this.UserStates[sender] = state
+func (this *MessageStateMachine) SetState(sender data.Sender, newstate State) {
+	oldstate := this.UserStates[sender]
+	if oldstate != nil {
+		oldstate.StateExited(sender)
+	}
+
+	this.SetStateDirect(sender, newstate)
+
+	if newstate != nil {
+		newstate.StateEntered(sender)
+	}
+}
+
+func (this *MessageStateMachine) SetStateDirect(sender data.Sender, newstate State) {
+
+	if newstate != nil {
+		this.UserStates[sender] = newstate
 	} else {
 		delete(this.UserStates, sender)
 	}
