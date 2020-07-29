@@ -9,6 +9,10 @@ import (
 type State interface {
 	Handle(*MessageCtx)
 	HandleCallback(*CallbackCtx)
+
+	SetState(data.Sender, State)
+	StateExited(data.Sender)
+	StateEntered(data.Sender)
 }
 
 type StateBase struct {
