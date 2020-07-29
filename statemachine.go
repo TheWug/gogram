@@ -10,7 +10,6 @@ type State interface {
 	Handle(*MessageCtx)
 	HandleCallback(*CallbackCtx)
 
-	SetState(data.Sender, State)
 	StateExited(data.Sender)
 	StateEntered(data.Sender)
 }
@@ -25,14 +24,6 @@ func (this *StateBase) HandleCallback(ctx *CallbackCtx) {
 
 func (this *StateBase) Handle(ctx *CallbackCtx) {
 	return // default implementation does nothing
-}
-
-func (this *StateBase) SetState(sender data.Sender, state State) {
-	this.StateExited(sender)
-	this.StateMachine.SetState(sender, state)
-	if state != nil {
-		state.StateEntered(sender)
-	}
 }
 
 func (this *StateBase) StateExited(sender data.Sender) {
