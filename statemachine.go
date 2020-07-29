@@ -17,6 +17,10 @@ type State interface {
 	HandleCallback(*CallbackCtx)
 }
 
+type StateBase struct {
+	StateMachine *MessageStateMachine
+}
+
 type StateIgnoreCallbacks struct {
 }
 
@@ -24,11 +28,35 @@ func (this *StateIgnoreCallbacks) HandleCallback(ctx *CallbackCtx) {
 	return // do nothing
 }
 
+func (this *StateBase) HandleCallback(ctx *CallbackCtx) {
+	return // default implementation does nothing
+}
+
 type StateIgnoreMessages struct {
+}
+
+func (this *StateBase) Handle(ctx *CallbackCtx) {
+	return // default implementation does nothing
 }
 
 func (this *StateIgnoreMessages) HandleCallback(ctx *CallbackCtx) {
 	return // do nothing
+}
+
+func (this *StateBase) SetState(sender data.Sender, state State) {
+	this.StateExited(sender)
+	this.StateMachine.SetState(sender, state)
+	if state != nil {
+		state.StateEntered(sender)
+	}
+}
+
+func (this *StateBase) StateExited(sender data.Sender) {
+	return // default implementation does nothing
+}
+
+func (this *StateBase) StateEntered(sender data.Sender) {
+	return // default implementation does nothing
 }
 
 func NewMessageStateMachine() (*MessageStateMachine) {
