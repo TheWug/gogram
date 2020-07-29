@@ -6,12 +6,6 @@ import (
 	"strings"
 )
 
-type MessageStateMachine struct {
-	UserStates     map[data.Sender]State
-	Handlers       map[string]State
-	Default        State
-}
-
 type State interface {
 	Handle(*MessageCtx)
 	HandleCallback(*CallbackCtx)
@@ -57,6 +51,13 @@ func (this *StateBase) StateExited(sender data.Sender) {
 
 func (this *StateBase) StateEntered(sender data.Sender) {
 	return // default implementation does nothing
+}
+
+type MessageStateMachine struct {
+	StateBase
+	UserStates     map[data.Sender]State
+	Handlers       map[string]State
+	Default        State
 }
 
 func NewMessageStateMachine() (*MessageStateMachine) {
