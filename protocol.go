@@ -36,14 +36,6 @@ type Protocol struct {
 
 func NewProtocol(bound *TelegramBot) (Protocol) {
 	p := Protocol{
-		client: reqtify.New("", nil, &http.Client{
-			Transport: http.DefaultTransport,
-			Timeout: 90 * time.Second,
-		}, nil, userAgent),
-		file_client: reqtify.New("", nil, &http.Client{
-			Transport: http.DefaultTransport,
-			Timeout: 90 * time.Second,
-		}, nil, userAgent),
 		nextUpdateOffsetless: true,
 		bot: bound,
 	}
@@ -52,8 +44,14 @@ func NewProtocol(bound *TelegramBot) (Protocol) {
 
 func (this *Protocol) SetAPIKey(newKey string) () {
 	this.apiKey = newKey
-	this.client.Root = apiEndpoint + this.apiKey + "/"
-	this.file_client.Root = apiFileEndpoint + this.apiKey + "/"
+	this.client = reqtify.New(apiEndpoint + this.apiKey + "/", nil, &http.Client{
+		Transport: http.DefaultTransport,
+		Timeout: 90 * time.Second,
+	}, nil, userAgent)
+	this.file_client = reqtify.New(apiFileEndpoint + this.apiKey + "/", nil, &http.Client{
+		Transport: http.DefaultTransport,
+		Timeout: 90 * time.Second,
+	}, nil, userAgent)
 }
 
 func (this *Protocol) GetMe() (data.TUser) {
