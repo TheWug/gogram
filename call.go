@@ -24,11 +24,11 @@ type HandlerBox struct {
 }
 
 // call this in a goroutine.
-func DoAsyncGetReader(logger *log.Logger, request *reqtify.Request, handler data.ResponseHandler) {
+func DoAsyncGetReader(logger *log.Logger, request reqtify.Request, handler data.ResponseHandler) {
 	doAsyncGetReader(logger, request, handler, call_response_channel)
 }
 
-func doAsyncGetReader(logger *log.Logger, request *reqtify.Request, handler data.ResponseHandler, output chan HandlerBox) {
+func doAsyncGetReader(logger *log.Logger, request reqtify.Request, handler data.ResponseHandler, output chan HandlerBox) {
 	var hbox HandlerBox
 	hbox.Handler = handler
 
@@ -57,11 +57,11 @@ func doAsyncGetReader(logger *log.Logger, request *reqtify.Request, handler data
 }
 
 // call this in a goroutine.
-func DoAsyncFetch(logger *log.Logger, request *reqtify.Request, handler data.ResponseHandler) {
+func DoAsyncFetch(logger *log.Logger, request reqtify.Request, handler data.ResponseHandler) {
 	doAsyncFetch(logger, request, handler, call_response_channel)
 }
 
-func doAsyncFetch(logger *log.Logger, request *reqtify.Request, handler data.ResponseHandler, output chan HandlerBox) {
+func doAsyncFetch(logger *log.Logger, request reqtify.Request, handler data.ResponseHandler, output chan HandlerBox) {
 	temp := make(chan HandlerBox, 1)
 	doAsyncGetReader(logger, request, handler, temp)
 	close(temp)
@@ -88,11 +88,11 @@ func doAsyncFetch(logger *log.Logger, request *reqtify.Request, handler data.Res
 }
 
 // call this in a goroutine.
-func DoAsyncCall(logger *log.Logger, request *reqtify.Request, handler data.ResponseHandler) {
+func DoAsyncCall(logger *log.Logger, request reqtify.Request, handler data.ResponseHandler) {
 	doAsyncCall(logger, request, handler, call_response_channel)
 }
 
-func doAsyncCall(logger *log.Logger, request *reqtify.Request, handler data.ResponseHandler, output chan HandlerBox) {
+func doAsyncCall(logger *log.Logger, request reqtify.Request, handler data.ResponseHandler, output chan HandlerBox) {
 	temp := make(chan HandlerBox, 1)
 	doAsyncFetch(logger, request, handler, temp)
 	close(temp)
@@ -128,7 +128,7 @@ func doAsyncCall(logger *log.Logger, request *reqtify.Request, handler data.Resp
 	return
 }
 
-func DoGetReader(logger *log.Logger, request *reqtify.Request) (io.ReadCloser, error) {
+func DoGetReader(logger *log.Logger, request reqtify.Request) (io.ReadCloser, error) {
 	ch := make(chan HandlerBox, 1)
 
 	doAsyncGetReader(logger, request, nil, ch)
@@ -138,7 +138,7 @@ func DoGetReader(logger *log.Logger, request *reqtify.Request) (io.ReadCloser, e
 	return output.Reader, output.Error
 }
 
-func DoFetch(logger *log.Logger, request *reqtify.Request) ([]byte, error) {
+func DoFetch(logger *log.Logger, request reqtify.Request) ([]byte, error) {
 	ch := make(chan HandlerBox, 1)
 
 	doAsyncFetch(logger, request, nil, ch)
@@ -148,7 +148,7 @@ func DoFetch(logger *log.Logger, request *reqtify.Request) ([]byte, error) {
 	return output.Bytes, output.Error
 }
 
-func DoCall(logger *log.Logger, request *reqtify.Request) (*json.RawMessage, error) {
+func DoCall(logger *log.Logger, request reqtify.Request) (*json.RawMessage, error) {
 	ch := make(chan HandlerBox, 1)
 
 	doAsyncCall(logger, request, nil, ch)

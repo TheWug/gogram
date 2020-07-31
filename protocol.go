@@ -98,24 +98,24 @@ func (this *Protocol) Test() (error) {
 
 // URL building functions
 
-func (this *Protocol) BuildGetUpdatesReq() (*reqtify.Request) {
+func (this *Protocol) BuildGetUpdatesReq() (reqtify.Request) {
 	return this.client.New("getUpdates").
 			   ArgDefault("offset", this.getNextUpdateOffset(), "").
 			   Arg("timeout", "3600")
 }
 
-func (this *Protocol) BuildGetChatMemberReq(o data.OChatMember) (*reqtify.Request) {
+func (this *Protocol) BuildGetChatMemberReq(o data.OChatMember) (reqtify.Request) {
 	return this.client.New("getChatMember").
 			   Arg("chat_id", GetStringId(o.ChatId)).
 			   Arg("user_id", o.UserId.String())
 }
 
-func (this *Protocol) BuildGetChatReq(o data.OChatMember) (*reqtify.Request) {
+func (this *Protocol) BuildGetChatReq(o data.OChatMember) (reqtify.Request) {
 	return this.client.New("getChat").
 			   Arg("chat_id", GetStringId(o.ChatId))
 }
 
-func (this *Protocol) BuildAnswerInlineQueryReq(o data.OInlineQueryAnswer) (*reqtify.Request) {
+func (this *Protocol) BuildAnswerInlineQueryReq(o data.OInlineQueryAnswer) (reqtify.Request) {
 	// next_offset should get stuck at -1 forever if pagination breaks somehow, to prevent infinite loops.
 
 	// manually encode, instead of using Marshal. Size matters here, and without SetEscapeHTML(false),
@@ -138,7 +138,7 @@ func (this *Protocol) BuildAnswerInlineQueryReq(o data.OInlineQueryAnswer) (*req
 			   Multipart() // the alternative of multipart is URL encoded, which escapes a lot of stuff and thusly takes much more space
 }
 
-func (this *Protocol) BuildSendMessageReq(o data.OMessage) (*reqtify.Request) {
+func (this *Protocol) BuildSendMessageReq(o data.OMessage) (reqtify.Request) {
 	req := this.client.New("sendMessage").Method(reqtify.POST).
 			   Arg("chat_id", GetStringId(o.ChatId)).
 			   Arg("text", o.Text).
@@ -157,7 +157,7 @@ func (this *Protocol) BuildSendMessageReq(o data.OMessage) (*reqtify.Request) {
 	return req
 }
 
-func (this *Protocol) BuildEditMessageReq(o data.OMessageEdit) (*reqtify.Request) {
+func (this *Protocol) BuildEditMessageReq(o data.OMessageEdit) (reqtify.Request) {
 	req := this.client.New("editMessageText").Method(reqtify.POST).
 			   ArgDefault("chat_id", GetStringId(o.SourceChatId), "").
 			   ArgDefault("message_id", o.SourceMessageId.String(), "0").
@@ -173,7 +173,7 @@ func (this *Protocol) BuildEditMessageReq(o data.OMessageEdit) (*reqtify.Request
 	return req
 }
 
-func (this *Protocol) BuildEditCaptionReq(o data.OCaptionEdit) (*reqtify.Request) {
+func (this *Protocol) BuildEditCaptionReq(o data.OCaptionEdit) (reqtify.Request) {
 	req := this.client.New("editMessageCaption").Method(reqtify.POST).
 			   ArgDefault("chat_id", GetStringId(o.SourceChatId), "").
 			   ArgDefault("message_id", o.SourceMessageId.String(), "0").
@@ -188,7 +188,7 @@ func (this *Protocol) BuildEditCaptionReq(o data.OCaptionEdit) (*reqtify.Request
 	return req
 }
 
-func (this *Protocol) BuildEditReplyMarkupReq(o data.OMessageEdit) (*reqtify.Request) {
+func (this *Protocol) BuildEditReplyMarkupReq(o data.OMessageEdit) (reqtify.Request) {
 	req := this.client.New("editMessageReplyMarkup").Method(reqtify.POST).
 			   ArgDefault("chat_id", GetStringId(o.ChatId), "").
 			   ArgDefault("message_id", o.SourceMessageId.String(), "0").
@@ -201,7 +201,7 @@ func (this *Protocol) BuildEditReplyMarkupReq(o data.OMessageEdit) (*reqtify.Req
 	return req
 }
 
-func (this *Protocol) BuildDeleteMessageReq(o data.ODelete) (*reqtify.Request) {
+func (this *Protocol) BuildDeleteMessageReq(o data.ODelete) (reqtify.Request) {
 	return this.client.New("deleteMessage").
 			   Arg("chat_id", GetStringId(o.SourceChatId)).
 			   Arg("message_id", o.SourceMessageId.String())
@@ -213,7 +213,7 @@ func (this *Protocol) BuildDeleteMessageReq(o data.ODelete) (*reqtify.Request) {
 // io.Reader: marshalled into a form file, where it will be read to completion by the HTTP request. filename backup is used.
 // byte array: same as above. filename backup is used.
 // reqtify.FormFile: same as above, but uses included filename
-func applyFile(req *reqtify.Request, tag, filename, backup_filename string, object interface{}) {
+func applyFile(req reqtify.Request, tag, filename, backup_filename string, object interface{}) {
 	if filename == "" { filename = backup_filename }
 	switch file := object.(type) {
 	case data.FileID:
@@ -231,7 +231,7 @@ func applyFile(req *reqtify.Request, tag, filename, backup_filename string, obje
 	}
 }
 
-func (this *Protocol) BuildSendStickerReq(o data.OSticker) (*reqtify.Request) {
+func (this *Protocol) BuildSendStickerReq(o data.OSticker) (reqtify.Request) {
 	req := this.client.New("sendSticker").
 			   Arg("chat_id", GetStringId(o.ChatId)).
 			   ArgDefault("disable_notification", o.DisableNotification.String(), "false")
@@ -247,7 +247,7 @@ func (this *Protocol) BuildSendStickerReq(o data.OSticker) (*reqtify.Request) {
 	return req
 }
 
-func (this *Protocol) BuildSendPhotoReq(o data.OPhoto) (*reqtify.Request) {
+func (this *Protocol) BuildSendPhotoReq(o data.OPhoto) (reqtify.Request) {
 	req := this.client.New("sendPhoto").
 			   Arg("chat_id", GetStringId(o.ChatId)).
 			   ArgDefault("caption", o.Text, "").
@@ -265,7 +265,7 @@ func (this *Protocol) BuildSendPhotoReq(o data.OPhoto) (*reqtify.Request) {
 	return req
 }
 
-func (this *Protocol) BuildSendAnimationReq(o data.OAnimation) (*reqtify.Request) {
+func (this *Protocol) BuildSendAnimationReq(o data.OAnimation) (reqtify.Request) {
 	req := this.client.New("sendAnimation").
 			   Arg("chat_id", GetStringId(o.ChatId)).
 			   ArgDefault("caption", o.Text, "").
@@ -286,7 +286,7 @@ func (this *Protocol) BuildSendAnimationReq(o data.OAnimation) (*reqtify.Request
 	return req
 }
 
-func (this *Protocol) BuildSendDocumentReq(o data.ODocument) (*reqtify.Request) {
+func (this *Protocol) BuildSendDocumentReq(o data.ODocument) (reqtify.Request) {
 	req := this.client.New("sendDocument").
 			   Arg("chat_id", GetStringId(o.ChatId)).
 			   ArgDefault("caption", o.Text, "").
@@ -304,7 +304,7 @@ func (this *Protocol) BuildSendDocumentReq(o data.ODocument) (*reqtify.Request) 
 	return req
 }
 
-func (this *Protocol) BuildSendAudioReq(o data.OAudio) (*reqtify.Request) {
+func (this *Protocol) BuildSendAudioReq(o data.OAudio) (reqtify.Request) {
 	req := this.client.New("sendAudio").
 			   Arg("chat_id", GetStringId(o.ChatId)).
 			   ArgDefault("caption", o.Text, "").
@@ -322,7 +322,7 @@ func (this *Protocol) BuildSendAudioReq(o data.OAudio) (*reqtify.Request) {
 	return req
 }
 
-func (this *Protocol) BuildForwardMessageReq(o data.OForward) (*reqtify.Request) {
+func (this *Protocol) BuildForwardMessageReq(o data.OForward) (reqtify.Request) {
 	return this.client.New("forwardMessage").
 			   Arg("chat_id", GetStringId(o.ChatId)).
 			   Arg("from_chat_id", GetStringId(o.SourceChatId)).
@@ -330,17 +330,17 @@ func (this *Protocol) BuildForwardMessageReq(o data.OForward) (*reqtify.Request)
 			   ArgDefault("disable_notification", o.DisableNotification.String(), "false")
 }
 
-func (this *Protocol) BuildKickMemberReq(o data.OChatMember) (*reqtify.Request) {
+func (this *Protocol) BuildKickMemberReq(o data.OChatMember) (reqtify.Request) {
 	return this.client.New("kickChatMember").
 			   Arg("chat_id", GetStringId(o.ChatId)).
 			   Arg("user_id", o.UserId.String())
 }
 
-func (this *Protocol) BuildGetStickerSetReq(o data.OStickerSet) (*reqtify.Request) {
+func (this *Protocol) BuildGetStickerSetReq(o data.OStickerSet) (reqtify.Request) {
 	return this.client.New("getStickerSet").Arg("name", o.Name)
 }
 
-func (this *Protocol) BuildRestrictChatMemberReq(o data.ORestrict) (*reqtify.Request) {
+func (this *Protocol) BuildRestrictChatMemberReq(o data.ORestrict) (reqtify.Request) {
 	req := this.client.New("restrictChatMember").Method(reqtify.POST).
 			   Arg("chat_id", GetStringId(o.ChatID)).
 			   Arg("user_id", strconv.Itoa(o.UserID)).
@@ -353,15 +353,15 @@ func (this *Protocol) BuildRestrictChatMemberReq(o data.ORestrict) (*reqtify.Req
 	return req
 }
 
-func (this *Protocol) BuildGetFileReq(o data.OGetFile) (*reqtify.Request) {
+func (this *Protocol) BuildGetFileReq(o data.OGetFile) (reqtify.Request) {
 	return this.client.New("getFile").Arg("file_id", o.Id.String())
 }
 
-func (this *Protocol) BuildDownloadFileReq(o data.OFile) (*reqtify.Request) {
+func (this *Protocol) BuildDownloadFileReq(o data.OFile) (reqtify.Request) {
 	return this.file_client.New(o.FilePath)
 }
 
-func (this *Protocol) BuildAnswerCallbackQueryReq(o data.OCallback) (*reqtify.Request) {
+func (this *Protocol) BuildAnswerCallbackQueryReq(o data.OCallback) (reqtify.Request) {
 	return this.client.New("answerCallbackQuery").Method(reqtify.POST).
 			   Arg("callback_query_id", o.Id.String()).
 			   ArgDefault("text", o.Notification, "").
@@ -370,7 +370,7 @@ func (this *Protocol) BuildAnswerCallbackQueryReq(o data.OCallback) (*reqtify.Re
 			   ArgDefault("url", o.URL, "")
 }
 
-func (this *Protocol) BuildSetChatPermissionsReq(o data.ORestrict) (*reqtify.Request) {
+func (this *Protocol) BuildSetChatPermissionsReq(o data.ORestrict) (reqtify.Request) {
 	req := this.client.New("setChatPermissions").Method(reqtify.POST).
 			  Arg("chat_id", GetStringId(o.ChatID))
 
