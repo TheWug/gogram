@@ -68,10 +68,10 @@ func (this *Protocol) Test() (error) {
 	r, e := req.Do()
 
 	if r != nil {
-    	log.Printf("[telegram] API call: %s (%s)\n", req.Path, r.Status)
+	log.Printf("[telegram] API call: %s (%s)\n", req.GetPath(), r.Status)
 		defer r.Body.Close()
 	} else {
-		log.Printf("[telegram] API call: %s (failed: %s)\n", req.Path, e.Error())
+		log.Printf("[telegram] API call: %s (failed: %s)\n", req.GetPath(), e.Error())
 	}
 	if e != nil { return e }
 

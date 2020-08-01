@@ -42,7 +42,7 @@ func doAsyncGetReader(logger *log.Logger, request reqtify.Request, handler data.
 	}
 
 	if logger != nil {
-		logger.Printf("[telegram] API call: %s (%s)\n", request.Path, status)
+		logger.Printf("[telegram] API call: %s (%s)\n", request.GetPath(), status)
 	}
 
 	if e != nil {
