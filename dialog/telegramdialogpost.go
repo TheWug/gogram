@@ -57,6 +57,10 @@ func (this *TelegramDialogPost) Load(found *storage.DialogPost, id data.DialogID
 }
 
 func (this *TelegramDialogPost) Ctx(bot *gogram.TelegramBot) *gogram.MessageCtx {
+	if this.msg_id == 0 || this.chat_id == 0 {
+		return nil
+	}
+
 	return gogram.NewMessageCtx(&data.TMessage{
 		Id: this.msg_id,
 		Chat: data.TChat{
