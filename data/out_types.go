@@ -179,6 +179,9 @@ type OInlineQueryAnswer struct {
 	Results  []interface{} // types: array of TInlineQueryResult*
 	NextOffset string
 	CacheTime  int
+	IsPersonal   bool
+	SwitchPMText string
+	SwitchPMParam string
 }
 
 type OCallback struct {

@@ -135,6 +135,9 @@ func (this *Protocol) BuildAnswerInlineQueryReq(o data.OInlineQueryAnswer) (reqt
 			   ArgDefault("cache_time", strconv.Itoa(o.CacheTime), "0").
 			   Arg("next_offset", o.NextOffset).
 			   Arg("results", string(b)).
+			   ArgDefault("is_personal", o.IsPersonal, false).
+			   ArgDefault("switch_pm_text", o.SwitchPMText, "").
+			   ArgDefault("switch_pm_parameter", o.SwitchPMParam, "").
 			   Multipart() // the alternative of multipart is URL encoded, which escapes a lot of stuff and thusly takes much more space
 }
 
