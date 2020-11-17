@@ -161,6 +161,13 @@ type OMessageEdit struct {
 	DisableWebPagePreview bool
 }
 
+type OMediaEdit struct {
+	SourceData
+
+	Media       TInputMedia
+	ReplyMarkup interface{}
+}
+
 type OCaptionEdit struct {
 	SourceData
 	SendData

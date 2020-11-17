@@ -523,3 +523,88 @@ type TChatPhoto struct {
 	BigId         FileID `json:"big_file_id"`
 	BigUniqueId   FileID `json:"big_file_unique_id"`
 }
+
+type TInputMedia interface {
+	InputMediaType() string
+	InputMedia() interface{}
+	InputThumb() interface{}
+}
+
+type TInputMediaAnimation struct {
+	Media     interface{}      `json:"-"`
+	Thumb     interface{}      `json:"-"`
+	Caption   string           `json:"caption"`
+	ParseMode MessageParseMode `json:"parse_mode"`
+	Width     int              `json:"width"`
+	Height    int              `json:"height"`
+	Duration  int              `json:"duration"`
+}
+
+func (this TInputMediaAnimation) InputMediaType() string {
+	return "animation"
+}
+
+func (this TInputMediaAnimation) InputMedia() interface{} { return this.Media }
+func (this TInputMediaAnimation) InputThumb() interface{} { return this.Thumb }
+
+type TInputMediaDocument struct {
+	Media     interface{}      `json:"-"`
+	Thumb     interface{}      `json:"-"`
+	Caption   string           `json:"caption"`
+	ParseMode MessageParseMode `json:"parse_mode"`
+}
+
+func (this TInputMediaDocument) InputMediaType() string {
+	return "document"
+}
+
+func (this TInputMediaDocument) InputMedia() interface{} { return this.Media }
+func (this TInputMediaDocument) InputThumb() interface{} { return this.Thumb }
+
+type TInputMediaPhoto struct {
+	Media     interface{}      `json:"-"`
+	Caption   string           `json:"caption"`
+	ParseMode MessageParseMode `json:"parse_mode"`
+}
+
+func (this TInputMediaPhoto) InputMediaType() string {
+	return "photo"
+}
+
+func (this TInputMediaPhoto) InputMedia() interface{} { return this.Media }
+func (this TInputMediaPhoto) InputThumb() interface{} { return nil }
+
+type TInputMediaVideo struct {
+	Media             interface{}      `json:"-"`
+	Thumb             interface{}      `json:"-"`
+	Caption           string           `json:"caption"`
+	ParseMode         MessageParseMode `json:"parse_mode"`
+	Width             int              `json:"width"`
+	Height            int              `json:"height"`
+	Duration          int              `json:"duration"`
+	SupportsStreaming bool             `json:"supports_streaming"`
+}
+
+func (this TInputMediaVideo) InputMediaType() string {
+	return "video"
+}
+
+func (this TInputMediaVideo) InputMedia() interface{} { return this.Media }
+func (this TInputMediaVideo) InputThumb() interface{} { return this.Thumb }
+
+type TInputMediaAudio struct {
+	Media     interface{}      `json:"-"`
+	Thumb     interface{}      `json:"-"`
+	Caption   string           `json:"caption"`
+	ParseMode MessageParseMode `json:"parse_mode"`
+	Duration  int              `json:"duration"`
+	Performer string           `json:"performer"`
+	Title     string           `json:"title"`
+}
+
+func (this TInputMediaAudio) InputMediaType() string {
+	return "audio"
+}
+
+func (this TInputMediaAudio) InputMedia() interface{} { return this.Media }
+func (this TInputMediaAudio) InputThumb() interface{} { return this.Thumb }
