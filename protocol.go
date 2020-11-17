@@ -254,6 +254,7 @@ func (this *Protocol) BuildDeleteMessageReq(o data.ODelete) (reqtify.Request) {
 // byte array: same as above. filename backup is used.
 // reqtify.FormFile: same as above, but uses included filename
 func applyFile(req reqtify.Request, tag, filename, backup_filename string, object interface{}) {
+	if object == nil { return }
 	if filename == "" { filename = backup_filename }
 	switch file := object.(type) {
 	case data.FileID:
@@ -261,8 +262,10 @@ func applyFile(req reqtify.Request, tag, filename, backup_filename string, objec
 	case string:
 		req.Arg(tag, file)
 	case io.Reader:
+		if file == nil { return }
 		req.Method(reqtify.POST).FileArg(tag, filename, file)
 	case []byte:
+		if file == nil { return }
 		req.Method(reqtify.POST).FileArg(tag, filename, bytes.NewReader(file))
 	case reqtify.FormFile:
 		req.Method(reqtify.POST).FileArg(tag, file.Name, file.Data)
