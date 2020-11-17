@@ -356,6 +356,28 @@ func (this *Protocol) BuildSendAnimationReq(o data.OAnimation) (reqtify.Request)
 	return req
 }
 
+func (this *Protocol) BuildSendVideoReq(o data.OVideo) (reqtify.Request) {
+	req := this.client.New("sendVideo").
+			   Arg("chat_id", GetStringId(o.ChatId)).
+			   ArgDefault("caption", o.Text, "").
+			   ArgDefault("parse_mode", o.ParseMode.String(), "").
+			   ArgDefault("disable_notification", o.DisableNotification.String(), "false").
+			   ArgDefault("height", o.Height, 0).
+			   ArgDefault("width", o.Width, 0).
+			   ArgDefault("duration", o.Duration, 0).
+			   ArgDefault("supports_streaming", o.SupportsStreaming, false)
+	if o.ReplyToId != nil {
+		req.Arg("reply_to_message_id", o.ReplyToId.String())
+	}
+	if o.ReplyMarkup != nil {
+		b, e := json.Marshal(o.ReplyMarkup)
+		if e != nil { return nil }
+		req.Arg("reply_markup", string(b))
+	}
+	applyFile(req, "video", o.FileName, "video.mp4", o.File)
+	return req
+}
+
 func (this *Protocol) BuildSendDocumentReq(o data.ODocument) (reqtify.Request) {
 	req := this.client.New("sendDocument").
 			   Arg("chat_id", GetStringId(o.ChatId)).
@@ -477,6 +499,10 @@ func (this *Protocol) SendAnimationAsync(o data.OAnimation, sm data.ResponseHand
 	go DoAsyncCall(this.bot.Log, this.BuildSendAnimationReq(o), sm)
 }
 
+func (this *Protocol) SendVideoAsync(o data.OVideo, sm data.ResponseHandler) () {
+	go DoAsyncCall(this.bot.Log, this.BuildSendVideoReq(o), sm)
+}
+
 func (this *Protocol) AnswerInlineQueryAsync(o data.OInlineQueryAnswer, rm data.ResponseHandler) {
 	go DoAsyncCall(this.bot.Log, this.BuildAnswerInlineQueryReq(o), rm)
 }
@@ -572,6 +598,12 @@ func (this *Protocol) SendPhoto(o data.OPhoto) (*data.TMessage, error) {
 func (this *Protocol) SendAnimation(o data.OAnimation) (*data.TMessage, error) {
 	var m data.TMessage
 	j, e := DoCall(this.bot.Log, this.BuildSendAnimationReq(o))
+	return &m, OutputToObject(j, e, &m)
+}
+
+func (this *Protocol) SendVideo(o data.OVideo) (*data.TMessage, error) {
+	var m data.TMessage
+	j, e := DoCall(this.bot.Log, this.BuildSendVideoReq(o))
 	return &m, OutputToObject(j, e, &m)
 }
 

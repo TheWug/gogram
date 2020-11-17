@@ -349,6 +349,29 @@ type TInlineQueryResultGif struct {
 	InputMessageContent *TInputMessageTextContent `json:"input_message_content,omitempty"`
 }
 
+type TInlineQueryResultCachedAnimation struct {
+	Type                 string                   `json:"type"`
+	Id                   string                   `json:"id"`
+	AnimationId          FileID                   `json:"mpeg4_file_id"`
+	Title               *string                   `json:"title,omitempty"`
+	Caption             *string                   `json:"caption,omitempty"`
+	ParseMode            MessageParseMode         `json:"parse_mode,omitempty"`
+	ReplyMarkup         *TInlineKeyboard          `json:"reply_markup,omitempty"`
+	InputMessageContent *TInputMessageTextContent `json:"input_message_content,omitempty"`
+}
+
+type TInlineQueryResultCachedVideo struct {
+	Type                 string                   `json:"type"`
+	Id                   string                   `json:"id"`
+	VideoId              FileID                   `json:"video_file_id"`
+	Title                string                   `json:"title"`
+	Description         *string                   `json:"description,omitempty"`
+	Caption             *string                   `json:"caption,omitempty"`
+	ParseMode            MessageParseMode         `json:"parse_mode,omitempty"`
+	ReplyMarkup         *TInlineKeyboard          `json:"reply_markup,omitempty"`
+	InputMessageContent *TInputMessageTextContent `json:"input_message_content,omitempty"`
+}
+
 type TInlineKeyboard struct {
 	Buttons [][]TInlineKeyboardButton `json:"inline_keyboard"`
 }
