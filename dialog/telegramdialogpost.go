@@ -1,7 +1,7 @@
 package dialog
 
 import (
-	"storage"
+	"github.com/thewug/knottybot/pkg/storage"
 
 	"github.com/thewug/gogram"
 	"github.com/thewug/gogram/data"
@@ -26,7 +26,7 @@ type TelegramDialogPost struct {
 	dialog    Dialog
 }
 
-func (this *TelegramDialogPost) FirstSave(settings storage.UpdaterSettings, msg_id data.MsgID, chat_id data.ChatID, ts time.Time, d Dialog) (error) {
+func (this *TelegramDialogPost) FirstSave(tx storage.DBLike, msg_id data.MsgID, chat_id data.ChatID, ts time.Time, d Dialog) (error) {
 	*this = TelegramDialogPost{
 		msg_id: msg_id,
 		msg_ts: ts,
@@ -34,18 +34,18 @@ func (this *TelegramDialogPost) FirstSave(settings storage.UpdaterSettings, msg_
 		dialog_id: d.ID(),
 		dialog: d,
 	}
-	return this.Save(settings)
+	return this.Save(tx)
 }
 
-func (this *TelegramDialogPost) Save(settings storage.UpdaterSettings) error {
+func (this *TelegramDialogPost) Save(tx storage.DBLike) error {
 	json, err := this.dialog.JSON()
 	if err != nil { return err }
 
-	return storage.WriteDialogPost(settings, this.dialog_id, this.msg_id, this.chat_id, json, this.msg_ts)
+	return storage.WriteDialogPost(tx, this.dialog_id, this.msg_id, this.chat_id, json, this.msg_ts)
 }
 
-func (this *TelegramDialogPost) Delete(settings storage.UpdaterSettings) error {
-	return storage.EraseDialogPost(settings, this.msg_id, this.chat_id)
+func (this *TelegramDialogPost) Delete(tx storage.DBLike) error {
+	return storage.EraseDialogPost(tx, this.msg_id, this.chat_id)
 }
 
 func (this *TelegramDialogPost) Load(found *storage.DialogPost, id data.DialogID, dlg Dialog) {
