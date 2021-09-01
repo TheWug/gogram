@@ -1,7 +1,7 @@
 package dialog
 
 import (
-	"github.com/thewug/knottybot/pkg/storage"
+	"github.com/thewug/fsb/pkg/storage"
 
 	"github.com/thewug/gogram"
 	"github.com/thewug/gogram/data"
