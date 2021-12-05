@@ -6,7 +6,7 @@ import (
 
 // unique identifiers used by telegram. treat these like atoms.
 type UpdateID     int
-type UserID       int
+type UserID       int64
 type ChatID       int64
 type MsgID        int
 
