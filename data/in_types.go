@@ -121,6 +121,7 @@ type TMessageEntity struct {
 type TMessage struct {
 	Id                     MsgID              `json:"message_id"`
 	From                  *TUser              `json:"from"`
+	FromChat              *TChat              `json:"sender_chat"`
 	Date                   int64              `json:"date"`
 	Chat                   TChat              `json:"chat"`
 	ForwardFrom           *TUser              `json:"forward_from"`

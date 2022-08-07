@@ -204,7 +204,9 @@ func (this *TMessage) GetEntities() []TMessageEntity {
 }
 
 func (this *TMessage) Sender() (Sender) {
-	if this.From != nil {
+	if this.FromChat != nil {
+		return Sender{Channel: this.FromChat.Id}
+	} else if this.From != nil {
 		return Sender{User: this.From.Id}
 	} else {
 		return Sender{Channel: this.Chat.Id}
